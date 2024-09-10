@@ -5,7 +5,7 @@ import pandas as pd
 
 def download_index_data(index_symbol: str) -> pd.DataFrame:
     """下载指数成分股数据"""
-    return ak.index_stock_cons(index_symbol)
+    return ak.index_stock_cons(symbol=index_symbol)
 
 def save_raw_data(data: pd.DataFrame, filename: str):
     """保存原始数据到文件"""

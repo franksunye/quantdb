@@ -158,7 +158,7 @@ if __name__ == "__main__":
 
         if index_data:
             # 设置时间范围
-            start_date = "2023-09-01"
+            start_date = "2024-06-01"
             end_date = datetime.now().strftime("%Y-%m-%d")
             
             # 绘制 ADL 和HS300指数图形
