@@ -1,60 +1,169 @@
-创建一个Python项目来下载、保存、更新和维护股市数据，并定时处理数据时，合理的文件结构有助于代码的可维护性和扩展性。以下是一个推荐的项目结构：
+# QuantDB: 面向Agent时代的开源金融智能中间件平台
+
+![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+## 项目概述
+
+QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MCP（Model Context Protocol）协议标准化自然语言与金融数据之间的接口，支持AI原生、上下文感知、结构化响应的金融服务。
+
+### 核心特点
+
+- **智能数据中间层**：作为"数据蓄水池"模型，高效缓存热点数据，支持多Agent共享数据上下文
+- **MCP协议支持**：将自然语言请求转化为结构化、可执行、上下文感知的任务协议
+- **Agent生态对接**：支持与LangChain、OpenAI Plugin、AutoGPT等主流Agent平台集成
+- **开放式数据服务**：整合多种金融数据源，提供统一的数据访问接口
+
+### 核心转变
+
+- 从**查询型API** → **交互式智能Agent接口**
+- 从**静态数据管道** → **动态上下文增强数据服务**
+- 从**服务消费者** → **Agent工具链提供者**
+
+## 快速开始
+
+### 安装
+
+```bash
+# 克隆仓库
+git clone https://github.com/franksunye/quantdb.git
+cd quantdb
+
+# 安装依赖
+pip install -r requirements.txt
+```
+
+### 基本使用
+
+```python
+# 导入主模块
+from src.main import main
+
+# 运行股票数据更新
+main(mode="update_stock", symbols=["000001", "600000"])
+
+# 运行指数数据更新
+main(mode="update_index", index_codes=["000300"])
+```
+
+### 命令行使用
+
+```bash
+# 下载股票数据
+python -m src.main --mode stock --symbols 000001 600000
+
+# 更新指数数据
+python -m src.main --mode update_index --index_codes 000300
+
+# 下载所有沪深股票信息
+python -m src.main --mode all_stocks
+```
+
+## 项目结构
 
 ```
 /
-│
 ├── data/                          # 数据存储目录
 │   ├── raw/                       # 原始数据
 │   └── processed/                 # 处理过的数据
 │
 ├── database/                      # 数据库相关文件
 │   ├── schema.sql                 # 数据库初始化的SQL脚本
-│   ├── migrations/                # 数据库迁移文件（如果需要）
+│   ├── migrations/                # 数据库迁移文件
 │   └── stock_data.db              # SQLite数据库文件
 │
+├── docs/                          # 项目文档
+│   ├── 00_vsion_and_roadmap.md    # 愿景与路线图
+│   ├── 01_business_rules.md       # 业务规则参考
+│   ├── 02_business_objects_design.md # 业务对象设计
+│   ├── 03_system_architecture.md  # 系统架构概览
+│   ├── 04_roadmap.md              # 开发路线图
+│   ├── 05_testing_approach.md     # 测试策略简述
+│   ├── 06_configuration_guide.md  # 配置指南
+│   └── project_management/        # 项目管理文档
+│
 ├── src/                           # 源代码目录
-│   ├── __init__.py                # 标识src为一个包
+│   ├── domain/                    # 领域模型
+│   │   ├── models/                # 业务模型
+│   │   └── repositories/          # 数据仓库
+│   ├── services/                  # 服务层
 │   ├── config.py                  # 配置文件
-│   ├── downloader.py              # 下载数据的模块
-│   ├── database.py                # 数据库操作模块
-│   ├── updater.py                 # 数据更新模块
-│   ├── processor.py               # 数据处理模块
-│   ├── scheduler.py               # 定时任务模块
-│   └── main.py                    # 主程序入口
+│   ├── database.py                # 数据库操作
+│   ├── downloader.py              # 数据下载
+│   ├── indicators.py              # 指标计算
+│   ├── logger.py                  # 日志记录
+│   ├── main.py                    # 主程序入口
+│   ├── processor.py               # 数据处理
+│   ├── scheduler.py               # 任务调度
+│   ├── signal_sender.py           # 信号发送
+│   ├── signal_to_plan.py          # 信号转计划
+│   └── updater.py                 # 数据更新
 │
 ├── tests/                         # 测试目录
-│   ├── __init__.py                # 标识tests为一个包
-│   ├── test_downloader.py         # 测试下载模块
-│   ├── test_database.py           # 测试数据库模块
-│   ├── test_updater.py            # 测试更新模块
-│   ├── test_processor.py          # 测试处理模块
-│   └── test_scheduler.py          # 测试定时任务模块
 │
-├── requirements.txt               # 项目依赖的Python包列表
-├── README.md                      # 项目简介和使用说明
-└── .gitignore                     # 忽略不需要的文件
+├── .gitignore                     # Git忽略文件
+├── import_gen_plan.bat            # 导入计划批处理
+├── requirements.txt               # 项目依赖
+└── README.md                      # 项目说明
 ```
 
-### 各个文件和目录的作用解释：
+## 核心功能
 
-- **data/**: 用于存储下载的数据。`raw/`目录保存原始未处理的数据，而`processed/`目录保存处理后的数据。
-- **database/**: 用于存储和管理SQLite数据库。`schema.sql`用于定义数据库的结构，`migrations/`存放数据库迁移文件（如果需要进行数据库版本的更新）。
-- **src/**: 存放项目的主要代码。
-  - `config.py`: 存放项目的配置参数（如API密钥、数据库路径、下载时间区间等）。
-  - `downloader.py`: 实现数据下载的功能。
-  - `database.py`: 负责与SQLite数据库的交互（插入、查询、更新等）。
-  - `updater.py`: 用于更新已有的股市数据，处理增量更新。
-  - `processor.py`: 对数据进行清理、转换、分析等处理操作。
-  - `scheduler.py`: 用于定时执行下载、更新和处理任务（可使用`APScheduler`或`cron`实现）。
-  - `main.py`: 程序的入口点，组织各模块的调用顺序和逻辑。
-  
-- **tests/**: 用于存放单元测试代码，确保各个模块的功能正常。
-- **requirements.txt**: 列出项目依赖的第三方库，可使用`pip install -r requirements.txt`安装。
-- **README.md**: 项目的介绍文档，包含项目的功能说明、使用方法、安装步骤等。
-- **.gitignore**: Git忽略文件列表，例如，`*.pyc`文件、虚拟环境文件、数据库文件等。
+- **数据获取与管理**：下载、存储和更新股票和指数数据
+- **交易信号生成**：基于历史数据生成交易信号
+- **交易计划管理**：将交易信号转换为交易计划并跟踪执行
+- **绩效分析**：分析交易计划和策略的绩效
+- **MCP协议支持**：支持自然语言到结构化查询的转换
+- **Agent接口**：提供与各种Agent平台集成的接口
 
-### 其他建议：
-1. **虚拟环境**: 建议在项目中使用Python虚拟环境（例如`venv`），以便于管理和隔离项目依赖。
-2. **代码规范**: 遵循PEP8代码规范，保持代码整洁。
-3. **日志记录**: 可以在项目中加入日志记录（例如使用`logging`模块），方便调试和跟踪程序运行情况。
-4. **版本控制**: 使用Git管理项目版本，尤其是代码和数据库的变更。
+## 文档
+
+详细文档请参阅[docs目录](./docs)：
+
+- [愿景与路线图](./docs/00_vsion_and_roadmap.md)
+- [业务规则参考](./docs/01_business_rules.md)
+- [业务对象设计](./docs/02_business_objects_design.md)
+- [系统架构概览](./docs/03_system_architecture.md)
+- [开发路线图](./docs/04_roadmap.md)
+- [测试策略简述](./docs/05_testing_approach.md)
+- [配置指南](./docs/06_configuration_guide.md)
+
+## 开发路线图
+
+### 短期目标 (1-3个月)
+- 实现智能缓存引擎
+- 开发数据源整合网关
+- 完善交易信号系统
+- 增强交易计划管理
+
+### 中期目标 (3-6个月)
+- 开发MCP协议框架
+- 实现API网关与服务层
+- 构建策略管理系统
+- 开发投资组合管理
+
+### 长期目标 (6-12个月)
+- 实现Agent生态对接
+- 开发智能服务能力
+- 构建智能数据中间层
+- 支持系统扩展和集成
+
+## 贡献指南
+
+欢迎贡献代码、报告问题或提出新功能建议。请遵循以下步骤：
+
+1. Fork 仓库
+2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
+3. 提交更改 (`git commit -m 'Add some amazing feature'`)
+4. 推送到分支 (`git push origin feature/amazing-feature`)
+5. 创建 Pull Request
+
+## 许可证
+
+本项目采用 MIT 许可证 - 详情请参阅 [LICENSE](LICENSE) 文件
+
+## 联系方式
+
+Ye Sun - franksunye@hotmail.com
+
+项目链接: [https://github.com/franksunye/quantdb](https://github.com/franksunye/quantdb)
