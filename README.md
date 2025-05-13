@@ -164,6 +164,6 @@ python -m src.main --mode all_stocks
 
 ## 联系方式
 
-Ye Sun - franksunye@hotmail.com
+项目维护者: frank
 
 项目链接: [https://github.com/franksunye/quantdb](https://github.com/franksunye/quantdb)
