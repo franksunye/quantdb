@@ -5,9 +5,11 @@ import matplotlib.dates as mdates
 from datetime import datetime
 from src.config import DATABASE_PATH
 from src.logger import logger
+import time  # 用于时间记录
 
 def calculate_index_trend(index_id):
     """计算特定指数的每日收盘价"""
+    start_time = time.time()  # 记录开始时间
     try:
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
@@ -23,6 +25,7 @@ def calculate_index_trend(index_id):
 
         conn.close()
 
+        logger.info(f"计算指数趋势耗时: {time.time() - start_time:.2f} 秒")
         return [(trade_date, close_price) for trade_date, close_price in index_data]
 
     except Exception as e:
@@ -31,6 +34,7 @@ def calculate_index_trend(index_id):
 
 def calculate_adl():
     """计算腾落指标（ADL）"""   
+    start_time = time.time()  # 记录开始时间
     try:
         conn = sqlite3.connect(DATABASE_PATH)
         cursor = conn.cursor()
@@ -39,7 +43,8 @@ def calculate_adl():
         cursor.execute('''
             SELECT trade_date, asset_id, close
             FROM daily_stock_data
-            ORDER BY trade_date, asset_id
+            WHERE close IS NOT NULL
+            ORDER BY trade_date, asset_id;
         ''')
         stock_data = cursor.fetchall()
 
@@ -73,6 +78,7 @@ def calculate_adl():
 
         conn.close()
 
+        logger.info(f"计算ADL耗时: {time.time() - start_time:.2f} 秒")
         return adl_results
 
     except Exception as e:
@@ -81,6 +87,7 @@ def calculate_adl():
 
 def plot_adl_and_index(adl_results, index_data, start_date_str, end_date_str):
     """绘制ADL和HS300指数图形，并设置时间范围"""
+    start_time = time.time()  # 记录开始时间
     try:
         # 转换日期字符串为 datetime 对象
         start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
@@ -145,10 +152,14 @@ def plot_adl_and_index(adl_results, index_data, start_date_str, end_date_str):
         plt.tight_layout()
         plt.show()
 
+        logger.info(f"绘制图形耗时: {time.time() - start_time:.2f} 秒")
+
     except Exception as e:
         logger.error(f"绘制图形时发生错误: {e}")
 
 if __name__ == "__main__":
+    total_start_time = time.time()  # 总执行时间计时开始
+
     # 计算 ADL 指标
     adl_results = calculate_adl()
 
@@ -158,9 +169,10 @@ if __name__ == "__main__":
 
         if index_data:
             # 设置时间范围
-            start_date = "2024-06-01"
+            start_date = "2023-03-01"
             end_date = datetime.now().strftime("%Y-%m-%d")
             
             # 绘制 ADL 和HS300指数图形
             plot_adl_and_index(adl_results, index_data, start_date, end_date)
 
+    logger.info(f"总执行时间: {time.time() - total_start_time:.2f} 秒")

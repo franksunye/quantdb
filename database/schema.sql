@@ -51,21 +51,54 @@ CREATE TABLE trade_signals (
     signal_date DATE NOT NULL,
     signal_type TEXT NOT NULL,
     signal_strength REAL,
+    price_at_signal REAL,  -- 新增字段：发出信号时的价格（一般为收盘价）
+    suggested_quantity INTEGER,  -- 新增字段：建议的交易数量
+    optimal_result TEXT,  -- 新增字段：与信号对应的最优结果（如回报率、夏普比率等）
     notes TEXT,
     FOREIGN KEY (strategy_id) REFERENCES strategies(strategy_id),
     FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
 );
 
--- 创建 trade_plans 表
+-- 创建交易计划表
 CREATE TABLE trade_plans (
     plan_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    plan_date DATE NOT NULL,
-    signal_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    decision TEXT,
-    notes TEXT,
-    FOREIGN KEY (signal_id) REFERENCES trade_signals(signal_id)
+    plan_date DATE NOT NULL,           -- 计划生成日期
+    signal_id INTEGER NOT NULL,        -- 关联的信号 ID
+    asset_id INTEGER NOT NULL,         -- 冗余存储的股票 ID
+    asset_name TEXT NOT NULL,          -- 冗余存储的股票名称
+    symbol TEXT NOT NULL,              -- 冗余存储的股票代码（符号）
+    status TEXT NOT NULL,              -- 计划状态
+    entry_price REAL,                  -- 入场价格
+    entry_date DATE,                   -- 入场日期
+    order_entry INTEGER,               -- 入场订单量
+    slip_entry REAL,                   -- 入场滑点
+    comm_entry REAL,                   -- 入场佣金
+    exit_price REAL,                   -- 出场价格
+    exit_date DATE,                    -- 出场日期
+    order_exit INTEGER,                -- 出场订单量
+    slip_exit REAL,                    -- 出场滑点
+    comm_exit REAL,                    -- 出场佣金
+    fee REAL,                          -- 费用
+    pnl REAL,                          -- 盈亏
+    net REAL,                          -- 净收益
+    entry_pct_change REAL,             -- 入场时涨跌幅
+    exit_pct_change REAL,              -- 出场时涨跌幅
+    trade_p REAL,                      -- 交易表现
+    level TEXT,                        -- 计划级别
+    upch INTEGER,                      -- 上涨股票数量
+    downch INTEGER,                    -- 下跌股票数量
+    high REAL,                         -- 计划内的最高价格
+    low REAL,                          -- 计划内的最低价格
+    notes TEXT,                        -- 备注
+    FOREIGN KEY (signal_id) REFERENCES trade_signals(signal_id),
+    FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
 );
+
+-- PENDING：初始状态，表示计划已经创建但还未执行。
+-- ACTIVE：表示计划已被激活或执行，处于进行中状态。
+-- COMPLETED：计划已成功完成，通常表示所有预定操作已经执行。
+-- CANCELLED：计划被取消，可能是由于市场条件变化或其他原因。
+-- FAILED：计划执行失败，可能是由于技术问题、市场波动等。
 
 -- 创建 trades 表
 CREATE TABLE trades (
@@ -157,4 +190,54 @@ CREATE TABLE optimization_results (
     created_at DATETIME NOT NULL,
     FOREIGN KEY (backtest_id) REFERENCES backtests(backtest_id),
     FOREIGN KEY (asset_id) REFERENCES assets(asset_id)
+);
+
+-- 创建股票日数据表
+CREATE TABLE IF NOT EXISTS daily_stock_data (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id INTEGER,
+    trade_date DATE,
+    open REAL,
+    high REAL,
+    low REAL,
+    close REAL,
+    volume INTEGER,
+    turnover REAL,
+    amplitude REAL,        -- 振幅
+    pct_change REAL,      -- 涨跌幅
+    change REAL,          -- 涨跌额
+    turnover_rate REAL,   -- 换手率
+    FOREIGN KEY (asset_id) REFERENCES assets (asset_id),
+    UNIQUE (asset_id, trade_date)  -- 确保每天的数据唯一
+);
+
+CREATE TABLE intraday_stock_data (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    asset_id            INTEGER,
+    capture_time        DATETIME,   -- 数据抓取的时间戳
+    trade_date          DATE,       -- 对应的交易日期
+    latest_price        REAL,       -- 最新价
+    pct_change          REAL,       -- 涨跌幅百分比
+    change              REAL,       -- 涨跌额
+    volume              INTEGER,    -- 成交量
+    turnover            REAL,       -- 成交额
+    amplitude           REAL,       -- 振幅
+    high                REAL,       -- 当天到当前时刻的最高价
+    low                 REAL,       -- 当天到当前时刻的最低价
+    open                REAL,       -- 当日开盘价
+    prev_close          REAL,       -- 昨日收盘价
+    volume_ratio        REAL,       -- 量比
+    turnover_rate       REAL,       -- 换手率
+    pe_ratio_dynamic    REAL,       -- 市盈率-动态
+    pb_ratio            REAL,       -- 市净率
+    total_market_cap    REAL,       -- 总市值
+    circulating_market_cap REAL,    -- 流通市值
+    speed_of_increase   REAL,       -- 涨速
+    five_min_pct_change REAL,       -- 5分钟涨跌
+    sixty_day_pct_change REAL,      -- 60日涨跌幅
+    ytd_pct_change      REAL,       -- 年初至今涨跌幅
+    is_final            BOOLEAN,    -- 是否为闭市后的最终数据
+    FOREIGN KEY (asset_id) 
+        REFERENCES assets(asset_id),
+    UNIQUE (asset_id, capture_time)  -- 确保同一时刻的同一股票数据唯一
 );

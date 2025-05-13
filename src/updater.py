@@ -2,115 +2,13 @@
 import akshare as ak
 import pandas as pd
 import sqlite3
-import logging
+from src.logger import logger
 from datetime import datetime, time, timedelta
 
-from src.database import insert_daily_stock_data, get_asset_id, get_last_trade_date, get_all_stock_symbols
 from src.logger import logger
-from src.config import DATABASE_PATH
-
-logger = logging.getLogger('quantdb')
-
-def download_and_save_stock_data(symbol, start_date=None):
-    """下载并保存股票的日数据"""
-    try:
-        # 下载股票日数据
-        df = ak.stock_zh_a_hist(symbol=symbol, start_date=start_date, end_date=pd.to_datetime("today").strftime('%Y%m%d'))
-        
-        if df.empty:
-            logger.warning(f"没有下载到数据: {symbol}")
-            return
-
-        # 确保所有必要字段都存在，缺失的字段用默认值补全
-        required_columns = [
-            '日期', '股票代码', '开盘', '收盘', '最高', '最低', 
-            '成交量', '成交额', '振幅', '涨跌幅', '涨跌额', '换手率'
-        ]
-
-        for col in required_columns:
-            if col not in df.columns:
-                df[col] = pd.NA
-        
-        conn = sqlite3.connect(DATABASE_PATH)
-        asset_id = get_asset_id(conn, symbol)
-        
-        if asset_id is None:
-            logger.error(f"资产ID不存在: {symbol}")
-            conn.close()
-            return
-
-        # 遍历 DataFrame 并插入数据到数据库
-        for _, row in df.iterrows():
-            insert_daily_stock_data(
-                conn,
-                asset_id,
-                row['日期'],
-                row['开盘'],
-                row['最高'],
-                row['最低'],
-                row['收盘'],
-                row['成交量'],
-                row.get('成交额', pd.NA),
-                row.get('振幅', pd.NA),
-                row.get('涨跌幅', pd.NA),
-                row.get('涨跌额', pd.NA),
-                row.get('换手率', pd.NA)
-            )
-        
-        conn.close()
-        logger.info(f"{symbol} 的数据已成功插入数据库")
-    
-    except Exception as e:
-        logger.error(f"处理股票 {symbol} 时发生错误: {e}")
-
-def download_and_save_index_data(index_code, start_date=None):
-    """下载并保存指数的日数据"""
-    try:
-        # Download index daily data
-        df = ak.stock_zh_index_daily_em(symbol=index_code, start_date=start_date)
-        
-        if df.empty:
-            logger.warning(f"没有下载到指数数据: {index_code}")
-            return
-        
-        # Ensure all required columns exist, filling missing ones with default values
-        required_columns = ['date', 'open', 'high', 'low', 'close', 'volume']
-        
-        for col in required_columns:
-            if col not in df.columns:
-                df[col] = pd.NA
-        
-        conn = sqlite3.connect(DATABASE_PATH)
-        asset_id = get_asset_id(conn, index_code)
-        
-        if asset_id is None:
-            logger.error(f"资产ID不存在: {index_code}")
-            conn.close()
-            return
-        
-        # Insert data into the database
-        for _, row in df.iterrows():
-            insert_daily_stock_data(
-                conn,
-                asset_id,
-                row['date'],
-                row['open'],
-                row['high'],
-                row['low'],
-                row['close'],
-                row['volume'],
-                None,  # 成交额
-                None,  # 振幅
-                None,  # 涨跌幅
-                None,  # 涨跌额
-                None   # 换手率
-            )
-        
-        conn.close()
-        logger.info(f"{index_code} 指数数据已成功插入数据库")
-    
-    except Exception as e:
-        logger.error(f"处理指数 {index_code} 时发生错误: {e}")
+from src.config import DATABASE_PATH, INDICES
+from src.database import get_last_trade_date, get_all_stock_symbols
+from src.downloader import *
 
 def is_market_closed():
     """判断当前时间是否处于闭市时间"""
@@ -204,8 +102,44 @@ def update_index_data(index_code, start_date=None):
     
     except Exception as e:
         logger.error(f"更新指数 {index_code} 的数据时发生错误: {e}")
+
+def handle_stock_data(symbols, update_only=False, conn=None):
+    # 如果没有指定股票编码，则从数据库中获取所有股票编码
+    if not symbols:
+        logger.info("未指定股票编码，从数据库中获取所有股票编码...")
+        symbols = get_all_stock_symbols(conn)
+        if not symbols:
+            logger.error("未找到任何股票编码")
+            return
+
+    # 处理股票日数据的下载和更新
+    for symbol in symbols:
+        if update_only:
+            update_stock_data(symbol)
+        else:
+            download_and_save_stock_data(symbol)
+            
+def handle_index_data_update(index_codes, conn, start_date=None):
+    for index_code in index_codes:
+        update_index_data(index_code, start_date)
+
+def handle_index_data(conn):
+    for index in INDICES:
+        download_index(index["code"], index["name"], index["csv"], conn)
         
-    if __name__ == "__main__":
-        # Example usage
-        update_stock_data("000001")  # Update stock data
-        update_index_data("sh000300")  # Update Shanghai Composite Index data
+def handle_intraday_stock_update(symbols, conn):
+    """处理每日股票数据更新"""
+    if not is_market_closed():
+        logger.info("市场尚未闭市，每日股票数据更新操作跳过")
+        return
+
+    if symbols:
+        for symbol in symbols:
+            download_and_save_intraday_stock_data(conn, symbol)
+    else:
+        download_and_save_intraday_stock_data(conn)
+        
+if __name__ == "__main__":
+    # Example usage
+    update_stock_data("000001")  # Update stock data
+    update_index_data("sh000300")  # Update Shanghai Composite Index data

@@ -16,16 +16,23 @@ def initialize_database():
     conn.close()
     print("Database initialized.")
 
-def insert_asset(symbol, name, isin, asset_type, exchange, currency):
+def insert_asset(conn, symbol, name, isin, asset_type, exchange, currency):
     """插入一条资产记录"""
-    conn = sqlite3.connect(DATABASE_PATH)
     cursor = conn.cursor()
     cursor.execute("""
         INSERT INTO ASSETS (symbol, name, isin, asset_type, exchange, currency)
         VALUES (?, ?, ?, ?, ?, ?)
     """, (symbol, name, isin, asset_type, exchange, currency))
     conn.commit()
-    conn.close()
+
+def update_asset(conn, asset_id, **kwargs):
+    cursor = conn.cursor()
+    columns = ', '.join([f'{key} = ?' for key in kwargs])
+    values = tuple(kwargs.values())
+    cursor.execute(f"""
+        UPDATE assets SET {columns}
+        WHERE asset_id = ?
+    """, (*values, asset_id))
 
 def insert_into_assets_and_index(df: pd.DataFrame, index_name: str, conn):
     cursor = conn.cursor()
@@ -72,6 +79,8 @@ def get_asset_id(conn, symbol):
     cursor = conn.cursor()
     cursor.execute("SELECT asset_id FROM assets WHERE symbol = ?", (symbol,))
     result = cursor.fetchone()
+    if result is None:
+        logger.error(f"没有找到资产: {symbol}")
     return result[0] if result else None
 
 def insert_daily_stock_data(conn, asset_id, trade_date, open_price, high_price, low_price, close_price, volume, turnover=None, amplitude=None, pct_change=None, change=None, turnover_rate=None):

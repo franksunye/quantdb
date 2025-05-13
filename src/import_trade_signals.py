@@ -1,3 +1,4 @@
+# src\import_trade_signals.py
 import sqlite3
 import csv
 import json
@@ -82,7 +83,7 @@ def import_signals_from_csv(csv_filename):
 
                 # 检查信号是否已经存在
                 if signal_exists(conn, asset_id, strategy_id, signal_date, signal_type):
-                    # logger.info(f"信号 {signal_date} {signal_type} 已存在，跳过插入")
+                    logger.info(f"信号 {signal_date} {signal_type} 已存在，跳过插入")
                     continue
 
                 # 插入信号到数据库

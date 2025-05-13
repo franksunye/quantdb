@@ -1,0 +1,46 @@
+# Python bytecode files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE specific files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Database files
+*.db
+*.sqlite3
+*.sqlite
+
+# Log files
+logs/
+*.log
+
+# Raw data files
+data/raw/
+data/processed/
+
+# Temporary files
+*.tmp
+*.bak
+.DS_Store
+
+# Keep empty directories with .gitkeep
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!logs/.gitkeep
+
+# Specific to this project
+database/stock_data.db
