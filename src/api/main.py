@@ -1,15 +1,22 @@
 """
 QuantDB API main application
 """
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import logging
+from sqlalchemy.orm import Session
 
 from src.config import API_PREFIX, DEBUG, ENVIRONMENT
 from src.logger import setup_logger
+from src.api.database import get_db
+from src.mcp.interpreter import MCPInterpreter
 
 # Setup logger
 logger = setup_logger(__name__)
+
+# Create MCP interpreter
+mcp_interpreter = MCPInterpreter()
 
 # Create FastAPI app
 app = FastAPI(
@@ -48,7 +55,45 @@ async def health_check():
     return {"status": "healthy"}
 
 # Import and include routers
-# This will be implemented in Sprint 2
+from src.api.routes import assets, prices
+from src.mcp.schemas import MCPRequest, MCPResponse
+
+# Include routers
+app.include_router(
+    assets.router,
+    prefix=API_PREFIX,
+    tags=["assets"]
+)
+
+app.include_router(
+    prices.router,
+    prefix=API_PREFIX,
+    tags=["prices"]
+)
+
+# MCP endpoint
+@app.post(f"{API_PREFIX}/mcp/query", response_model=MCPResponse, tags=["mcp"])
+async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
+    """
+    Process a natural language query using the MCP protocol
+    """
+    # Set the database session for the interpreter
+    mcp_interpreter.set_db(db)
+
+    # Process the request
+    response = await mcp_interpreter.process_request(request)
+
+    return response
+
+# Exception handler
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Global exception handler for the API"""
+    logger.error(f"Unhandled exception: {exc}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error", "message": str(exc)}
+    )
 
 # Startup event
 @app.on_event("startup")
