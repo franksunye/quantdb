@@ -44,3 +44,4 @@ data/processed/
 
 # Specific to this project
 database/stock_data.db
+.env
