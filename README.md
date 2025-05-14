@@ -1,24 +1,26 @@
 # QuantDB: 面向Agent时代的开源金融智能中间件平台
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue)
+![Version](https://img.shields.io/badge/version-0.3.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![API](https://img.shields.io/badge/API-FastAPI-009688)
+![Database](https://img.shields.io/badge/Database-SQLite%2FPostgreSQL-4169E1)
 
 ## 项目概述
 
-QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MCP（Model Context Protocol）协议标准化自然语言与金融数据之间的接口，支持AI原生、上下文感知、结构化响应的金融服务。
+QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MCP（Model Context Protocol）协议标准化自然语言与金融数据之间的接口，提供结构化的金融数据服务。作为一个数据提供者，QuantDB专注于高质量的数据API服务，让外部系统（如Agent或LLM）能够轻松获取和处理金融数据。
 
 ### 核心特点
 
-- **智能数据中间层**：作为"数据蓄水池"模型，高效缓存热点数据，支持多Agent共享数据上下文
-- **MCP协议支持**：将自然语言请求转化为结构化、可执行、上下文感知的任务协议
-- **Agent生态对接**：支持与LangChain、OpenAI Plugin、AutoGPT等主流Agent平台集成
+- **高质量数据服务**：提供结构化、标准化的金融数据API
+- **MCP协议支持**：将自然语言请求转化为结构化查询
+- **Agent友好接口**：设计适合Agent和LLM调用的API结构
 - **开放式数据服务**：整合多种金融数据源，提供统一的数据访问接口
 
-### 核心转变
+### 设计理念
 
-- 从**查询型API** → **交互式智能Agent接口**
-- 从**静态数据管道** → **动态上下文增强数据服务**
-- 从**服务消费者** → **Agent工具链提供者**
+- **专注数据，不含图表**：专注于提供高质量的数据服务，图表生成由外部调用方实现
+- **API优先**：以API为中心的设计，提供完整的数据访问能力
+- **云原生部署**：设计用于部署在Supabase和Vercel等现代云服务上
 
 ## 快速开始
 
@@ -29,34 +31,50 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 git clone https://github.com/franksunye/quantdb.git
 cd quantdb
 
-# 安装依赖
-pip install -r requirements.txt
+# 设置开发环境（创建目录、安装依赖、初始化数据库）
+python setup_dev_env.py
 ```
 
-### 基本使用
-
-```python
-# 导入主模块
-from src.main import main
-
-# 运行股票数据更新
-main(mode="update_stock", symbols=["000001", "600000"])
-
-# 运行指数数据更新
-main(mode="update_index", index_codes=["000300"])
-```
-
-### 命令行使用
+### 运行API服务
 
 ```bash
-# 下载股票数据
-python -m src.main --mode stock --symbols 000001 600000
+# 启动API服务
+uvicorn src.api.main:app --reload
 
-# 更新指数数据
-python -m src.main --mode update_index --index_codes 000300
+# API文档访问地址
+# http://localhost:8000/api/v1/docs
+```
 
-# 下载所有沪深股票信息
-python -m src.main --mode all_stocks
+### API使用示例
+
+```bash
+# 获取API信息
+curl http://localhost:8000/
+
+# 健康检查
+curl http://localhost:8000/api/v1/health
+```
+
+### 数据API（Sprint 2将实现）
+
+```bash
+# 获取资产列表
+curl http://localhost:8000/api/v1/assets
+
+# 获取特定资产详情
+curl http://localhost:8000/api/v1/assets/1
+
+# 获取资产价格历史
+curl http://localhost:8000/api/v1/assets/1/prices
+```
+
+### MCP协议（Sprint 2将实现）
+
+```bash
+# 使用自然语言查询数据
+curl -X POST http://localhost:8000/api/v1/mcp/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "显示上证指数最近30天的走势"}'
 ```
 
 ## 项目结构
@@ -73,80 +91,106 @@ python -m src.main --mode all_stocks
 │   └── stock_data.db              # SQLite数据库文件
 │
 ├── docs/                          # 项目文档
-│   ├── 00_vsion_and_roadmap.md    # 愿景与路线图
-│   ├── 01_business_rules.md       # 业务规则参考
-│   ├── 02_business_objects_design.md # 业务对象设计
-│   ├── 03_system_architecture.md  # 系统架构概览
-│   ├── 04_roadmap.md              # 开发路线图
-│   ├── 05_testing_approach.md     # 测试策略简述
-│   ├── 06_configuration_guide.md  # 配置指南
+│   ├── 00_document_standards.md   # 文档标准
+│   ├── ci_cd_setup.md             # CI/CD设置指南
+│   ├── database_schema.md         # 数据库架构文档
+│   ├── development_environment.md # 开发环境设置
+│   ├── supabase_setup.md          # Supabase设置指南
+│   ├── vercel_setup.md            # Vercel设置指南
 │   └── project_management/        # 项目管理文档
+│       ├── quantdb_01_PLAN_mvp.md # MVP计划
+│       └── quantdb_02_BOARD_mvp_sprint3.md # Sprint 3任务板
 │
 ├── src/                           # 源代码目录
-│   ├── domain/                    # 领域模型
-│   │   ├── models/                # 业务模型
-│   │   └── repositories/          # 数据仓库
-│   ├── services/                  # 服务层
+│   ├── api/                       # API模块
+│   │   ├── __init__.py
+│   │   ├── database.py            # 数据库连接
+│   │   ├── main.py                # FastAPI应用
+│   │   ├── models.py              # SQLAlchemy模型
+│   │   └── schemas.py             # Pydantic模式
+│   ├── mcp/                       # MCP协议模块
+│   │   ├── __init__.py
+│   │   ├── interpreter.py         # MCP解释器
+│   │   └── schemas.py             # MCP模式
+│   ├── scripts/                   # 工具脚本
+│   │   ├── __init__.py
+│   │   └── init_db.py             # 数据库初始化
 │   ├── config.py                  # 配置文件
-│   ├── database.py                # 数据库操作
+│   ├── database.py                # 旧数据库模块
 │   ├── downloader.py              # 数据下载
-│   ├── indicators.py              # 指标计算
 │   ├── logger.py                  # 日志记录
 │   ├── main.py                    # 主程序入口
-│   ├── processor.py               # 数据处理
-│   ├── scheduler.py               # 任务调度
-│   ├── signal_sender.py           # 信号发送
-│   ├── signal_to_plan.py          # 信号转计划
 │   └── updater.py                 # 数据更新
 │
 ├── tests/                         # 测试目录
+│   ├── __init__.py
+│   └── test_api.py                # API测试
 │
+├── .env                           # 环境变量
+├── .env.example                   # 环境变量示例
+├── .github/                       # GitHub配置
+│   └── workflows/                 # GitHub Actions工作流
+│       └── ci.yml                 # CI配置
 ├── .gitignore                     # Git忽略文件
-├── import_gen_plan.bat            # 导入计划批处理
 ├── requirements.txt               # 项目依赖
+├── setup_dev_env.py               # 开发环境设置脚本
 └── README.md                      # 项目说明
 ```
 
 ## 核心功能
 
+- **数据API服务**：提供结构化的金融数据API接口
 - **数据获取与管理**：下载、存储和更新股票和指数数据
-- **交易信号生成**：基于历史数据生成交易信号
-- **交易计划管理**：将交易信号转换为交易计划并跟踪执行
-- **绩效分析**：分析交易计划和策略的绩效
 - **MCP协议支持**：支持自然语言到结构化查询的转换
-- **Agent接口**：提供与各种Agent平台集成的接口
+- **数据库抽象**：支持本地SQLite和云端PostgreSQL数据库
+- **认证与授权**：安全的API访问控制
+- **云原生部署**：支持部署到Vercel和Supabase等云服务
 
 ## 文档
 
 详细文档请参阅[docs目录](./docs)：
 
-- [愿景与路线图](./docs/00_vsion_and_roadmap.md)
-- [业务规则参考](./docs/01_business_rules.md)
-- [业务对象设计](./docs/02_business_objects_design.md)
+- [开发环境设置](./docs/development_environment.md)
+- [数据库架构](./docs/database_schema.md)
+- [Supabase设置指南](./docs/supabase_setup.md)
+- [Vercel设置指南](./docs/vercel_setup.md)
+- [CI/CD设置指南](./docs/ci_cd_setup.md)
 - [系统架构概览](./docs/03_system_architecture.md)
-- [开发路线图](./docs/04_roadmap.md)
-- [测试策略简述](./docs/05_testing_approach.md)
-- [配置指南](./docs/06_configuration_guide.md)
+
+项目管理文档：
+
+- [MVP计划](./docs/project_management/quantdb_01_PLAN_mvp.md)
+- [Sprint 3任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint3.md)
 
 ## 开发路线图
 
-### 短期目标 (1-3个月)
-- 实现智能缓存引擎
-- 开发数据源整合网关
-- 完善交易信号系统
-- 增强交易计划管理
+### Sprint 1: 基础设施搭建 (已完成)
+- 设置本地开发环境
+- 创建FastAPI应用框架
+- 设计数据库模型
+- 实现基本API端点
+- 配置CI/CD流程
 
-### 中期目标 (3-6个月)
-- 开发MCP协议框架
-- 实现API网关与服务层
-- 构建策略管理系统
-- 开发投资组合管理
+### Sprint 2: 数据服务开发 (进行中)
+- 实现资产API
+- 开发价格数据API
+- 创建数据导入服务
+- 实现基本的MCP协议解析
+- 开发数据查询功能
 
-### 长期目标 (6-12个月)
-- 实现Agent生态对接
-- 开发智能服务能力
-- 构建智能数据中间层
-- 支持系统扩展和集成
+### Sprint 3: API增强与文档
+- 增强API功能
+- 开发API文档系统
+- 实现API版本控制
+- 增强MCP协议功能
+- 开发API测试套件
+
+### Sprint 4: 部署与优化
+- 部署API服务
+- 配置Supabase数据库
+- 实现API监控系统
+- 进行端到端测试
+- 性能优化
 
 ## 贡献指南
 
