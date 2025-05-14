@@ -1,3 +1,29 @@
-akshare
-pandas
-schedule
+# Data processing and analysis
+pandas>=1.3.0
+numpy>=1.20.0
+akshare>=1.0.0
+
+# Web framework and API
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.0
+httpx>=0.18.0
+
+# Database
+sqlalchemy>=1.4.0
+psycopg2-binary>=2.9.0  # For PostgreSQL
+alembic>=1.7.0  # For database migrations
+
+# Authentication
+python-jose>=3.3.0  # For JWT
+passlib>=1.7.4  # For password hashing
+python-multipart>=0.0.5  # For form data parsing
+
+# Testing
+pytest>=6.2.0
+pytest-cov>=2.12.0
+
+# Utilities
+python-dotenv>=0.19.0
+schedule>=1.1.0
+requests>=2.26.0

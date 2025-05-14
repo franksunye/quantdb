@@ -1,19 +1,47 @@
 # src/config.py
 
 import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), '../database/stock_data.db')
-RAW_DATA_DIR = os.path.join(os.path.dirname(__file__), '../data/raw/')
-PROCESSED_DATA_DIR = os.path.join(os.path.dirname(__file__), '../data/processed/')
+# Load environment variables from .env file
+env_path = Path(__file__).resolve().parent.parent / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# Base paths
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATABASE_PATH = os.path.join(BASE_DIR, 'database/stock_data.db')
+RAW_DATA_DIR = os.path.join(BASE_DIR, 'data/raw/')
+PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'data/processed/')
+
+# Database configuration
+DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{DATABASE_PATH}')
+
+# API configuration
+API_PREFIX = os.getenv('API_PREFIX', '/api/v1')
+DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+
+# Security
+SECRET_KEY = os.getenv('SECRET_KEY', 'temporarysecretkey123456789')
+ALGORITHM = os.getenv('ALGORITHM', 'HS256')
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30'))
+
+# Logging
+LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')
+LOG_FILE = os.getenv('LOG_FILE', 'logs/quantdb.log')
+
+# External services
+WEBHOOK_URL = os.getenv('WEBHOOK_URL', '')
 
 # Indices configuration
 INDEX_CONFIG = {
     # "000300": "沪深300",
     # "000905": "中证500", # 中证小盘500指数
     # "000904": "中证200", # 中证中盘200指数
-    # "000903": "中证100", 
+    # "000903": "中证100",
     # "000852": "中证1000",
-    # "932000": "中证2000",  
+    # "932000": "中证2000",
     # "000699": "科创200",
     # "000698": "科创100",
     # "000688": "科创50",
