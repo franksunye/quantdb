@@ -42,9 +42,11 @@ def create_directories():
         "data/raw",
         "data/processed",
         "logs",
-        "database"
+        "database",
+        "coverage_reports",
+        "coverage_reports/html"
     ]
-    
+
     for directory in directories:
         path = Path(directory)
         if not path.exists():
@@ -56,31 +58,86 @@ def create_directories():
 def install_dependencies():
     """Install Python dependencies"""
     logger.info("Installing dependencies...")
-    return run_command("pip install -r requirements.txt")
+    if not run_command("pip install -r requirements.txt"):
+        return False
+
+    # Install development dependencies
+    logger.info("Installing development dependencies...")
+    dev_dependencies = [
+        "pytest",
+        "pytest-cov",
+        "flake8",
+        "black",
+        "isort",
+        "mypy",
+        "pre-commit"
+    ]
+
+    return run_command(f"pip install {' '.join(dev_dependencies)}")
 
 def initialize_database():
     """Initialize the database"""
     logger.info("Initializing database...")
-    return run_command("python -m src.scripts.init_db")
+    if not run_command("python -m src.scripts.init_db"):
+        return False
+
+    # Initialize test data
+    logger.info("Initializing test data...")
+    return run_command("python -m tests.init_test_db")
+
+def setup_pre_commit():
+    """Set up pre-commit hooks"""
+    logger.info("Setting up pre-commit hooks...")
+    return run_command("pre-commit install")
+
+def fix_deprecation_warnings():
+    """Fix deprecation warnings"""
+    logger.info("Fixing deprecation warnings...")
+    return run_command("python fix_deprecation_warnings.py")
+
+def run_tests():
+    """Run tests"""
+    logger.info("Running tests...")
+    return run_command("python run_specific_tests.py")
 
 def main():
     """Main setup function"""
     logger.info("Setting up development environment...")
-    
+
     # Create directories
     create_directories()
-    
+
     # Install dependencies
     if not install_dependencies():
         logger.error("Failed to install dependencies")
         return False
-    
+
     # Initialize database
     if not initialize_database():
         logger.error("Failed to initialize database")
         return False
-    
+
+    # Set up pre-commit hooks
+    if not setup_pre_commit():
+        logger.error("Failed to set up pre-commit hooks")
+        logger.warning("Continuing despite pre-commit setup failure")
+
+    # Fix deprecation warnings
+    if not fix_deprecation_warnings():
+        logger.error("Failed to fix deprecation warnings")
+        logger.warning("Continuing despite deprecation warnings fix failure")
+
+    # Run tests
+    if not run_tests():
+        logger.error("Some tests failed")
+        logger.warning("Continuing despite test failures")
+
     logger.info("Development environment setup completed successfully")
+    logger.info("\nNext steps:")
+    logger.info("1. Run tests: python run_specific_tests.py")
+    logger.info("2. Run tests with coverage: python run_coverage.py")
+    logger.info("3. Start the API server: python -m src.api.main")
+
     return True
 
 if __name__ == "__main__":

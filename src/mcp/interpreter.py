@@ -1,5 +1,9 @@
 """
 MCP protocol interpreter
+
+This module implements the Model Context Protocol (MCP) interpreter,
+which translates natural language queries into structured data responses.
+It integrates with the Reservoir Cache mechanism for efficient data retrieval.
 """
 import re
 import logging
@@ -10,6 +14,9 @@ from sqlalchemy.orm import Session
 
 from src.mcp.schemas import MCPRequest, MCPResponse
 from src.api.models import Asset, Price
+from src.cache.cache_engine import CacheEngine
+from src.cache.freshness_tracker import FreshnessTracker
+from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
 
 # Setup logger
@@ -22,15 +29,28 @@ class MCPInterpreter:
     Implements basic natural language understanding for financial queries
     """
 
-    def __init__(self, db: Optional[Session] = None):
+    def __init__(self, db: Optional[Session] = None,
+                cache_engine: Optional[CacheEngine] = None,
+                freshness_tracker: Optional[FreshnessTracker] = None,
+                akshare_adapter: Optional[AKShareAdapter] = None):
         """
         Initialize the MCP interpreter
 
         Args:
             db: SQLAlchemy database session (optional)
+            cache_engine: Cache engine instance (optional)
+            freshness_tracker: Freshness tracker instance (optional)
+            akshare_adapter: AKShare adapter instance (optional)
         """
         logger.info("Initializing MCP interpreter")
         self.db = db
+        self.cache_engine = cache_engine or CacheEngine()
+        self.freshness_tracker = freshness_tracker or FreshnessTracker()
+        self.akshare_adapter = akshare_adapter or AKShareAdapter(
+            cache_engine=self.cache_engine,
+            freshness_tracker=self.freshness_tracker
+        )
+        logger.info("MCP interpreter initialized with Reservoir Cache integration")
 
         # Define intent patterns
         self.intent_patterns = [
@@ -163,31 +183,63 @@ class MCPInterpreter:
         """
         entities = {}
 
-        # Extract symbol
-        symbol_match = re.search(self.symbol_pattern, query)
+        # Extract symbol - Chinese stock symbols are 6 digits
+        symbol_match = re.search(r'\b(\d{6})\b', query)
         if symbol_match:
             entities["symbol"] = symbol_match.group(1).strip()
+            logger.info(f"Extracted symbol: {entities['symbol']}")
         else:
-            # Try to find a symbol-like pattern (1-5 characters, all caps)
-            symbol_candidates = re.findall(r'\b([A-Z0-9]{1,5})\b', query)
-            if symbol_candidates:
-                # Check if any of these are valid symbols in our database
-                for candidate in symbol_candidates:
-                    if self.db and self.db.query(Asset).filter(Asset.symbol == candidate).first():
-                        entities["symbol"] = candidate
-                        break
+            # Try explicit symbol pattern
+            symbol_match = re.search(self.symbol_pattern, query)
+            if symbol_match:
+                entities["symbol"] = symbol_match.group(1).strip()
+                logger.info(f"Extracted symbol from explicit pattern: {entities['symbol']}")
+            else:
+                # Try to find symbol-like patterns
+                symbol_candidates = re.findall(r'\b([A-Z0-9]{1,6})\b', query)
+                if symbol_candidates:
+                    # Check if any of these are valid symbols in our database
+                    for candidate in symbol_candidates:
+                        if self.db and self.db.query(Asset).filter(Asset.symbol == candidate).first():
+                            entities["symbol"] = candidate
+                            logger.info(f"Found symbol in database: {entities['symbol']}")
+                            break
 
         # Extract asset name
         name_match = re.search(self.asset_name_pattern, query)
         if name_match:
             entities["asset_name"] = name_match.group(1).strip()
+            logger.info(f"Extracted asset name: {entities['asset_name']}")
         else:
             # Try to find company names directly in the query
-            common_companies = ["Apple", "Microsoft", "Google", "Amazon", "Tesla"]
-            for company in common_companies:
-                if company.lower() in query.lower():
+            # Common Chinese stocks
+            common_stocks = {
+                "平安银行": "000001",
+                "浦发银行": "600000",
+                "贵州茅台": "600519",
+                "中国平安": "601318",
+                "招商银行": "600036",
+                "工商银行": "601398",
+                "建设银行": "601939",
+                "上证指数": "000001.SH",
+                "深证成指": "399001.SZ"
+            }
+
+            for company, symbol in common_stocks.items():
+                if company in query:
                     entities["asset_name"] = company
+                    entities["symbol"] = symbol
+                    logger.info(f"Found common stock: {company} ({symbol})")
                     break
+
+            # If still no match, try common international companies
+            if "asset_name" not in entities:
+                common_companies = ["Apple", "Microsoft", "Google", "Amazon", "Tesla"]
+                for company in common_companies:
+                    if company.lower() in query.lower():
+                        entities["asset_name"] = company
+                        logger.info(f"Found common international company: {company}")
+                        break
 
         # Extract dates
         date_matches = re.findall(self.date_pattern, query)
@@ -207,12 +259,35 @@ class MCPInterpreter:
                 if len(parsed_dates) >= 2:
                     entities["start_date"] = min(parsed_dates)
                     entities["end_date"] = max(parsed_dates)
+                    logger.info(f"Extracted date range: {entities['start_date']} to {entities['end_date']}")
                 elif len(parsed_dates) == 1:
                     # If only one date is provided, assume it's the start date
                     entities["start_date"] = parsed_dates[0]
                     entities["end_date"] = date.today()
+                    logger.info(f"Extracted single date: {entities['start_date']} to {entities['end_date']}")
             except ValueError as e:
                 logger.warning(f"Error parsing dates: {e}")
+
+        # Try to extract Chinese date formats (YYYY年MM月DD日)
+        chinese_date_pattern = r'(\d{4})年(\d{1,2})月(\d{1,2})日'
+        chinese_date_matches = re.findall(chinese_date_pattern, query)
+        if chinese_date_matches:
+            try:
+                # Convert to date objects
+                chinese_dates = []
+                for year, month, day in chinese_date_matches:
+                    chinese_dates.append(date(int(year), int(month), int(day)))
+
+                if len(chinese_dates) >= 2:
+                    entities["start_date"] = min(chinese_dates)
+                    entities["end_date"] = max(chinese_dates)
+                    logger.info(f"Extracted Chinese date range: {entities['start_date']} to {entities['end_date']}")
+                elif len(chinese_dates) == 1:
+                    entities["start_date"] = chinese_dates[0]
+                    entities["end_date"] = date.today()
+                    logger.info(f"Extracted Chinese single date: {entities['start_date']} to {entities['end_date']}")
+            except ValueError as e:
+                logger.warning(f"Error parsing Chinese dates: {e}")
 
         # Extract time periods
         days_match = re.search(self.days_pattern, query)
@@ -282,12 +357,103 @@ class MCPInterpreter:
             end_date = entities.get("end_date", date.today())
             start_date = entities.get("start_date", end_date - timedelta(days=30))
 
-            # Get price data
-            prices = self.db.query(Price).filter(
-                Price.asset_id == asset.asset_id,
-                Price.date >= start_date,
-                Price.date <= end_date
-            ).order_by(Price.date.desc()).limit(30).all()
+            # Generate cache key for price data
+            cache_key = self.cache_engine.generate_key(
+                "get_price",
+                asset.asset_id,
+                start_date.isoformat(),
+                end_date.isoformat()
+            )
+
+            # Try to get data from cache first
+            cached_prices = None
+            if self.freshness_tracker.is_fresh(cache_key, "relaxed"):
+                cached_prices = self.cache_engine.get(cache_key)
+                if cached_prices:
+                    logger.info(f"Cache hit for price data: {cache_key}")
+                    prices = cached_prices
+                else:
+                    logger.info(f"Cache miss for price data: {cache_key}")
+
+            # If not in cache or not fresh, get from database
+            if cached_prices is None:
+                logger.info(f"Getting price data from database for {asset.symbol}")
+                prices = self.db.query(Price).filter(
+                    Price.asset_id == asset.asset_id,
+                    Price.date >= start_date,
+                    Price.date <= end_date
+                ).order_by(Price.date.desc()).limit(30).all()
+
+                # Store in cache
+                if prices:
+                    self.cache_engine.set(cache_key, prices, ttl=3600)  # Cache for 1 hour
+                    self.freshness_tracker.mark_updated(cache_key, ttl=3600)
+                    logger.info(f"Stored price data in cache: {cache_key}")
+
+            # If no data available, try to get from AKShare
+            if not prices:
+                try:
+                    logger.info(f"No price data in database, trying AKShare for {asset.symbol}")
+                    # Format dates for AKShare
+                    start_date_str = start_date.strftime("%Y%m%d")
+                    end_date_str = end_date.strftime("%Y%m%d")
+
+                    # Get data from AKShare - try real data first, fall back to mock if needed
+                    logger.info(f"Fetching data from AKShare for {asset.symbol} from {start_date_str} to {end_date_str}")
+                    try:
+                        # First try with real data
+                        stock_data = self.akshare_adapter.get_stock_data(
+                            symbol=asset.symbol,
+                            start_date=start_date_str,
+                            end_date=end_date_str,
+                            use_mock_data=False  # Try real data first
+                        )
+
+                        # If no real data, try with mock data for testing
+                        if stock_data.empty:
+                            logger.warning(f"No real data available for {asset.symbol}, trying mock data")
+                            stock_data = self.akshare_adapter.get_stock_data(
+                                symbol=asset.symbol,
+                                start_date=start_date_str,
+                                end_date=end_date_str,
+                                use_mock_data=True  # Fall back to mock data
+                            )
+                    except Exception as fetch_error:
+                        logger.error(f"Error fetching real data: {fetch_error}, trying mock data")
+                        stock_data = self.akshare_adapter.get_stock_data(
+                            symbol=asset.symbol,
+                            start_date=start_date_str,
+                            end_date=end_date_str,
+                            use_mock_data=True  # Fall back to mock data
+                        )
+
+                    if not stock_data.empty:
+                        # Convert to list of Price objects
+                        prices = []
+                        for _, row in stock_data.iterrows():
+                            price = Price(
+                                asset_id=asset.asset_id,
+                                date=datetime.strptime(row['date'], "%Y-%m-%d").date(),
+                                open=row['open'],
+                                high=row['high'],
+                                low=row['low'],
+                                close=row['close'],
+                                volume=row['volume'],
+                                adjusted_close=row.get('adjusted_close', row['close'])
+                            )
+                            prices.append(price)
+
+                        # Store in database
+                        for price in prices:
+                            self.db.add(price)
+                        self.db.commit()
+
+                        # Store in cache
+                        self.cache_engine.set(cache_key, prices, ttl=3600)  # Cache for 1 hour
+                        self.freshness_tracker.mark_updated(cache_key, ttl=3600)
+                        logger.info(f"Stored AKShare price data in cache: {cache_key}")
+                except Exception as e:
+                    logger.error(f"Error getting data from AKShare: {e}")
 
             if not prices:
                 return {

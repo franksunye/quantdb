@@ -15,8 +15,25 @@ from src.mcp.interpreter import MCPInterpreter
 # Setup logger
 logger = setup_logger(__name__)
 
-# Create MCP interpreter
-mcp_interpreter = MCPInterpreter()
+# Import cache components
+from src.cache.cache_engine import CacheEngine
+from src.cache.freshness_tracker import FreshnessTracker
+from src.cache.akshare_adapter import AKShareAdapter
+
+# Create cache components
+cache_engine = CacheEngine()
+freshness_tracker = FreshnessTracker()
+akshare_adapter = AKShareAdapter(
+    cache_engine=cache_engine,
+    freshness_tracker=freshness_tracker
+)
+
+# Create MCP interpreter with cache components
+mcp_interpreter = MCPInterpreter(
+    cache_engine=cache_engine,
+    freshness_tracker=freshness_tracker,
+    akshare_adapter=akshare_adapter
+)
 
 # Create FastAPI app
 app = FastAPI(
@@ -55,7 +72,8 @@ async def health_check():
     return {"status": "healthy"}
 
 # Import and include routers
-from src.api.routes import assets, prices
+from src.api.routes import assets, prices, data_import, cache, historical_data
+from src.api.cache_api import router as cache_api_router
 from src.mcp.schemas import MCPRequest, MCPResponse
 
 # Include routers
@@ -69,6 +87,29 @@ app.include_router(
     prices.router,
     prefix=API_PREFIX,
     tags=["prices"]
+)
+
+app.include_router(
+    data_import.router,
+    prefix=API_PREFIX,
+    tags=["import"]
+)
+
+app.include_router(
+    cache.router,
+    prefix=API_PREFIX,
+    tags=["cache"]
+)
+
+app.include_router(
+    cache_api_router,
+    tags=["cache-management"]
+)
+
+app.include_router(
+    historical_data.router,
+    prefix=API_PREFIX,
+    tags=["historical"]
 )
 
 # MCP endpoint

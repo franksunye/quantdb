@@ -1,9 +1,9 @@
 """
 Pydantic schemas for the API
 """
-from typing import List, Optional
+from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 # Asset schemas
 class AssetBase(BaseModel):
@@ -22,9 +22,8 @@ class Asset(AssetBase):
     """Schema for returning an Asset"""
     asset_id: int
     isin: str
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 # Price schemas
 class PriceBase(BaseModel):
@@ -45,9 +44,8 @@ class Price(PriceBase):
     """Schema for returning a Price"""
     price_id: int
     asset_id: int
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 # Daily stock data schemas
 class DailyStockDataBase(BaseModel):
@@ -72,9 +70,8 @@ class DailyStockData(DailyStockDataBase):
     """Schema for returning DailyStockData"""
     id: int
     asset_id: int
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 # Intraday stock data schemas
 class IntradayStockDataBase(BaseModel):
@@ -111,6 +108,44 @@ class IntradayStockData(IntradayStockDataBase):
     """Schema for returning IntradayStockData"""
     id: int
     asset_id: int
-    
-    class Config:
-        orm_mode = True
+
+    model_config = ConfigDict(from_attributes=True)
+
+# Import schemas
+class ImportRequest(BaseModel):
+    """Schema for data import request"""
+    symbol: str = Field(..., description="Symbol of the asset to import")
+    start_date: Optional[str] = Field(None, description="Start date in format YYYYMMDD")
+    end_date: Optional[str] = Field(None, description="End date in format YYYYMMDD")
+
+class ImportResponse(BaseModel):
+    """Schema for data import response"""
+    status: str = Field(..., description="Status of the import request")
+    message: str = Field(..., description="Message describing the import status")
+    task_id: Optional[str] = Field(None, description="ID of the import task")
+    details: Optional[Dict[str, Any]] = Field(None, description="Additional details about the import")
+
+# Historical data schemas
+class HistoricalDataPoint(BaseModel):
+    """Schema for a single historical data point"""
+    date: Union[date, str]
+    open: Optional[float] = None
+    high: Optional[float] = None
+    low: Optional[float] = None
+    close: Optional[float] = None
+    volume: Optional[float] = None
+    turnover: Optional[float] = None
+    amplitude: Optional[float] = None
+    pct_change: Optional[float] = None
+    change: Optional[float] = None
+    turnover_rate: Optional[float] = None
+
+class HistoricalDataResponse(BaseModel):
+    """Schema for historical data response"""
+    symbol: str
+    name: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    adjust: Optional[str] = None
+    data: List[HistoricalDataPoint]
+    metadata: Dict[str, Any]

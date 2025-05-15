@@ -2,7 +2,7 @@
 Pydantic schemas for the MCP protocol
 """
 from typing import Dict, Any, Optional, List
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 
 class MCPRequest(BaseModel):
     """
