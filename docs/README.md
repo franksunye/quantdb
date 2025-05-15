@@ -28,6 +28,7 @@ This directory contains documentation for the QuantDB project. The documentation
 - `development_environment.md`: Development environment setup
 - `supabase_setup.md`: Supabase setup documentation
 - `vercel_setup.md`: Vercel setup documentation
+- `version_management_guide.md`: Version management guide and best practices
 
 ## Project Management
 
