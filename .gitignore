@@ -45,3 +45,13 @@ data/processed/
 # Specific to this project
 database/stock_data.db
 .env
+
+# Coverage reports
+.coverage
+coverage_reports/
+
+# Temporary files
+=
+
+# Examples directory (for development only)
+examples/
