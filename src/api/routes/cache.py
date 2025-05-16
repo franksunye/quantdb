@@ -16,7 +16,6 @@ freshness_tracker = FreshnessTracker()
 
 # Create router
 router = APIRouter(
-    prefix="/cache",
     tags=["cache"],
     responses={404: {"description": "Not found"}},
 )

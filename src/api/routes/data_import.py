@@ -16,7 +16,6 @@ logger = setup_logger(__name__)
 
 # Create router
 router = APIRouter(
-    prefix="/import",
     tags=["import"],
     responses={404: {"description": "Not found"}},
 )
@@ -29,13 +28,13 @@ async def import_stock_data(
 ):
     """
     Import stock data from AKShare
-    
+
     This endpoint triggers a background task to import stock data from AKShare.
     """
     try:
         # Create data import service
         import_service = DataImportService(db)
-        
+
         # Add import task to background tasks
         background_tasks.add_task(
             _import_stock_data_task,
@@ -44,13 +43,13 @@ async def import_stock_data(
             start_date=request.start_date,
             end_date=request.end_date
         )
-        
+
         return {
             "status": "success",
             "message": f"Import task for stock {request.symbol} has been scheduled",
             "task_id": f"import_stock_{request.symbol}_{request.start_date}_{request.end_date}"
         }
-    
+
     except Exception as e:
         logger.error(f"Error scheduling stock data import: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -63,13 +62,13 @@ async def import_index_data(
 ):
     """
     Import index data from AKShare
-    
+
     This endpoint triggers a background task to import index data from AKShare.
     """
     try:
         # Create data import service
         import_service = DataImportService(db)
-        
+
         # Add import task to background tasks
         background_tasks.add_task(
             _import_index_data_task,
@@ -78,13 +77,13 @@ async def import_index_data(
             start_date=request.start_date,
             end_date=request.end_date
         )
-        
+
         return {
             "status": "success",
             "message": f"Import task for index {request.symbol} has been scheduled",
             "task_id": f"import_index_{request.symbol}_{request.start_date}_{request.end_date}"
         }
-    
+
     except Exception as e:
         logger.error(f"Error scheduling index data import: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -97,26 +96,26 @@ async def import_index_constituents(
 ):
     """
     Import index constituents from AKShare
-    
+
     This endpoint triggers a background task to import index constituents from AKShare.
     """
     try:
         # Create data import service
         import_service = DataImportService(db)
-        
+
         # Add import task to background tasks
         background_tasks.add_task(
             _import_index_constituents_task,
             import_service=import_service,
             index_symbol=request.symbol
         )
-        
+
         return {
             "status": "success",
             "message": f"Import task for index constituents {request.symbol} has been scheduled",
             "task_id": f"import_constituents_{request.symbol}"
         }
-    
+
     except Exception as e:
         logger.error(f"Error scheduling index constituents import: {e}")
         raise HTTPException(status_code=500, detail=str(e))

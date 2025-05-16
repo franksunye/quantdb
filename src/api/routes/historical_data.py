@@ -20,7 +20,6 @@ logger = setup_logger(__name__)
 
 # Create router
 router = APIRouter(
-    prefix="/historical",
     tags=["historical"],
     responses={404: {"description": "Not found"}},
 )
@@ -43,7 +42,7 @@ async def get_historical_stock_data(
 ):
     """
     Get historical stock data for a specific symbol
-    
+
     - **symbol**: Stock symbol (6-digit code)
     - **start_date**: Optional start date in format YYYYMMDD
     - **end_date**: Optional end date in format YYYYMMDD
@@ -53,24 +52,24 @@ async def get_historical_stock_data(
         # Validate symbol format
         if not symbol.isdigit() or len(symbol) != 6:
             raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
-        
+
         # Check if asset exists in database
         asset = db.query(Asset).filter(Asset.symbol == symbol).first()
-        
+
         # Set default dates if not provided
         if end_date is None:
             end_date = datetime.now().strftime("%Y%m%d")
-        
+
         # Generate cache key
         cache_key = f"historical_stock_{symbol}_{start_date}_{end_date}_{adjust}"
-        
+
         # Check if data is in cache and fresh
         if freshness_tracker.is_fresh(cache_key, "relaxed"):
             cached_data = cache_engine.get(cache_key)
             if cached_data is not None:
                 logger.info(f"Returning cached historical data for {symbol}")
                 return cached_data
-        
+
         # Fetch data from AKShare
         logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}")
         try:
@@ -80,7 +79,7 @@ async def get_historical_stock_data(
                 end_date=end_date,
                 adjust=adjust
             )
-            
+
             if df.empty:
                 logger.warning(f"No historical data found for {symbol}")
                 return {
@@ -96,7 +95,7 @@ async def get_historical_stock_data(
                         "message": "No data found for the specified parameters"
                     }
                 }
-            
+
             # Convert DataFrame to response format
             data_points = []
             for _, row in df.iterrows():
@@ -114,7 +113,7 @@ async def get_historical_stock_data(
                     turnover_rate=row.get('turnover_rate', None)
                 )
                 data_points.append(data_point)
-            
+
             # Create response
             response = {
                 "symbol": symbol,
@@ -129,17 +128,17 @@ async def get_historical_stock_data(
                     "message": f"Successfully retrieved {len(data_points)} data points"
                 }
             }
-            
+
             # Cache the response
             cache_engine.set(cache_key, response, ttl=86400)  # Cache for 24 hours
             freshness_tracker.mark_updated(cache_key, ttl=86400)
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Error fetching historical data for {symbol}: {e}")
             raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
-    
+
     except HTTPException:
         raise
     except Exception as e:

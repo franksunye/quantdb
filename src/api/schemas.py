@@ -3,7 +3,17 @@ Pydantic schemas for the API
 """
 from typing import List, Optional, Dict, Any, Union
 from datetime import date, datetime
+from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
+
+# Import task status enum
+class ImportTaskStatusEnum(str, Enum):
+    """Enum for import task status"""
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
 
 # Asset schemas
 class AssetBase(BaseModel):
@@ -149,3 +159,28 @@ class HistoricalDataResponse(BaseModel):
     adjust: Optional[str] = None
     data: List[HistoricalDataPoint]
     metadata: Dict[str, Any]
+
+
+# Import task schemas
+class ImportTaskBase(BaseModel):
+    """Base schema for ImportTask"""
+    task_type: str
+    parameters: Optional[Dict[str, Any]] = None
+
+
+class ImportTaskCreate(ImportTaskBase):
+    """Schema for creating an ImportTask"""
+    pass
+
+
+class ImportTask(ImportTaskBase):
+    """Schema for returning an ImportTask"""
+    task_id: int
+    status: ImportTaskStatusEnum
+    created_at: datetime
+    updated_at: datetime
+    completed_at: Optional[datetime] = None
+    result: Optional[Dict[str, Any]] = None
+    error_message: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)

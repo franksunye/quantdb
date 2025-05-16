@@ -73,24 +73,28 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 **数据流**:
 - 从外部API获取数据 → 数据清洗和格式化 → 存储到数据库/缓存
 
-#### 2.3.2 智能缓存层
+#### 2.3.2 智能缓存层 ("蓄水池"机制)
 
 **主要组件**:
 - `cache_engine.py`: 智能缓存引擎
 - `data_injector.py`: 数据注入策略器
 - `data_index.py`: 数据复用索引器
 - `freshness_tracker.py`: 数据新鲜度跟踪器
+- `akshare_adapter.py`: AKShare适配器
 
 **功能**:
 - 高效缓存热点数据
 - 控制数据注入策略
 - 优化数据访问路径
 - 跟踪数据新鲜度
+- 统一AKShare API调用
+- 提供数据源降级回退
 
 **性能指标**:
 - 响应时间: 50ms (≥95%命中率)
 - 缓存命中率: ≥95%
 - 数据延迟: <10分钟
+- 服务可用性: 99.9%
 
 #### 2.3.3 数据存储层
 
@@ -211,14 +215,15 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 2. 生成绩效报告和图表
 3. 更新交易计划的绩效指标
 
-### 3.6 智能数据中间层流程
+### 3.6 "蓄水池"智能数据中间层流程
 
 1. 系统根据Agent请求频率和模式，识别热点数据
-2. 数据注入策略器决定哪些数据应进入中间层
+2. 数据注入策略器决定哪些数据应进入"蓄水池"
 3. 数据复用索引器优化数据访问路径
 4. 增量感知更新引擎根据数据新鲜度标签触发更新
 5. 高并发访问调度器管理多Agent并发请求
-6. 降级缓存回退机制在数据源失效时提供服务稳定性
+6. 降级缓存回退机制在AKShare等数据源失效时提供服务稳定性
+7. AKShare适配器统一处理所有外部数据源调用，提供错误处理和重试机制
 
 ## 4. 技术架构
 
@@ -235,17 +240,47 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 
 - **src/**: 源代码目录
   - **api/**: API网关和接口
+    - **routes/**: API路由
+    - **database.py**: 数据库连接
+    - **main.py**: 主应用
+    - **models.py**: 数据模型
+    - **schemas.py**: 数据模式
   - **mcp/**: MCP协议实现
+    - **interpreter.py**: MCP解释器
+    - **schemas.py**: MCP模式
   - **data/**: 数据服务
+    - **akshare_adapter.py**: AKShare适配器
+    - **data_cleaner.py**: 数据清洗
+    - **data_validator.py**: 数据验证
   - **cache/**: 缓存服务
-  - **business/**: 业务逻辑
-  - **analysis/**: 分析和报告
-  - **scheduler/**: 调度和控制
+    - **cache_engine.py**: 缓存引擎
+    - **data_injector.py**: 数据注入策略器
+    - **freshness_tracker.py**: 数据新鲜度跟踪器
+    - **models.py**: 缓存数据模型
+  - **services/**: 业务服务
+    - **data_import.py**: 数据导入服务
+    - **query.py**: 数据查询服务
+  - **scripts/**: 脚本
+    - **init_db.py**: 初始化数据库
+    - **import_sample_data.py**: 导入示例数据
+  - **config.py**: 配置
+  - **database.py**: 数据库操作
+  - **downloader.py**: 数据下载
+  - **logger.py**: 日志
+  - **updater.py**: 数据更新
 - **data/**: 数据存储目录
+  - **sample/**: 示例数据
 - **database/**: 数据库文件和脚本
 - **logs/**: 日志文件
 - **tests/**: 测试代码
+  - **test_api.py**: API测试
+  - **test_assets_api.py**: 资产API测试
+  - **test_mcp_api.py**: MCP API测试
 - **docs/**: 文档
+  - **project_management/**: 项目管理文档
+  - **00_document_standards.md**: 文档标准
+  - **00_vsion_and_roadmap.md**: 愿景和路线图
+  - **03_system_architecture.md**: 系统架构
 
 ### 4.3 部署架构
 
@@ -291,6 +326,18 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 
 ### 5.2 数据服务接口
 
+- **资产API**: 提供资产数据查询接口
+  - 端点: `/api/v1/assets`
+  - 方法: GET
+  - 参数: symbol, name, asset_type, exchange, skip, limit
+  - 响应格式: JSON (资产列表)
+
+- **价格API**: 提供价格数据查询接口
+  - 端点: `/api/v1/prices`
+  - 方法: GET
+  - 参数: asset_id, symbol, start_date, end_date, period, skip, limit
+  - 响应格式: JSON (价格列表)
+
 - **数据查询接口**: 提供结构化数据查询接口
   - 端点: `/api/v1/data/query`
   - 方法: POST
@@ -302,6 +349,12 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
   - 方法: POST
   - 请求格式: JSON (更新参数)
   - 响应格式: JSON (更新结果)
+
+- **缓存状态接口**: 提供缓存状态查询接口
+  - 端点: `/api/v1/cache/status`
+  - 方法: GET
+  - 参数: cache_key, data_type
+  - 响应格式: JSON (缓存状态)
 
 ### 5.3 业务服务接口
 
@@ -321,6 +374,9 @@ QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MC
 
 - **数据库接口**: 通过`database.py`提供统一的数据访问接口
 - **缓存接口**: 通过`cache_engine.py`提供统一的缓存访问接口
+- **AKShare适配器接口**: 通过`akshare_adapter.py`提供统一的AKShare API调用接口
+- **数据注入策略接口**: 通过`data_injector.py`提供数据注入策略控制
+- **数据新鲜度接口**: 通过`freshness_tracker.py`提供数据新鲜度跟踪
 - **配置接口**: 通过`config.py`提供系统配置
 - **日志接口**: 通过`logger.py`提供日志记录功能
 - **上下文接口**: 通过`context_manager.py`提供会话上下文管理

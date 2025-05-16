@@ -5,13 +5,16 @@ This service provides functionality for importing financial data from various so
 and integrates with the Reservoir Cache mechanism for efficient data management.
 """
 import os
+import time
 import pandas as pd
-from datetime import datetime, date
-from typing import List, Dict, Any, Optional, Union
+from datetime import datetime, date, timedelta
+from typing import List, Dict, Any, Optional, Union, Callable
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from src.api.models import Asset, Price, DailyStockData
+from src.api.models import Asset, Price, DailyStockData, ImportTask
+from src.api.schemas import ImportTaskStatusEnum
 from src.cache.cache_engine import CacheEngine
 from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
@@ -245,13 +248,16 @@ class DataImportService:
             logger.error(f"Error importing from CSV {file_path}: {e}")
             raise
 
-    def import_from_akshare(self,
-                          symbol: str,
-                          start_date: Optional[str] = None,
-                          end_date: Optional[str] = None,
-                          use_mock_data: bool = False) -> Dict[str, Any]:
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=30),
+        retry=retry_if_exception_type((SQLAlchemyError, ConnectionError, TimeoutError)),
+        reraise=True
+    )
+    def _fetch_stock_data(self, symbol: str, start_date: Optional[str] = None,
+                         end_date: Optional[str] = None, use_mock_data: bool = False) -> pd.DataFrame:
         """
-        Import stock data directly from AKShare using the Reservoir Cache mechanism
+        Fetch stock data from AKShare with retry mechanism.
 
         Args:
             symbol: Stock symbol
@@ -260,13 +266,145 @@ class DataImportService:
             use_mock_data: Whether to use mock data if real data is unavailable (optional)
 
         Returns:
+            DataFrame with stock data
+
+        Raises:
+            Exception: If all retries fail
+        """
+        try:
+            logger.info(f"Fetching stock data for {symbol} from {start_date} to {end_date}")
+            stock_data = self.akshare_adapter.get_stock_data(
+                symbol=symbol,
+                start_date=start_date,
+                end_date=end_date,
+                use_mock_data=use_mock_data
+            )
+
+            if stock_data.empty:
+                logger.warning(f"No data returned from AKShare for symbol {symbol}")
+            else:
+                logger.info(f"Successfully fetched {len(stock_data)} rows for {symbol}")
+
+            return stock_data
+
+        except Exception as e:
+            logger.error(f"Error fetching stock data for {symbol}: {e}")
+            # Re-raise to trigger retry
+            raise
+
+    def create_import_task(self, task_type: str, parameters: Dict[str, Any]) -> ImportTask:
+        """
+        Create a new import task in the database.
+
+        Args:
+            task_type: Type of import task (e.g., "stock", "index")
+            parameters: Dictionary of task parameters
+
+        Returns:
+            Created ImportTask object
+        """
+        try:
+            # Create new task
+            task = ImportTask(
+                task_type=task_type,
+                parameters=parameters,
+                status=ImportTaskStatusEnum.PENDING,
+                created_at=datetime.now(),
+                updated_at=datetime.now()
+            )
+
+            self.db.add(task)
+            self.db.commit()
+
+            logger.info(f"Created new import task: {task.task_id} of type {task_type}")
+            return task
+
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Database error creating import task: {e}")
+            raise
+
+    def update_task_status(self, task_id: int, status: ImportTaskStatusEnum,
+                          result: Optional[Dict[str, Any]] = None) -> ImportTask:
+        """
+        Update the status of an import task.
+
+        Args:
+            task_id: ID of the task to update
+            status: New status
+            result: Optional result data
+
+        Returns:
+            Updated ImportTask object
+        """
+        try:
+            task = self.db.query(ImportTask).filter(ImportTask.task_id == task_id).first()
+
+            if not task:
+                logger.error(f"Task with ID {task_id} not found")
+                raise ValueError(f"Task with ID {task_id} not found")
+
+            task.status = status
+            task.updated_at = datetime.now()
+
+            if result:
+                task.result = result
+
+            self.db.commit()
+
+            logger.info(f"Updated task {task_id} status to {status}")
+            return task
+
+        except SQLAlchemyError as e:
+            self.db.rollback()
+            logger.error(f"Database error updating task status: {e}")
+            raise
+
+    def import_from_akshare(self,
+                          symbol: str,
+                          start_date: Optional[str] = None,
+                          end_date: Optional[str] = None,
+                          use_mock_data: bool = False,
+                          create_task: bool = False) -> Dict[str, Any]:
+        """
+        Import stock data directly from AKShare using the Reservoir Cache mechanism
+
+        Args:
+            symbol: Stock symbol
+            start_date: Start date in format YYYYMMDD (optional)
+            end_date: End date in format YYYYMMDD (optional)
+            use_mock_data: Whether to use mock data if real data is unavailable (optional)
+            create_task: Whether to create a task record for this import (optional)
+
+        Returns:
             Dictionary with import statistics
         """
+        # Create task if requested
+        task = None
+        if create_task:
+            task_params = {
+                "symbol": symbol,
+                "start_date": start_date,
+                "end_date": end_date,
+                "use_mock_data": use_mock_data
+            }
+            task = self.create_import_task("stock_import", task_params)
+
         try:
             # Validate inputs
             if not symbol:
                 logger.error("Symbol cannot be empty")
-                raise ValueError("Symbol cannot be empty")
+                error_result = {
+                    "symbol": symbol,
+                    "records_imported": 0,
+                    "message": "Symbol cannot be empty",
+                    "success": False
+                }
+
+                if task:
+                    self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, error_result)
+
+                return error_result
 
             # Check if asset exists
             asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
@@ -285,6 +423,10 @@ class DataImportService:
                 self.db.commit()
                 logger.info(f"Created new asset for symbol {symbol} with ID {asset.asset_id}")
 
+            # Update task status if exists
+            if task:
+                self.update_task_status(task.task_id, ImportTaskStatusEnum.PROCESSING)
+
             # Generate cache key for this request
             cache_key = self.cache_engine.generate_key(
                 "import_stock_data", symbol, start_date, end_date
@@ -295,16 +437,40 @@ class DataImportService:
                 cached_result = self.cache_engine.get(cache_key)
                 if cached_result:
                     logger.info(f"Using cached import result for {symbol}")
+
+                    if task:
+                        self.update_task_status(task.task_id,
+                                              ImportTaskStatusEnum.COMPLETED if cached_result.get("success", False)
+                                              else ImportTaskStatusEnum.FAILED,
+                                              cached_result)
+
                     return cached_result
 
-            # Get stock data from AKShare adapter (will use cache if available)
-            logger.info(f"Fetching stock data for {symbol} from {start_date} to {end_date}")
-            stock_data = self.akshare_adapter.get_stock_data(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
-                use_mock_data=use_mock_data
-            )
+            # Get stock data from AKShare adapter with retry mechanism
+            try:
+                stock_data = self._fetch_stock_data(
+                    symbol=symbol,
+                    start_date=start_date,
+                    end_date=end_date,
+                    use_mock_data=use_mock_data
+                )
+            except Exception as e:
+                logger.error(f"All retries failed for fetching data for {symbol}: {e}")
+                error_result = {
+                    "asset_id": asset.asset_id if asset else None,
+                    "symbol": symbol,
+                    "records_imported": 0,
+                    "message": f"Failed to fetch data after retries: {str(e)}",
+                    "success": False
+                }
+
+                # Cache the negative result to avoid repeated failed requests
+                self.cache_engine.set(cache_key, error_result, ttl=3600)  # Cache for 1 hour
+
+                if task:
+                    self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, error_result)
+
+                return error_result
 
             if stock_data.empty:
                 logger.warning(f"No data returned from AKShare for symbol {symbol}")
@@ -317,6 +483,10 @@ class DataImportService:
                 }
                 # Cache the negative result to avoid repeated failed requests
                 self.cache_engine.set(cache_key, result, ttl=3600)  # Cache for 1 hour
+
+                if task:
+                    self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, result)
+
                 return result
 
             # Convert DataFrame to list of dictionaries for database import
@@ -346,41 +516,75 @@ class DataImportService:
                     "success": False
                 }
                 self.cache_engine.set(cache_key, result, ttl=3600)
-                return result
 
-            # Import price data to database
-            try:
-                imported_prices = self.import_price_data(asset.asset_id, price_data)
-                logger.info(f"Imported {len(imported_prices)} records for {symbol} from AKShare")
-
-                # Store the result in cache
-                result = {
-                    "asset_id": asset.asset_id,
-                    "symbol": symbol,
-                    "records_imported": len(imported_prices),
-                    "start_date": start_date,
-                    "end_date": end_date,
-                    "success": True
-                }
-                self.cache_engine.set(cache_key, result, ttl=86400)  # Cache for 24 hours
-                self.freshness_tracker.mark_updated(cache_key, ttl=86400)
+                if task:
+                    self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, result)
 
                 return result
 
-            except SQLAlchemyError as e:
-                self.db.rollback()
-                logger.error(f"Database error when importing price data: {e}")
-                raise ValueError(f"Database error: {e}")
+            # Import price data to database with retry
+            max_retries = 3
+            retry_count = 0
+
+            while retry_count < max_retries:
+                try:
+                    imported_prices = self.import_price_data(asset.asset_id, price_data)
+                    logger.info(f"Imported {len(imported_prices)} records for {symbol} from AKShare")
+
+                    # Store the result in cache
+                    result = {
+                        "asset_id": asset.asset_id,
+                        "symbol": symbol,
+                        "records_imported": len(imported_prices),
+                        "start_date": start_date,
+                        "end_date": end_date,
+                        "success": True
+                    }
+                    self.cache_engine.set(cache_key, result, ttl=86400)  # Cache for 24 hours
+                    self.freshness_tracker.mark_updated(cache_key, ttl=86400)
+
+                    if task:
+                        self.update_task_status(task.task_id, ImportTaskStatusEnum.COMPLETED, result)
+
+                    return result
+
+                except SQLAlchemyError as e:
+                    self.db.rollback()
+                    retry_count += 1
+                    logger.warning(f"Database error when importing price data (attempt {retry_count}/{max_retries}): {e}")
+
+                    if retry_count >= max_retries:
+                        logger.error(f"All database retries failed for {symbol}")
+                        error_result = {
+                            "asset_id": asset.asset_id,
+                            "symbol": symbol,
+                            "records_imported": 0,
+                            "message": f"Database error after {max_retries} retries: {str(e)}",
+                            "success": False
+                        }
+
+                        if task:
+                            self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, error_result)
+
+                        return error_result
+
+                    # Wait before retrying
+                    time.sleep(2 ** retry_count)  # Exponential backoff
 
         except Exception as e:
             logger.error(f"Error importing from AKShare for symbol {symbol}: {e}")
             # Return error information rather than raising exception
-            return {
+            error_result = {
                 "symbol": symbol,
                 "records_imported": 0,
                 "message": f"Error: {str(e)}",
                 "success": False
             }
+
+            if task:
+                self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, error_result)
+
+            return error_result
 
     def import_index_data(self,
                         index_symbol: str,

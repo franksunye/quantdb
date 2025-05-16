@@ -16,7 +16,6 @@ logger = setup_logger(__name__)
 
 # Create router
 router = APIRouter(
-    prefix="/assets",
     tags=["assets"],
     responses={404: {"description": "Not found"}},
 )
@@ -36,7 +35,7 @@ async def get_assets(
     """
     try:
         query = db.query(Asset)
-        
+
         # Apply filters if provided
         if symbol:
             query = query.filter(Asset.symbol.ilike(f"%{symbol}%"))
@@ -46,10 +45,10 @@ async def get_assets(
             query = query.filter(Asset.asset_type == asset_type)
         if exchange:
             query = query.filter(Asset.exchange == exchange)
-        
+
         # Apply pagination
         assets = query.offset(skip).limit(limit).all()
-        
+
         return assets
     except SQLAlchemyError as e:
         logger.error(f"Database error when getting assets: {e}")

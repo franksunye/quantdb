@@ -24,6 +24,15 @@ API tests focus on testing the API endpoints. These tests may involve making HTT
 
 - `test_historical_data.py`: Tests for the historical data API endpoints
 
+### `/tests/e2e`
+
+End-to-end tests focus on testing the complete system flow through the API. These tests verify that all components work together correctly in real-world scenarios.
+
+- `test_data_flow_api.py`: Tests the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
+  - Verifies that the API can handle requests for stock data
+  - Checks if the caching mechanism is working by comparing query times
+  - Validates the complete flow from user request to data retrieval
+
 ### Root Tests
 
 The following tests are in the root of the tests directory:
@@ -63,6 +72,35 @@ python run_tests.py
 python run_tests.py tests/test_assets_api.py
 ```
 
+### Running End-to-End Tests
+
+End-to-end tests require the API server to be running. Use the dedicated script:
+
+```bash
+# Run all end-to-end tests (will start the API server if needed)
+python run_e2e_tests.py
+```
+
+This script will:
+1. Check if the API server is running
+2. If not, ask if you want to start it
+3. Run all end-to-end tests
+4. Stop the API server if it was started by the script
+
+Alternatively, you can:
+1. Start the API server manually: `python -m src.api.main`
+2. Run the tests: `python -m pytest tests/e2e/test_data_flow_api.py -v`
+3. Or run a specific test directly: `python -m tests.e2e.test_data_flow_api`
+
+#### Troubleshooting End-to-End Tests
+
+If end-to-end tests fail, check the following:
+
+1. Make sure the API server is running and accessible at http://localhost:8000
+2. Check that the API endpoints being tested actually exist
+3. Verify that the test parameters (symbol, dates) are valid
+4. Look for detailed error messages in the test output
+
 ### Running Tests Directly with pytest
 
 To run tests directly with pytest (may have database setup issues):
@@ -76,6 +114,9 @@ python -m pytest tests/unit/test_cache_engine.py
 
 # Run tests with a specific marker
 python -m pytest -m "unit"
+
+# Skip end-to-end tests
+python -m pytest -k "not e2e"
 ```
 
 ### Test Database Setup
@@ -122,7 +163,63 @@ If you encounter test failures:
 1. **Unit Tests**: Place in `/tests/unit/`
 2. **Integration Tests**: Place in `/tests/integration/`
 3. **API Tests**: Place in `/tests/api/`
-4. **Test Naming**: Use `test_` prefix for all test files and test functions
-5. **Test Independence**: Each test should be independent and not rely on the state from other tests
-6. **Test Coverage**: Aim for high test coverage, especially for critical components
-7. **Test Documentation**: Document the purpose of each test and any special setup required
+4. **End-to-End Tests**: Place in `/tests/e2e/`
+5. **Test Naming**: Use `test_` prefix for all test files and test functions
+6. **Test Independence**: Each test should be independent and not rely on the state from other tests
+7. **Test Coverage**: Aim for high test coverage, especially for critical components
+8. **Test Documentation**: Document the purpose of each test and any special setup required
+
+## Test Types and When to Use Them
+
+### Test Pyramid
+
+We follow the test pyramid approach, with more unit tests than integration tests, and more integration tests than end-to-end tests:
+
+```
+    /\
+   /  \
+  /E2E \
+ /------\
+/  API   \
+/----------\
+/ Integration\
+/--------------\
+/     Unit      \
+------------------
+```
+
+### When to Use Each Test Type
+
+1. **Unit Tests**:
+   - Use for testing individual components in isolation
+   - Should be fast and not depend on external services
+   - Focus on testing business logic and edge cases
+   - Examples: Testing CacheEngine, FreshnessTracker, AKShareAdapter in isolation
+
+2. **Integration Tests**:
+   - Use for testing how components work together
+   - May involve multiple components but not the entire system
+   - Focus on testing component interactions and data flow
+   - Examples: Testing CacheEngine with FreshnessTracker, AKShareAdapter with CacheEngine
+
+3. **API Tests**:
+   - Use for testing API endpoints
+   - Verify that the API behaves as expected
+   - Focus on request/response validation, error handling, and API contracts
+   - Examples: Testing /api/v1/prices/symbol/{symbol} endpoint
+
+4. **End-to-End Tests**:
+   - Use for testing complete system flows through the API
+   - Verify that all components work together correctly in real-world scenarios
+   - Focus on user journeys and business scenarios
+   - Examples: Testing the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
+
+### Multi-Level Testing for Core Scenarios
+
+For the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存), we have tests at multiple levels:
+- **Unit tests** for individual components (AKShareAdapter, CacheEngine)
+- **Integration tests** for component interactions (AKShareAdapter with CacheEngine)
+- **API tests** for the endpoints that expose this functionality
+- **End-to-end tests** for the complete flow through the API
+
+This multi-level approach ensures that we catch issues at the appropriate level, making debugging easier and tests more reliable.

@@ -35,6 +35,17 @@ mcp_interpreter = MCPInterpreter(
     akshare_adapter=akshare_adapter
 )
 
+# Lifespan context manager for startup and shutdown events
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    logger.info(f"Starting QuantDB API in {ENVIRONMENT} mode")
+    yield
+    # Shutdown logic
+    logger.info("Shutting down QuantDB API")
+
 # Create FastAPI app
 app = FastAPI(
     title="QuantDB API",
@@ -43,7 +54,8 @@ app = FastAPI(
     docs_url=f"{API_PREFIX}/docs",
     redoc_url=f"{API_PREFIX}/redoc",
     openapi_url=f"{API_PREFIX}/openapi.json",
-    debug=DEBUG
+    debug=DEBUG,
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -76,39 +88,40 @@ from src.api.routes import assets, prices, data_import, cache, historical_data
 from src.api.cache_api import router as cache_api_router
 from src.mcp.schemas import MCPRequest, MCPResponse
 
-# Include routers
+# Include routers with consistent prefixes
 app.include_router(
     assets.router,
-    prefix=API_PREFIX,
+    prefix=f"{API_PREFIX}/assets",
     tags=["assets"]
 )
 
 app.include_router(
     prices.router,
-    prefix=API_PREFIX,
+    prefix=f"{API_PREFIX}/prices",
     tags=["prices"]
 )
 
 app.include_router(
     data_import.router,
-    prefix=API_PREFIX,
+    prefix=f"{API_PREFIX}/import",
     tags=["import"]
 )
 
 app.include_router(
     cache.router,
-    prefix=API_PREFIX,
+    prefix=f"{API_PREFIX}/cache",
     tags=["cache"]
 )
 
 app.include_router(
     cache_api_router,
+    prefix=f"{API_PREFIX}/cache-management",
     tags=["cache-management"]
 )
 
 app.include_router(
     historical_data.router,
-    prefix=API_PREFIX,
+    prefix=f"{API_PREFIX}/historical",
     tags=["historical"]
 )
 
@@ -136,17 +149,7 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"detail": "Internal server error", "message": str(exc)}
     )
 
-# Startup event
-@app.on_event("startup")
-async def startup_event():
-    """Runs when the API starts"""
-    logger.info(f"Starting QuantDB API in {ENVIRONMENT} mode")
 
-# Shutdown event
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Runs when the API shuts down"""
-    logger.info("Shutting down QuantDB API")
 
 if __name__ == "__main__":
     import uvicorn

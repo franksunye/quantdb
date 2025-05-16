@@ -4,7 +4,6 @@ Script to run specific tests with proper setup
 import os
 import sys
 import subprocess
-from pathlib import Path
 
 def ensure_directories_exist():
     """Ensure required directories exist"""
@@ -69,6 +68,27 @@ def run_tests():
         "tests/test_akshare_adapter_fix.py",
         "tests/test_downloader.py"
     ]
+
+    # End-to-end tests (only run if API server is running)
+    e2e_test_files = [
+        "tests/e2e/test_data_flow_api.py"
+    ]
+
+    # Check if API server is running
+    try:
+        import requests
+        api_running = requests.get("http://localhost:8000/api/v1/health").status_code == 200
+        if api_running:
+            print("API server is running. Including end-to-end tests.")
+            test_files.extend(e2e_test_files)
+        else:
+            print("API server is not running. Skipping end-to-end tests.")
+            print("To run end-to-end tests, start the API server with: python -m src.api.main")
+            print("Or use the dedicated script: python run_e2e_tests.py")
+    except:
+        print("Could not connect to API server. Skipping end-to-end tests.")
+        print("To run end-to-end tests, start the API server with: python -m src.api.main")
+        print("Or use the dedicated script: python run_e2e_tests.py")
 
     # Track test results
     passed_tests = []
