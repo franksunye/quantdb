@@ -19,6 +19,9 @@ logger = setup_logger(__name__)
 from src.cache.cache_engine import CacheEngine
 from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
+from src.cache.akshare_adapter_simplified import AKShareAdapter as AKShareAdapterSimplified
+from src.services.stock_data_service import StockDataService
+from src.services.database_cache import DatabaseCache
 
 # Create cache components
 cache_engine = CacheEngine()
@@ -27,6 +30,9 @@ akshare_adapter = AKShareAdapter(
     cache_engine=cache_engine,
     freshness_tracker=freshness_tracker
 )
+
+# Create simplified components
+akshare_adapter_simplified = AKShareAdapterSimplified()
 
 # Create MCP interpreter with cache components
 mcp_interpreter = MCPInterpreter(
@@ -85,6 +91,7 @@ async def health_check():
 
 # Import and include routers
 from src.api.routes import assets, prices, data_import, cache, historical_data
+from src.api.routes.historical_data_simplified import router as historical_data_simplified_router
 from src.api.cache_api import router as cache_api_router
 from src.mcp.schemas import MCPRequest, MCPResponse
 
@@ -123,6 +130,13 @@ app.include_router(
     historical_data.router,
     prefix=f"{API_PREFIX}/historical",
     tags=["historical"]
+)
+
+# Include simplified historical data router
+app.include_router(
+    historical_data_simplified_router,
+    prefix=f"{API_PREFIX}/v2/historical",
+    tags=["historical-v2"]
 )
 
 # MCP endpoint
