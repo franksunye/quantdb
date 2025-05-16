@@ -5,6 +5,7 @@ QuantDB API 是一个用于访问和管理金融数据的RESTful API。它提供
 ## 文档目录
 
 - [API路由文档](api_routes.md) - 详细的API路由和参数说明
+- [API参考文档](api_reference.md) - API的详细参考信息，包括请求/响应格式
 - [API使用示例](api_examples.md) - 常见API使用场景的示例
 
 ## API概述
@@ -66,12 +67,19 @@ print(response.json())
 
 ## API版本历史
 
-### v0.1.0 (当前版本)
+### v0.2.0 (当前版本)
+
+- 简化的缓存架构
+- 智能数据获取策略
+- 优化的API接口
+- 改进的错误处理
+
+### v0.1.0
 
 - 初始版本
 - 基本的资产和价格数据管理
 - AKShare数据导入
-- 缓存系统
+- 蓄水池缓存系统
 - MCP查询
 
 ## 未来计划

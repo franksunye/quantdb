@@ -1,382 +1,257 @@
-# 系统架构概览
+# QuantDB 系统架构 V2
 
-## 1. 系统概述
+## 文档信息
+**文档类型**: 架构设计
+**文档编号**: quantdb-ARCH-002
+**版本**: 1.0.0
+**创建日期**: 2025-06-07
+**最后更新**: 2025-06-07
+**状态**: 草稿
+**负责人**: frank
 
-QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MCP（Model Context Protocol）协议标准化自然语言与金融数据之间的接口，支持AI原生、上下文感知、结构化响应的金融服务。系统采用模块化设计，各组件之间通过明确的接口进行交互，确保系统的可扩展性和可维护性。
+## 1. 概述
 
-系统的核心转变方向：
-- 从查询型API转向交互式智能Agent接口
-- 从静态数据管道转向动态上下文增强数据服务
-- 从服务消费者转向Agent工具链提供者
+本文档描述了 QuantDB 系统的架构设计 V2 版本，重点是简化的缓存架构和智能数据获取策略。
 
-## 2. 系统组件
+## 2. 架构目标
 
-### 2.1 API网关层
+- **简化系统架构**：减少组件数量，降低系统复杂性
+- **提高数据获取效率**：实现智能数据获取策略，减少不必要的 API 调用
+- **优化数据库使用**：使用数据库作为持久化缓存，提高数据访问性能
+- **提高系统可维护性**：减少组件之间的依赖，提高代码可读性和可维护性
+- **保持系统可扩展性**：为未来支持更多数据类型和数据源预留扩展点
 
-**主要组件**:
-- `api_gateway.py`: 提供统一的API访问入口
-- `mcp_interpreter.py`: 解析MCP协议请求
-- `query_orchestrator.py`: 协调查询执行
+## 3. 系统组件
 
-**功能**:
-- 接收和处理Agent/用户请求
-- 解析自然语言查询为结构化请求
-- 协调多个服务的调用
-- 格式化响应结果
+### 3.1 核心组件
 
-**数据流**:
-- Agent/用户请求 → API网关 → MCP解释器 → 查询编排器 → 数据服务
+#### 3.1.1 API 层
 
-### 2.2 MCP协议层
+- **FastAPI 应用**：提供 RESTful API 接口
+- **路由处理器**：处理 API 请求，调用相应的服务
+- **请求验证**：验证 API 请求参数
+- **响应格式化**：格式化 API 响应
 
-**主要组件**:
-- `nlu_parser.py`: 自然语言理解解析器
-- `intent_recognizer.py`: 意图识别器
-- `query_builder.py`: 结构化查询构建器
-- `context_manager.py`: 上下文管理器
+#### 3.1.2 服务层
 
-**功能**:
-- 解析自然语言请求
-- 识别用户意图
-- 构建结构化查询
-- 管理会话上下文
+- **StockDataService**：提供股票历史数据的获取、存储和查询功能
+- **DatabaseCache**：提供数据库缓存接口，使用主数据库作为持久化缓存
 
-**协议结构**:
-```json
-{
-  "query": "展示上证指数近三个月的走势",
-  "intent": "price_trend",
-  "context": {
-    "visualization": "candlestick",
-    "timezone": "Asia/Shanghai"
-  },
-  "session_id": "xyz123",
-  "response_type": "structured"
-}
+#### 3.1.3 数据访问层
+
+- **AKShareAdapter**：封装 AKShare API 调用，提供错误处理和重试逻辑
+- **数据库模型**：定义数据库表结构和关系
+
+#### 3.1.4 数据库
+
+- **SQLite/PostgreSQL**：存储股票数据和元数据
+- **数据表**：Asset、DailyStockData 等
+
+### 3.2 辅助组件
+
+- **日志系统**：记录系统运行日志
+- **配置管理**：管理系统配置
+- **错误处理**：统一处理系统错误
+
+## 4. 组件交互
+
+### 4.1 数据获取流程
+
+```
+┌─────────┐     ┌───────────────┐     ┌──────────────┐     ┌──────────────┐
+│  客户端  │────▶│    API 层     │────▶│  服务层      │────▶│ 数据库缓存   │
+└─────────┘     └───────────────┘     └──────────────┘     └──────────────┘
+                                            │                     │
+                                            │                     │
+                                            ▼                     ▼
+                                      ┌──────────────┐     ┌──────────────┐
+                                      │ AKShare 适配器│     │   数据库     │
+                                      └──────────────┘     └──────────────┘
 ```
 
-### 2.3 数据服务层
+1. 客户端发送请求到 API 层
+2. API 层验证请求并调用服务层
+3. 服务层检查数据库缓存中是否有请求的数据
+4. 如果数据存在，直接返回
+5. 如果数据不存在或部分存在，服务层确定缺失的数据范围
+6. 服务层调用 AKShare 适配器获取缺失的数据
+7. 服务层将获取的数据保存到数据库缓存
+8. 服务层返回完整的数据给 API 层
+9. API 层格式化响应并返回给客户端
 
-#### 2.3.1 数据获取层
+### 4.2 智能数据获取策略
 
-**主要组件**:
-- `downloader.py`: 负责从外部数据源下载股票和指数数据
-- `updater.py`: 负责更新已有的股票和指数数据
-- `data_adapter.py`: 适配不同数据源的接口
+```
+┌─────────────────┐
+│ 接收数据请求    │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ 检查数据库缓存  │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│ 确定缺失数据范围│────▶│ 分组连续日期    │
+└────────┬────────┘     └────────┬────────┘
+         │                       │
+         │                       ▼
+         │              ┌─────────────────┐
+         │              │ 获取缺失数据    │
+         │              └────────┬────────┘
+         │                       │
+         │                       ▼
+         │              ┌─────────────────┐
+         │              │ 保存到数据库    │
+         │              └────────┬────────┘
+         │                       │
+         ▼                       ▼
+┌─────────────────────────────────────────┐
+│            合并数据并返回              │
+└─────────────────────────────────────────┘
+```
 
-**功能**:
-- 下载股票日线数据
-- 下载指数成分股数据
-- 获取实时股票数据
-- 增量更新历史数据
+1. 接收数据请求，包含股票代码和日期范围
+2. 检查数据库缓存，确定哪些日期的数据已存在
+3. 确定缺失的数据范围
+4. 将缺失的日期分组为连续的日期范围，减少 API 调用次数
+5. 对每个日期范围，调用 AKShare 适配器获取数据
+6. 将获取的数据保存到数据库
+7. 合并缓存数据和新获取的数据，返回完整结果
 
-**数据流**:
-- 从外部API获取数据 → 数据清洗和格式化 → 存储到数据库/缓存
+## 5. 数据模型
 
-#### 2.3.2 智能缓存层 ("蓄水池"机制)
+### 5.1 数据库模型
 
-**主要组件**:
-- `cache_engine.py`: 智能缓存引擎
-- `data_injector.py`: 数据注入策略器
-- `data_index.py`: 数据复用索引器
-- `freshness_tracker.py`: 数据新鲜度跟踪器
-- `akshare_adapter.py`: AKShare适配器
+#### Asset
 
-**功能**:
-- 高效缓存热点数据
-- 控制数据注入策略
-- 优化数据访问路径
-- 跟踪数据新鲜度
-- 统一AKShare API调用
-- 提供数据源降级回退
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| asset_id | Integer | 主键 |
+| symbol | String | 股票代码 |
+| name | String | 股票名称 |
+| isin | String | 国际证券识别码 |
+| asset_type | String | 资产类型 |
+| exchange | String | 交易所 |
+| currency | String | 货币 |
 
-**性能指标**:
-- 响应时间: 50ms (≥95%命中率)
-- 缓存命中率: ≥95%
-- 数据延迟: <10分钟
-- 服务可用性: 99.9%
+#### DailyStockData
 
-#### 2.3.3 数据存储层
+| 字段 | 类型 | 描述 |
+|------|------|------|
+| id | Integer | 主键 |
+| asset_id | Integer | 外键，关联 Asset |
+| trade_date | Date | 交易日期 |
+| open | Float | 开盘价 |
+| high | Float | 最高价 |
+| low | Float | 最低价 |
+| close | Float | 收盘价 |
+| volume | Integer | 成交量 |
+| turnover | Float | 成交额 |
+| amplitude | Float | 振幅 |
+| pct_change | Float | 涨跌幅 |
+| change | Float | 涨跌额 |
+| turnover_rate | Float | 换手率 |
 
-**主要组件**:
-- `database.py`: 提供数据库操作接口
-- `SQLite数据库`: 存储所有系统数据
-- `cache_db.py`: 缓存数据库接口
+## 6. 接口设计
 
-**主要表结构**:
-- `assets`: 存储资产信息
-- `prices`: 存储历史价格数据
-- `index_constituents`: 存储指数成分股关系
-- `indicators`: 存储技术指标数据
-- `trade_signals`: 存储交易信号
-- `trade_plans`: 存储交易计划
-- `trades`: 存储实际交易记录
-- `strategies`: 存储交易策略
-- `orders`: 存储订单信息
-- `portfolios`: 存储投资组合信息
-- `portfolio_holdings`: 存储投资组合持仓
-- `logs`: 存储系统日志
-- `backtests`: 存储回测结果
-- `optimization_results`: 存储优化结果
-- `daily_stock_data`: 存储股票日线数据
-- `intraday_stock_data`: 存储股票实时数据
-- `cache_metadata`: 存储缓存元数据
-- `session_context`: 存储会话上下文
+### 6.1 服务接口
 
-### 2.4 业务逻辑层
+#### StockDataService
 
-**主要组件**:
-- `processor.py`: 处理和分析数据
-- `indicators.py`: 计算技术指标
-- `signal_to_plan.py`: 将交易信号转换为交易计划
-- `signal_sender.py`: 发送交易信号
-- `calculate_ma_above_ratio.py`: 计算均线上方比例
-- `import_optimization_results.py`: 导入优化结果
-- `import_trade_signals.py`: 导入交易信号
+```python
+class StockDataService:
+    def get_stock_data(symbol, start_date, end_date, adjust=""):
+        """获取股票历史数据"""
+        pass
+```
 
-**功能**:
-- 数据分析和处理
-- 技术指标计算
-- 交易信号生成
-- 交易计划管理
-- 绩效分析
+#### DatabaseCache
 
-### 2.5 分析和报告层
+```python
+class DatabaseCache:
+    def get(symbol, dates):
+        """从数据库获取数据"""
+        pass
+    
+    def save(symbol, data):
+        """保存数据到数据库"""
+        pass
+    
+    def get_date_range_coverage(symbol, start_date, end_date):
+        """获取日期范围的覆盖情况"""
+        pass
+    
+    def get_stats():
+        """获取缓存统计信息"""
+        pass
+```
 
-**主要组件**:
-- `entry_window_performance_analysis.py`: 分析入场窗口绩效
-- `trade_plan_performance_analysis.py`: 分析交易计划绩效
-- `update_trade_plan_metrics.py`: 更新交易计划指标
-- `trend_analyzer.py`: 趋势分析器
-- `backtest_engine.py`: 回测引擎
-- `comparison_tool.py`: 比较工具
+#### AKShareAdapter
 
-**功能**:
-- 绩效指标计算
-- 图表生成
-- 报告输出
-- 趋势分析
-- 策略回测
-- 多资产/策略比较
+```python
+class AKShareAdapter:
+    def get_stock_data(symbol, start_date, end_date, adjust="", use_mock_data=False, period="daily"):
+        """获取股票历史数据"""
+        pass
+```
 
-### 2.6 调度和控制层
+### 6.2 API 接口
 
-**主要组件**:
-- `main.py`: 系统入口点
-- `scheduler.py`: 任务调度
-- `config.py`: 系统配置
-- `logger.py`: 日志记录
-- `concurrent_scheduler.py`: 并发调度器
-- `fallback_manager.py`: 降级回退管理器
+#### 获取股票历史数据
 
-**功能**:
-- 系统初始化
-- 任务调度
-- 配置管理
-- 日志记录
-- 并发请求管理
-- 服务降级管理
+```
+GET /api/v2/historical/stock/{symbol}
+```
 
-## 3. 数据流
+#### 获取数据库缓存状态
 
-### 3.1 Agent请求处理流程
+```
+GET /api/v2/database/cache/status
+```
 
-1. Agent/用户通过API网关发送自然语言请求
-2. MCP解释器解析请求，识别意图和上下文
-3. 查询编排器构建结构化查询
-4. 数据服务层执行查询，从缓存或数据库获取数据
-5. 结果格式化后返回给Agent/用户
+## 7. 部署架构
 
-### 3.2 数据获取与缓存流程
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        应用服务器                           │
+│                                                             │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐   │
+│  │   FastAPI   │────▶│  服务层     │────▶│ 数据访问层  │   │
+│  └─────────────┘     └─────────────┘     └─────────────┘   │
+│                                                │            │
+└────────────────────────────────────────────────┼────────────┘
+                                                 │
+                                                 ▼
+                                          ┌─────────────┐
+                                          │   数据库    │
+                                          └─────────────┘
+```
 
-1. 系统检查请求的数据是否已缓存
-2. 如果已缓存且新鲜度符合要求，直接从缓存返回
-3. 如果未缓存或需要更新，通过`downloader.py`从外部数据源获取数据
-4. 数据经过清洗和格式化
-5. 数据存储到缓存和数据库
-6. 更新数据新鲜度标记
+## 8. 安全考虑
 
-### 3.3 信号生成流程
+- **API 认证**：使用 API Key 进行认证
+- **数据验证**：验证输入数据，防止注入攻击
+- **错误处理**：适当处理错误，不泄露敏感信息
+- **日志记录**：记录关键操作，便于审计和问题排查
 
-1. 系统通过`processor.py`和`indicators.py`处理历史数据
-2. 基于处理结果生成交易信号
-3. 交易信号存储到`trade_signals`表
-4. 通过`signal_sender.py`将信号发送到外部系统（如企业微信）
+## 9. 性能考虑
 
-### 3.4 交易计划管理流程
+- **数据库索引**：为常用查询字段创建索引
+- **连接池**：使用数据库连接池，减少连接开销
+- **缓存策略**：智能缓存策略，减少不必要的 API 调用
+- **批量操作**：使用批量操作，减少数据库交互次数
 
-1. 系统通过`signal_to_plan.py`将交易信号转换为交易计划
-2. 交易计划存储到`trade_plans`表
-3. 系统跟踪和更新交易计划的状态和绩效
+## 10. 可扩展性考虑
 
-### 3.5 绩效分析流程
+- **模块化设计**：各组件职责明确，便于扩展
+- **接口抽象**：使用抽象接口，便于替换实现
+- **配置驱动**：使用配置驱动，便于调整系统行为
+- **扩展点**：为未来支持更多数据类型和数据源预留扩展点
 
-1. 系统通过`entry_window_performance_analysis.py`和`trade_plan_performance_analysis.py`分析交易绩效
-2. 生成绩效报告和图表
-3. 更新交易计划的绩效指标
+## 11. 版本历史
 
-### 3.6 "蓄水池"智能数据中间层流程
-
-1. 系统根据Agent请求频率和模式，识别热点数据
-2. 数据注入策略器决定哪些数据应进入"蓄水池"
-3. 数据复用索引器优化数据访问路径
-4. 增量感知更新引擎根据数据新鲜度标签触发更新
-5. 高并发访问调度器管理多Agent并发请求
-6. 降级缓存回退机制在AKShare等数据源失效时提供服务稳定性
-7. AKShare适配器统一处理所有外部数据源调用，提供错误处理和重试机制
-
-## 4. 技术架构
-
-### 4.1 开发语言和框架
-
-- **主要语言**: Python
-- **数据处理**: Pandas
-- **数据可视化**: Matplotlib
-- **数据库**: SQLite
-- **缓存系统**: Redis/内存缓存
-- **API框架**: FastAPI/Flask
-
-### 4.2 文件组织
-
-- **src/**: 源代码目录
-  - **api/**: API网关和接口
-    - **routes/**: API路由
-    - **database.py**: 数据库连接
-    - **main.py**: 主应用
-    - **models.py**: 数据模型
-    - **schemas.py**: 数据模式
-  - **mcp/**: MCP协议实现
-    - **interpreter.py**: MCP解释器
-    - **schemas.py**: MCP模式
-  - **data/**: 数据服务
-    - **akshare_adapter.py**: AKShare适配器
-    - **data_cleaner.py**: 数据清洗
-    - **data_validator.py**: 数据验证
-  - **cache/**: 缓存服务
-    - **cache_engine.py**: 缓存引擎
-    - **data_injector.py**: 数据注入策略器
-    - **freshness_tracker.py**: 数据新鲜度跟踪器
-    - **models.py**: 缓存数据模型
-  - **services/**: 业务服务
-    - **data_import.py**: 数据导入服务
-    - **query.py**: 数据查询服务
-  - **scripts/**: 脚本
-    - **init_db.py**: 初始化数据库
-    - **import_sample_data.py**: 导入示例数据
-  - **config.py**: 配置
-  - **database.py**: 数据库操作
-  - **downloader.py**: 数据下载
-  - **logger.py**: 日志
-  - **updater.py**: 数据更新
-- **data/**: 数据存储目录
-  - **sample/**: 示例数据
-- **database/**: 数据库文件和脚本
-- **logs/**: 日志文件
-- **tests/**: 测试代码
-  - **test_api.py**: API测试
-  - **test_assets_api.py**: 资产API测试
-  - **test_mcp_api.py**: MCP API测试
-- **docs/**: 文档
-  - **project_management/**: 项目管理文档
-  - **00_document_standards.md**: 文档标准
-  - **00_vsion_and_roadmap.md**: 愿景和路线图
-  - **03_system_architecture.md**: 系统架构
-
-### 4.3 部署架构
-
-系统支持多种部署方式:
-
-1. **单机部署**: 适用于个人用户和小型团队
-   - 命令行模式: 通过`main.py`脚本运行特定任务
-   - 定时任务: 通过操作系统的定时任务（如cron）调度运行
-   - 本地服务: 作为本地API服务运行
-
-2. **分布式部署**: 适用于大型团队和企业用户
-   - API服务: 部署为独立的API服务
-   - 缓存服务: 部署为独立的缓存服务
-   - 数据服务: 部署为独立的数据服务
-   - 业务服务: 部署为独立的业务服务
-
-3. **云原生部署**: 适用于需要高可用性和可扩展性的场景
-   - 容器化: 使用Docker容器化各组件
-   - 编排: 使用Kubernetes进行容器编排
-   - 自动扩展: 根据负载自动扩展服务实例
-
-## 5. 接口设计
-
-### 5.1 Agent接口
-
-- **MCP协议接口**: 提供基于MCP协议的自然语言查询接口
-  - 端点: `/api/v1/mcp/query`
-  - 方法: POST
-  - 请求格式: JSON (MCP协议格式)
-  - 响应格式: JSON (结构化数据)
-
-- **LangChain工具接口**: 提供与LangChain集成的工具接口
-  - 端点: `/api/v1/tools/langchain`
-  - 方法: POST
-  - 请求格式: JSON (LangChain工具格式)
-  - 响应格式: JSON (LangChain工具响应格式)
-
-- **OpenAI Plugin接口**: 提供与OpenAI Plugin集成的接口
-  - 端点: `/api/v1/plugins/openai`
-  - 方法: POST
-  - 请求格式: JSON (OpenAI Plugin格式)
-  - 响应格式: JSON (OpenAI Plugin响应格式)
-
-### 5.2 数据服务接口
-
-- **资产API**: 提供资产数据查询接口
-  - 端点: `/api/v1/assets`
-  - 方法: GET
-  - 参数: symbol, name, asset_type, exchange, skip, limit
-  - 响应格式: JSON (资产列表)
-
-- **价格API**: 提供价格数据查询接口
-  - 端点: `/api/v1/prices`
-  - 方法: GET
-  - 参数: asset_id, symbol, start_date, end_date, period, skip, limit
-  - 响应格式: JSON (价格列表)
-
-- **数据查询接口**: 提供结构化数据查询接口
-  - 端点: `/api/v1/data/query`
-  - 方法: POST
-  - 请求格式: JSON (查询参数)
-  - 响应格式: JSON (查询结果)
-
-- **数据更新接口**: 提供数据更新接口
-  - 端点: `/api/v1/data/update`
-  - 方法: POST
-  - 请求格式: JSON (更新参数)
-  - 响应格式: JSON (更新结果)
-
-- **缓存状态接口**: 提供缓存状态查询接口
-  - 端点: `/api/v1/cache/status`
-  - 方法: GET
-  - 参数: cache_key, data_type
-  - 响应格式: JSON (缓存状态)
-
-### 5.3 业务服务接口
-
-- **交易信号接口**: 提供交易信号查询和管理接口
-  - 端点: `/api/v1/signals`
-  - 方法: GET/POST/PUT/DELETE
-  - 请求格式: JSON (信号参数)
-  - 响应格式: JSON (信号数据)
-
-- **交易计划接口**: 提供交易计划查询和管理接口
-  - 端点: `/api/v1/plans`
-  - 方法: GET/POST/PUT/DELETE
-  - 请求格式: JSON (计划参数)
-  - 响应格式: JSON (计划数据)
-
-### 5.4 内部接口
-
-- **数据库接口**: 通过`database.py`提供统一的数据访问接口
-- **缓存接口**: 通过`cache_engine.py`提供统一的缓存访问接口
-- **AKShare适配器接口**: 通过`akshare_adapter.py`提供统一的AKShare API调用接口
-- **数据注入策略接口**: 通过`data_injector.py`提供数据注入策略控制
-- **数据新鲜度接口**: 通过`freshness_tracker.py`提供数据新鲜度跟踪
-- **配置接口**: 通过`config.py`提供系统配置
-- **日志接口**: 通过`logger.py`提供日志记录功能
-- **上下文接口**: 通过`context_manager.py`提供会话上下文管理
+| 版本 | 日期 | 更新内容 |
+|------|------|----------|
+| 1.0.0 | 2025-06-07 | 初始版本 |
