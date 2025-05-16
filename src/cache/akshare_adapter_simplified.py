@@ -241,6 +241,21 @@ class AKShareAdapter:
         except Exception as e:
             logger.error(f"Error getting data using stock_zh_a_hist for {symbol}: {e}")
 
+        # Check if the date range is in the future
+        today = datetime.now().strftime('%Y%m%d')
+        if self._compare_dates(start_date, today) > 0 and self._compare_dates(end_date, today) > 0:
+            logger.warning(f"Date range {start_date} to {end_date} is entirely in the future. No data available.")
+            # Return empty DataFrame for future dates
+            return pd.DataFrame()
+
+        # Check if we're requesting a single day that might be a non-trading day
+        if start_date == end_date:
+            # Check if it's a weekend
+            date_obj = datetime.strptime(start_date, '%Y%m%d')
+            if date_obj.weekday() >= 5:  # 5 = Saturday, 6 = Sunday
+                logger.warning(f"Date {start_date} is a weekend (non-trading day). No data available.")
+                return pd.DataFrame()
+
         # If all methods fail and mock data is allowed
         if use_mock_data:
             logger.warning(f"All data sources failed for {symbol}. Using mock data as requested.")

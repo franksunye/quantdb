@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Any, Union
 
 import pandas as pd
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, or_, func
 
 from src.api.models import Asset, DailyStockData
 from src.logger import logger
@@ -240,22 +240,29 @@ class DatabaseCache:
             max_date_str = max_date[0].strftime("%Y-%m-%d") if max_date else None
 
             # Get top assets by data points
+            # First, get count of data points for each asset
+            asset_counts = self.db.query(
+                DailyStockData.asset_id,
+                func.count(DailyStockData.id).label('count')
+            ).group_by(
+                DailyStockData.asset_id
+            ).subquery()
+
+            # Then join with assets and order by count
             top_assets_query = self.db.query(
                 Asset.symbol,
                 Asset.name,
-                Asset.asset_id
+                Asset.asset_id,
+                asset_counts.c.count
             ).join(
-                DailyStockData,
-                Asset.asset_id == DailyStockData.asset_id
-            ).group_by(
-                Asset.asset_id
+                asset_counts,
+                Asset.asset_id == asset_counts.c.asset_id
             ).order_by(
-                DailyStockData.id.count().desc()
+                asset_counts.c.count.desc()
             ).limit(5)
 
             top_assets = []
-            for symbol, name, asset_id in top_assets_query:
-                count = self.db.query(DailyStockData).filter(DailyStockData.asset_id == asset_id).count()
+            for symbol, name, asset_id, count in top_assets_query:
                 top_assets.append({
                     "symbol": symbol,
                     "name": name,

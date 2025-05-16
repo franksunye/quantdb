@@ -28,10 +28,21 @@ API tests focus on testing the API endpoints. These tests may involve making HTT
 
 End-to-end tests focus on testing the complete system flow through the API. These tests verify that all components work together correctly in real-world scenarios.
 
-- `test_data_flow_api.py`: Tests the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
-  - Verifies that the API can handle requests for stock data
-  - Checks if the caching mechanism is working by comparing query times
-  - Validates the complete flow from user request to data retrieval
+- `test_stock_data_api_original.py`: Tests the original architecture using TestClient
+  - Verifies the original architecture's API functionality
+  - Uses FastAPI's TestClient to simulate HTTP requests
+
+- `test_stock_data_api_simplified.py`: Tests the simplified architecture using TestClient
+  - Verifies the simplified architecture's API functionality
+  - Tests database caching mechanisms
+  - Uses FastAPI's TestClient to simulate HTTP requests
+
+- `test_stock_data_http_api.py`: Tests the simplified architecture using real HTTP requests
+  - Verifies the complete system with a real HTTP server
+  - Tests the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
+  - Uses actual HTTP requests to a running server
+  - Provides the most realistic test environment
+  - See the [E2E Testing Guide](e2e/README.md) for detailed information
 
 ### Root Tests
 
@@ -74,10 +85,17 @@ python run_tests.py tests/test_assets_api.py
 
 ### Running End-to-End Tests
 
-End-to-end tests require the API server to be running. Use the dedicated script:
+We have two types of end-to-end tests:
+
+1. **TestClient E2E Tests**: Use FastAPI's TestClient to simulate HTTP requests
+2. **Real HTTP E2E Tests**: Use actual HTTP requests to a running server
+
+#### Running TestClient E2E Tests
+
+TestClient E2E tests can be run using the dedicated script:
 
 ```bash
-# Run all end-to-end tests (will start the API server if needed)
+# Run all TestClient E2E tests
 python run_e2e_tests.py
 ```
 
@@ -89,17 +107,42 @@ This script will:
 
 Alternatively, you can:
 1. Start the API server manually: `python -m src.api.main`
-2. Run the tests: `python -m pytest tests/e2e/test_data_flow_api.py -v`
-3. Or run a specific test directly: `python -m tests.e2e.test_data_flow_api`
+2. Run the tests: `python -m pytest tests/e2e/test_stock_data_api_simplified.py -v`
+
+#### Running Real HTTP E2E Tests
+
+Real HTTP E2E tests require a separate test server to be running:
+
+1. **Start the test server**:
+
+   ```bash
+   python start_test_server.py --port 8766
+   ```
+
+2. **Run the tests** in a separate terminal:
+
+   ```bash
+   python -m unittest tests.e2e.test_stock_data_http_api
+   ```
+
+3. **Stop the server** when done by pressing `Ctrl+C` in the server terminal.
+
+For more details, see the [E2E Testing Guide](e2e/README.md).
 
 #### Troubleshooting End-to-End Tests
 
 If end-to-end tests fail, check the following:
 
-1. Make sure the API server is running and accessible at http://localhost:8000
-2. Check that the API endpoints being tested actually exist
-3. Verify that the test parameters (symbol, dates) are valid
-4. Look for detailed error messages in the test output
+1. **For TestClient E2E Tests**:
+   - Make sure the API server is running and accessible at http://localhost:8000
+   - Check that the API endpoints being tested actually exist
+   - Verify that the test parameters (symbol, dates) are valid
+
+2. **For Real HTTP E2E Tests**:
+   - Make sure the test server is running and accessible at http://localhost:8766
+   - Check the server logs for any errors
+   - Verify that the database is properly initialized
+   - Check that the test dates are valid trading days
 
 ### Running Tests Directly with pytest
 
@@ -212,7 +255,13 @@ We follow the test pyramid approach, with more unit tests than integration tests
    - Use for testing complete system flows through the API
    - Verify that all components work together correctly in real-world scenarios
    - Focus on user journeys and business scenarios
-   - Examples: Testing the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
+   - Two approaches:
+     - **TestClient E2E Tests**: Use FastAPI's TestClient to simulate HTTP requests
+     - **Real HTTP E2E Tests**: Use actual HTTP requests to a running server
+   - Examples:
+     - Testing the core data flow scenario (查询不存在的数据 -> 从AKShare获取 -> 保存到数据库和缓存)
+     - Testing cache hit and miss scenarios
+     - Testing error handling for invalid inputs
 
 ### Multi-Level Testing for Core Scenarios
 
@@ -220,6 +269,19 @@ For the core data flow scenario (查询不存在的数据 -> 从AKShare获取 ->
 - **Unit tests** for individual components (AKShareAdapter, CacheEngine)
 - **Integration tests** for component interactions (AKShareAdapter with CacheEngine)
 - **API tests** for the endpoints that expose this functionality
-- **End-to-end tests** for the complete flow through the API
+- **End-to-end tests** for the complete flow through the API:
+  - **TestClient E2E Tests**: Fast, integrated with the application
+  - **Real HTTP E2E Tests**: More realistic, tests the full stack including the HTTP server
 
 This multi-level approach ensures that we catch issues at the appropriate level, making debugging easier and tests more reliable.
+
+### Real HTTP API Testing
+
+Real HTTP API testing is a critical part of our testing strategy, providing the most realistic validation of our system. Key benefits include:
+
+1. **Complete Stack Testing**: Tests the entire deployment stack, including the HTTP server
+2. **Network Transport Validation**: Verifies serialization/deserialization and network behavior
+3. **Real-World Simulation**: Provides the closest simulation to actual production usage
+4. **Regression Testing**: Serves as a reliable regression test suite for critical functionality
+
+For detailed information on running these tests, see the [E2E Testing Guide](e2e/README.md).

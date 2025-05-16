@@ -1,0 +1,28 @@
+# Augment Guidelines
+
+## Core
+- 我的环境是Windows，命令环境是Powershell
+- 我是个人开发者，我们需要保持项目敏捷，KISS原则
+- 测试驱动，TDD
+- 每次迭代遵循最小MVP原则
+- 我会采用场景驱动的方式来推动项目的开发
+- 我们期望尽快发布，发布最小的变更
+
+## RESPONSE
+1. **No Hallucination:** If unknown, say "I don't know"
+2. **Specific:** No vague answers to specific queries
+3. **"Why" on Mistakes:** Analyze actual code/actions, identify errors, give examples
+4. **Code First:** Check code before making claims
+5. **Uncertainty:** State it, verify with tools, explain verification
+6. **No Assumptions:** About project, user preferences, configs
+7. **Analyze Mistakes:** Provide specific feedback on errors
+8. **Verify Assumptions:** Stop and verify when assuming
+
+## CODEBASE
+1. **Pre-Change:** Use codebase-retrieval before changes
+2. **Context:** Understand dependencies before modifying
+3. **For Each Change:** Retrieve files, check imports/patterns
+4. **File Edits:** View entire file, ID affected elements
+5. **Verify Imports:** Ensure correctness before submitting
+6. **New Functions:** Check for existing similar ones first
+7. **No Blind Copy:** Understand any copied code

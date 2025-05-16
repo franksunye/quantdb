@@ -12,6 +12,7 @@ This document provides comprehensive guidelines for testing in the QuantDB proje
 6. [Continuous Integration](#continuous-integration)
 7. [Pre-commit Hooks](#pre-commit-hooks)
 8. [Troubleshooting](#troubleshooting)
+9. [Real HTTP API Testing](#real-http-api-testing)
 
 ## Test-Driven Development Process
 
@@ -39,6 +40,8 @@ Tests are organized into the following directories:
 2. **Integration Tests**: Test how multiple components work together
 3. **API Tests**: Test API endpoints using FastAPI's TestClient
 4. **End-to-End Tests**: Test the entire application from the user's perspective
+   - **TestClient E2E Tests**: Use FastAPI's TestClient to simulate HTTP requests
+   - **Real HTTP E2E Tests**: Use actual HTTP requests to a running server
 
 ## Running Tests
 
@@ -129,10 +132,10 @@ Example:
 def test_get_asset_by_id(test_db):
     """Test getting a specific asset by ID"""
     # Arrange - done by the test_db fixture
-    
+
     # Act
     response = client.get(f"{API_PREFIX}/assets/1")
-    
+
     # Assert
     assert response.status_code == 200
     assert response.json()["symbol"] == "000001"
@@ -148,10 +151,10 @@ Use fixtures to set up common test data and environments:
 def mock_cache_components():
     """Create mock cache components for testing."""
     from unittest.mock import MagicMock
-    
+
     mock_cache_engine = MagicMock(spec=CacheEngine)
     mock_freshness_tracker = MagicMock(spec=FreshnessTracker)
-    
+
     return {
         "cache_engine": mock_cache_engine,
         "freshness_tracker": mock_freshness_tracker
@@ -246,3 +249,61 @@ If you encounter issues with tests:
 - Make sure you're using the correct test fixtures from `tests/conftest.py`
 - Check that fixtures are properly scoped
 - Verify that fixtures are properly cleaning up after themselves
+
+## Real HTTP API Testing
+
+### Overview
+
+Real HTTP API testing involves making actual HTTP requests to a running server, rather than using FastAPI's TestClient. This approach provides several advantages:
+
+- Tests the complete deployment stack, including the HTTP server
+- Verifies network transport and serialization/deserialization
+- Tests middleware and server configurations
+- Simulates real-world usage scenarios
+
+### Running Real HTTP API Tests
+
+To run real HTTP API tests:
+
+1. **Start the test server**:
+
+   ```bash
+   python start_test_server.py --port 8766
+   ```
+
+2. **Run the tests** in a separate terminal:
+
+   ```bash
+   python -m unittest tests.e2e.test_stock_data_http_api
+   ```
+
+3. **Stop the server** when done by pressing `Ctrl+C` in the server terminal.
+
+### Test Server Script
+
+The `start_test_server.py` script provides:
+
+- Automatic port availability checking
+- Server startup verification
+- Detailed logging
+- API endpoint testing
+
+### Key Test Scenarios
+
+Real HTTP API tests cover several key scenarios:
+
+1. **Empty Database Flow**: Tests data retrieval when the database is empty
+2. **Complete Cache Hit Flow**: Tests data retrieval when all data is in the database
+3. **Partial Cache Hit Flow**: Tests data retrieval when some data is in the database
+4. **Invalid Symbol Handling**: Tests error handling for invalid inputs
+
+### When to Use Real HTTP API Tests
+
+Use real HTTP API tests when:
+
+- Testing the complete system from end to end
+- Verifying deployment configurations
+- Testing performance under real-world conditions
+- Performing regression testing before releases
+
+For more details, see the [End-to-End Testing Guide](../../tests/e2e/README.md).

@@ -1,9 +1,10 @@
 # QuantDB: 面向Agent时代的开源金融智能中间件平台
 
-![Version](https://img.shields.io/badge/version-0.3.0-blue)
+![Version](https://img.shields.io/badge/version-0.4.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite%2FPostgreSQL-4169E1)
+![Tests](https://img.shields.io/badge/Tests-Passing-success)
 
 ## 项目概述
 
@@ -55,7 +56,7 @@ curl http://localhost:8000/
 curl http://localhost:8000/api/v1/health
 ```
 
-### 数据API（Sprint 2将实现）
+### 数据API
 
 ```bash
 # 获取资产列表
@@ -64,11 +65,14 @@ curl http://localhost:8000/api/v1/assets
 # 获取特定资产详情
 curl http://localhost:8000/api/v1/assets/1
 
-# 获取资产价格历史
-curl http://localhost:8000/api/v1/assets/1/prices
+# 获取股票历史数据
+curl http://localhost:8000/api/v2/historical/stock/000001?start_date=20230101&end_date=20230131
+
+# 获取数据库缓存状态
+curl http://localhost:8000/api/v2/historical/database/cache/status?symbol=000001
 ```
 
-### MCP协议（Sprint 2将实现）
+### MCP协议
 
 ```bash
 # 使用自然语言查询数据
@@ -91,23 +95,41 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 │   └── stock_data.db              # SQLite数据库文件
 │
 ├── docs/                          # 项目文档
+│   ├── 00_backlog.md              # 待办事项清单
 │   ├── 00_document_standards.md   # 文档标准
+│   ├── 01_requirements.md         # 需求文档
+│   ├── 02_design.md               # 设计文档
+│   ├── 03_system_architecture.md  # 系统架构文档
+│   ├── 04_cache_system.md         # 缓存系统设计
 │   ├── ci_cd_setup.md             # CI/CD设置指南
 │   ├── database_schema.md         # 数据库架构文档
 │   ├── development_environment.md # 开发环境设置
 │   ├── supabase_setup.md          # Supabase设置指南
 │   ├── vercel_setup.md            # Vercel设置指南
+│   ├── archive/                   # 归档文档
 │   └── project_management/        # 项目管理文档
 │       ├── quantdb_01_PLAN_mvp.md # MVP计划
-│       └── quantdb_02_BOARD_mvp_sprint3.md # Sprint 3任务板
+│       ├── quantdb_02_BOARD_mvp_sprint3.md # Sprint 3任务板
+│       ├── quantdb_02_BOARD_mvp_sprint4.md # Sprint 4任务板
+│       └── completed/             # 已完成的Sprint文档
+│
+├── logs/                          # 日志目录
 │
 ├── src/                           # 源代码目录
+│   ├── adapters/                  # 适配器模块
+│   │   ├── __init__.py
+│   │   └── akshare_adapter.py     # AKShare适配器
 │   ├── api/                       # API模块
 │   │   ├── __init__.py
 │   │   ├── database.py            # 数据库连接
 │   │   ├── main.py                # FastAPI应用
 │   │   ├── models.py              # SQLAlchemy模型
-│   │   └── schemas.py             # Pydantic模式
+│   │   ├── schemas.py             # Pydantic模式
+│   │   └── routes/                # API路由
+│   │       ├── __init__.py
+│   │       ├── assets.py          # 资产路由
+│   │       ├── historical_data.py # 历史数据路由
+│   │       └── historical_data_simplified.py # 简化的历史数据路由
 │   ├── mcp/                       # MCP协议模块
 │   │   ├── __init__.py
 │   │   ├── interpreter.py         # MCP解释器
@@ -115,16 +137,25 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 │   ├── scripts/                   # 工具脚本
 │   │   ├── __init__.py
 │   │   └── init_db.py             # 数据库初始化
+│   ├── services/                  # 服务模块
+│   │   ├── __init__.py
+│   │   └── stock_data_service.py  # 股票数据服务
 │   ├── config.py                  # 配置文件
-│   ├── database.py                # 旧数据库模块
-│   ├── downloader.py              # 数据下载
 │   ├── logger.py                  # 日志记录
-│   ├── main.py                    # 主程序入口
-│   └── updater.py                 # 数据更新
+│   └── main.py                    # 主程序入口
 │
 ├── tests/                         # 测试目录
 │   ├── __init__.py
-│   └── test_api.py                # API测试
+│   ├── e2e/                       # 端到端测试
+│   │   ├── __init__.py
+│   │   ├── test_stock_data_api_simplified.py # 简化API测试
+│   │   └── test_stock_data_http_api.py # HTTP API测试
+│   ├── integration/               # 集成测试
+│   │   ├── __init__.py
+│   │   └── test_akshare_adapter.py # AKShare适配器测试
+│   └── unit/                      # 单元测试
+│       ├── __init__.py
+│       └── test_stock_data_service.py # 股票数据服务测试
 │
 ├── .env                           # 环境变量
 ├── .env.example                   # 环境变量示例
@@ -132,8 +163,13 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 │   └── workflows/                 # GitHub Actions工作流
 │       └── ci.yml                 # CI配置
 ├── .gitignore                     # Git忽略文件
+├── check_database.py              # 数据库检查工具
+├── fix_deprecation_warnings.py    # 修复弃用警告工具
+├── import_gen_plan.bat            # 导入生成计划批处理文件
 ├── requirements.txt               # 项目依赖
+├── run_stock_data_e2e_tests.py    # 运行端到端测试脚本
 ├── setup_dev_env.py               # 开发环境设置脚本
+├── start_test_server.py           # 启动测试服务器脚本
 └── README.md                      # 项目说明
 ```
 
@@ -150,17 +186,22 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 
 详细文档请参阅[docs目录](./docs)：
 
-- [开发环境设置](./docs/development_environment.md)
+### 架构文档
+- [系统架构概览](./docs/03_system_architecture.md)
+- [缓存系统设计](./docs/04_cache_system.md)
 - [数据库架构](./docs/database_schema.md)
+
+### 开发指南
+- [开发环境设置](./docs/development_environment.md)
 - [Supabase设置指南](./docs/supabase_setup.md)
 - [Vercel设置指南](./docs/vercel_setup.md)
 - [CI/CD设置指南](./docs/ci_cd_setup.md)
-- [系统架构概览](./docs/03_system_architecture.md)
 
-项目管理文档：
-
+### 项目管理文档
 - [MVP计划](./docs/project_management/quantdb_01_PLAN_mvp.md)
 - [Sprint 3任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint3.md)
+- [Sprint 4任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint4.md)
+- [已完成Sprint文档](./docs/project_management/completed/)
 - [项目状态评估](./docs/project_status_assessment.md)
 - [代码整理计划](./docs/code_cleanup_plan.md)
 
@@ -173,21 +214,35 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 - 实现基本API端点
 - 配置CI/CD流程
 
-### Sprint 2: 数据服务开发 (进行中)
+### Sprint 2: 数据服务开发 (已完成)
 - 实现资产API
 - 开发价格数据API
 - 创建数据导入服务
 - 实现基本的MCP协议解析
 - 开发数据查询功能
 
-### Sprint 3: API增强与文档
+### Sprint 2.5: 缓存系统优化 (已完成)
+- 简化缓存架构
+- 实现智能数据获取策略
+- 优化数据库查询
+- 实现日期范围分段处理
+- 完善端到端测试
+
+### Sprint 2.6: 测试与稳定性 (已完成)
+- 增强端到端测试
+- 实现HTTP API测试
+- 优化错误处理
+- 改进日志记录
+- 修复已知问题
+
+### Sprint 3: API增强与文档 (进行中)
 - 增强API功能
 - 开发API文档系统
 - 实现API版本控制
 - 增强MCP协议功能
 - 开发API测试套件
 
-### Sprint 4: 部署与优化
+### Sprint 4: 部署与优化 (计划中)
 - 部署API服务
 - 配置Supabase数据库
 - 实现API监控系统

@@ -132,10 +132,10 @@ app.include_router(
     tags=["historical"]
 )
 
-# Include simplified historical data router
+# Include simplified historical data router (v2)
 app.include_router(
     historical_data_simplified_router,
-    prefix=f"{API_PREFIX}/v2/historical",
+    prefix=f"/api/v2/historical",
     tags=["historical-v2"]
 )
 

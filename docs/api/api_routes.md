@@ -210,7 +210,7 @@ POST /api/v1/cache/refresh
 
 历史数据API用于获取股票的历史数据。
 
-### 获取股票历史数据
+### 获取股票历史数据 (v1)
 
 ```
 GET /api/v1/historical/stock/{symbol}
@@ -221,6 +221,29 @@ GET /api/v1/historical/stock/{symbol}
 - `start_date`: 开始日期，格式为YYYYMMDD（可选）
 - `end_date`: 结束日期，格式为YYYYMMDD（可选）
 - `adjust`: 价格调整方法：'' (无调整), 'qfq' (前复权), 'hfq' (后复权)（可选，默认：''）
+
+### 获取股票历史数据 (v2)
+
+```
+GET /api/v2/historical/stock/{symbol}
+```
+
+参数：
+- `symbol`: 股票符号
+- `start_date`: 开始日期，格式为YYYYMMDD（可选）
+- `end_date`: 结束日期，格式为YYYYMMDD（可选）
+- `adjust`: 价格调整方法：'' (无调整), 'qfq' (前复权), 'hfq' (后复权)（可选，默认：''）
+
+### 获取数据库缓存状态 (v2)
+
+```
+GET /api/v2/historical/database/cache/status
+```
+
+参数：
+- `symbol`: 股票符号（可选）
+- `start_date`: 开始日期，格式为YYYYMMDD（可选）
+- `end_date`: 结束日期，格式为YYYYMMDD（可选）
 
 ## MCP查询
 
