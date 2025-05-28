@@ -29,12 +29,12 @@ SAMPLE_STOCK_DATA = pd.DataFrame({
 def clean_test_data(test_db):
     """Clean test data before each test"""
     # Clean up any existing test data
-    test_db.query(Price).delete()
+    test_db.query(DailyStockData).delete()
     test_db.query(Asset).delete()
     test_db.commit()
     yield
     # Clean up after test
-    test_db.query(Price).delete()
+    test_db.query(DailyStockData).delete()
     test_db.query(Asset).delete()
     test_db.commit()
 
