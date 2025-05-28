@@ -1,6 +1,6 @@
-# tests/unit/test_akshare_adapter_simplified.py
+# tests/unit/test_akshare_adapter.py
 """
-Unit tests for the simplified AKShare adapter.
+Unit tests for the AKShare adapter.
 """
 
 import unittest
@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.cache.akshare_adapter import AKShareAdapter
 
-class TestAKShareAdapterSimplified(unittest.TestCase):
-    """Test cases for simplified AKShareAdapter."""
+class TestAKShareAdapter(unittest.TestCase):
+    """Test cases for AKShareAdapter."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -157,8 +157,8 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         result = self.adapter._generate_mock_stock_data("600000", "20230101", "20231231", "", "monthly")
         self.assertEqual(len(result), 12)  # 12 months in a year
 
-    @patch('src.cache.akshare_adapter_simplified.AKShareAdapter._safe_call')
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.AKShareAdapter._safe_call')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_success(self, logger_mock, safe_call_mock):
         """Test getting stock data successfully."""
         # Setup mock
@@ -182,8 +182,8 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         safe_call_mock.assert_called_once()
         logger_mock.info.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.AKShareAdapter._safe_call')
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.AKShareAdapter._safe_call')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_empty(self, logger_mock, safe_call_mock):
         """Test getting stock data with empty result."""
         # Setup mock
@@ -199,8 +199,8 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         safe_call_mock.assert_called_once()
         logger_mock.warning.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.AKShareAdapter._safe_call')
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.AKShareAdapter._safe_call')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_exception(self, logger_mock, safe_call_mock):
         """Test getting stock data with exception."""
         # Setup mock
@@ -216,8 +216,8 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         safe_call_mock.assert_called_once()
         logger_mock.error.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.AKShareAdapter._safe_call')
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.AKShareAdapter._safe_call')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_with_mock_data(self, logger_mock, safe_call_mock):
         """Test getting stock data with mock data."""
         # Setup mock
@@ -233,7 +233,7 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         safe_call_mock.assert_called_once()
         logger_mock.warning.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_invalid_symbol(self, logger_mock):
         """Test getting stock data with invalid symbol."""
         # Call method with invalid symbol and no mock data
@@ -248,7 +248,7 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         logger_mock.error.assert_called()
         logger_mock.warning.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_invalid_period(self, logger_mock):
         """Test getting stock data with invalid period."""
         # Call method with invalid period
@@ -258,7 +258,7 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         # Verify mocks
         logger_mock.error.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_invalid_adjust(self, logger_mock):
         """Test getting stock data with invalid adjust."""
         # Call method with invalid adjust
@@ -268,7 +268,7 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
         # Verify mocks
         logger_mock.error.assert_called()
 
-    @patch('src.cache.akshare_adapter_simplified.logger')
+    @patch('src.cache.akshare_adapter.logger')
     def test_get_stock_data_start_after_end(self, logger_mock):
         """Test getting stock data with start date after end date."""
         # Call method with start date after end date
