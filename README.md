@@ -161,6 +161,8 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 
 - [MVP计划](./docs/project_management/quantdb_01_PLAN_mvp.md)
 - [Sprint 3任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint3.md)
+- [项目状态评估](./docs/project_status_assessment.md)
+- [代码整理计划](./docs/code_cleanup_plan.md)
 
 ## 开发路线图
 

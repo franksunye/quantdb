@@ -29,6 +29,12 @@ This directory contains documentation for the QuantDB project. The documentation
 - `database_schema.md` - Database schema documentation
 - `version_management_guide.md` - Version management guide and best practices
 
+### Project Status and Planning
+
+- `project_assessment_summary.md` - Executive summary of project assessment and key findings
+- `project_status_assessment.md` - Comprehensive project status assessment report
+- `code_cleanup_plan.md` - Detailed code cleanup and refactoring execution plan
+
 ## API Documentation (`/api`)
 
 - `README.md` - API documentation overview
