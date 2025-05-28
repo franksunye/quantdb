@@ -13,7 +13,7 @@ from datetime import datetime
 from src.config import API_PREFIX, DEBUG, ENVIRONMENT
 from src.enhanced_logger import setup_enhanced_logger
 from src.api.database import get_db
-from src.mcp.interpreter import MCPInterpreter
+# from src.mcp.interpreter import MCPInterpreter  # MCP功能已归档
 from src.api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
 from src.api.version import APIVersion, get_version_prefix, get_latest_version_info
 from src.api.errors import (
@@ -39,9 +39,9 @@ from src.services.database_cache import DatabaseCache
 akshare_adapter = AKShareAdapter()
 
 # Create MCP interpreter with simplified components
-mcp_interpreter = MCPInterpreter(
-    akshare_adapter=akshare_adapter
-)
+# mcp_interpreter = MCPInterpreter(  # MCP功能已归档
+#     akshare_adapter=akshare_adapter
+# )
 
 # Lifespan context manager for startup and shutdown events
 from contextlib import asynccontextmanager
@@ -118,7 +118,7 @@ async def health_check_v2():
 from src.api.routes import assets, prices, data_import, cache, historical_data
 from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
-from src.mcp.schemas import MCPRequest, MCPResponse
+# from src.mcp.schemas import MCPRequest, MCPResponse  # MCP功能已归档
 
 # Include routers with consistent prefixes
 app.include_router(
@@ -173,19 +173,19 @@ app.include_router(
     tags=["version-v2"]
 )
 
-# MCP endpoint
-@app.post(f"{API_PREFIX}/mcp/query", response_model=MCPResponse, tags=["mcp"])
-async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
-    """
-    Process a natural language query using the MCP protocol
-    """
-    # Set the database session for the interpreter
-    mcp_interpreter.set_db(db)
-
-    # Process the request
-    response = await mcp_interpreter.process_request(request)
-
-    return response
+# MCP endpoint - 已归档
+# @app.post(f"{API_PREFIX}/mcp/query", response_model=MCPResponse, tags=["mcp"])
+# async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
+#     """
+#     Process a natural language query using the MCP protocol
+#     """
+#     # Set the database session for the interpreter
+#     mcp_interpreter.set_db(db)
+#
+#     # Process the request
+#     response = await mcp_interpreter.process_request(request)
+#
+#     return response
 
 # Register exception handlers
 register_exception_handlers(app)
