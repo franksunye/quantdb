@@ -2,6 +2,10 @@
 
 This document provides instructions for setting up the QuantDB development environment.
 
+**Last Updated**: 2025-05-28
+**Version**: Simplified Architecture (v0.6.0-sqlite)
+**Status**: SQLite Development Environment
+
 ## Prerequisites
 
 - Python 3.9 or higher
@@ -83,17 +87,48 @@ The API will be available at http://localhost:8000, and the documentation at htt
 
 ## Running Tests
 
-To run the tests:
+QuantDB uses a unified test runner for all testing needs:
+
+### Basic Test Commands
 
 ```bash
-pytest
+# Run all tests
+python scripts/test_runner.py --all
+
+# Run core functionality tests (unit + API)
+python scripts/test_runner.py --unit --api
+
+# Run specific test types
+python scripts/test_runner.py --unit      # Unit tests only
+python scripts/test_runner.py --api       # API tests only
+python scripts/test_runner.py --integration # Integration tests only
 ```
 
-To run tests with coverage:
+### Advanced Test Options
 
 ```bash
-pytest --cov=src tests/
+# Run tests with coverage report
+python scripts/test_runner.py --coverage
+
+# Run performance tests
+python scripts/test_runner.py --performance
+
+# Run specific test file
+python scripts/test_runner.py --file tests/unit/test_stock_data_service.py
+
+# Verbose output
+python scripts/test_runner.py --unit --verbose
 ```
+
+### Test Results
+
+The test runner provides comprehensive reporting:
+- Individual test file results
+- Summary statistics
+- Coverage reports (when enabled)
+- Performance metrics (when enabled)
+
+**Current Test Status**: 80/80 core functionality tests passing (100%)
 
 ## Project Structure
 

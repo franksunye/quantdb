@@ -3,10 +3,10 @@
 ## 文档信息
 **文档类型**: 架构设计
 **文档编号**: quantdb-ARCH-004
-**版本**: 2.0.0
+**版本**: 3.0.0
 **创建日期**: 2025-06-07
-**最后更新**: 2025-06-16
-**状态**: 已批准
+**最后更新**: 2025-05-28
+**状态**: 已实现并投入使用
 **负责人**: frank
 
 ## 1. 概述
@@ -78,30 +78,30 @@
 def get_stock_data(symbol, start_date, end_date):
     """
     获取指定日期范围的股票数据。
-    
+
     Args:
         symbol: 股票代码
         start_date: 开始日期（格式：YYYYMMDD）
         end_date: 结束日期（格式：YYYYMMDD）
-        
+
     Returns:
         包含请求日期范围数据的DataFrame
     """
     # 生成日期范围内的所有交易日
     trading_days = get_trading_days(start_date, end_date)
-    
+
     # 查询数据库，检查哪些日期的数据已存在
     existing_data = query_db_for_dates(symbol, trading_days)
     existing_dates = set(existing_data.keys())
-    
+
     # 找出缺失的日期
     missing_dates = [day for day in trading_days if day not in existing_dates]
-    
+
     # 如果有缺失的日期，从AKShare获取
     if missing_dates:
         # 将缺失的日期分组为连续的日期范围
         date_groups = group_consecutive_dates(missing_dates)
-        
+
         for group_start, group_end in date_groups:
             # 从AKShare获取数据
             akshare_data = akshare_adapter.get_stock_data(
@@ -109,14 +109,14 @@ def get_stock_data(symbol, start_date, end_date):
                 start_date=group_start,
                 end_date=group_end
             )
-            
+
             # 将获取的数据保存到数据库
             save_to_database(symbol, akshare_data)
-            
+
             # 更新已有数据
             for date, data in akshare_data.items():
                 existing_data[date] = data
-    
+
     # 按日期排序并返回
     return sort_by_date(existing_data.values())
 ```
@@ -129,28 +129,28 @@ def get_stock_data(symbol, start_date, end_date):
 def group_consecutive_dates(dates):
     """
     将日期列表分组为连续的日期范围。
-    
+
     Args:
         dates: 日期列表（格式：YYYYMMDD）
-        
+
     Returns:
         连续日期范围的列表，每个元素为(start_date, end_date)元组
     """
     if not dates:
         return []
-    
+
     # 按日期排序
     sorted_dates = sorted(dates)
-    
+
     # 初始化结果和当前组
     result = []
     current_group = [sorted_dates[0]]
-    
+
     # 遍历排序后的日期
     for i in range(1, len(sorted_dates)):
         current_date = datetime.strptime(sorted_dates[i], "%Y%m%d")
         prev_date = datetime.strptime(sorted_dates[i-1], "%Y%m%d")
-        
+
         # 如果日期连续，添加到当前组
         if (current_date - prev_date).days <= 3:  # 允许最多2天的间隔（考虑周末）
             current_group.append(sorted_dates[i])
@@ -158,10 +158,10 @@ def group_consecutive_dates(dates):
             # 否则，结束当前组并开始新组
             result.append((current_group[0], current_group[-1]))
             current_group = [sorted_dates[i]]
-    
+
     # 添加最后一组
     result.append((current_group[0], current_group[-1]))
-    
+
     return result
 ```
 
@@ -185,15 +185,15 @@ class DatabaseCache:
     def get(symbol, dates):
         """从数据库获取数据"""
         pass
-    
+
     def save(symbol, data):
         """保存数据到数据库"""
         pass
-    
+
     def get_date_range_coverage(symbol, start_date, end_date):
         """获取日期范围的覆盖情况"""
         pass
-    
+
     def get_stats():
         """获取缓存统计信息"""
         pass
@@ -215,17 +215,17 @@ class AKShareAdapter:
 ```python
 class DataService(ABC):
     """数据服务抽象基类"""
-    
+
     @abstractmethod
     def get_data(self, **kwargs):
         """获取数据"""
         pass
-    
+
     @abstractmethod
     def save_data(self, data, **kwargs):
         """保存数据"""
         pass
-    
+
     @abstractmethod
     def is_data_fresh(self, **kwargs):
         """检查数据是否新鲜"""
@@ -234,15 +234,15 @@ class DataService(ABC):
 
 class StockDataService(DataService):
     """股票历史数据服务，针对不可变数据优化"""
-    
+
     def get_data(self, symbol, start_date, end_date):
         # 实现智能数据获取策略
         pass
-    
+
     def save_data(self, data, symbol):
         # 保存到数据库
         pass
-    
+
     def is_data_fresh(self, **kwargs):
         # 对于股票历史数据，只要存在就是新鲜的
         return True
@@ -250,21 +250,21 @@ class StockDataService(DataService):
 
 class CompanyProfileService(DataService):
     """公司档案数据服务，处理可变数据"""
-    
+
     def get_data(self, symbol):
         # 实现数据获取逻辑
         pass
-    
+
     def save_data(self, data, symbol):
         # 保存到数据库
         pass
-    
+
     def is_data_fresh(self, symbol, max_age_days=30):
         # 检查数据是否新鲜
         last_update = self.get_last_update_time(symbol)
         if not last_update:
             return False
-        
+
         age_days = (datetime.now() - last_update).days
         return age_days <= max_age_days
 ```
