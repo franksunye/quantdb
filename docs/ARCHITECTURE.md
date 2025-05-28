@@ -1,0 +1,128 @@
+# QuantDB 系统架构
+
+**版本**: v0.6.0-sqlite | **状态**: 简化架构已实现 | **测试**: 80/80 通过
+
+## 架构概述
+
+QuantDB 采用简化架构，专注于核心功能的稳定性和可维护性。
+
+### 设计原则
+- **简化优先**: 避免过度设计，选择简单可靠的解决方案
+- **数据库作为缓存**: 使用 SQLite 作为主要数据存储和缓存
+- **统一数据源**: 通过 AKShare 适配器获取股票数据
+- **API优先**: 以 RESTful API 为核心的服务架构
+
+## 核心组件
+
+```
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│   FastAPI   │    │  Services   │    │   SQLite    │
+│   Routes    │───▶│   Layer     │───▶│  Database   │
+└─────────────┘    └─────────────┘    └─────────────┘
+       │                   │                   │
+       │                   ▼                   │
+       │           ┌─────────────┐             │
+       │           │  AKShare    │             │
+       └──────────▶│  Adapter    │─────────────┘
+                   └─────────────┘
+```
+
+### 1. API层 (FastAPI)
+- **路由管理**: 处理HTTP请求和响应
+- **数据验证**: 使用Pydantic进行请求/响应验证
+- **错误处理**: 统一的错误响应格式
+- **文档生成**: 自动生成OpenAPI文档
+
+### 2. 服务层 (Services)
+- **StockDataService**: 股票数据获取、存储、查询
+- **DatabaseCache**: 数据库缓存管理
+- **DataImportService**: 数据导入和后台任务
+
+### 3. 数据层
+- **SQLite数据库**: 主要数据存储
+- **AKShare适配器**: 外部数据源接口
+
+## 数据流程
+
+### 数据获取流程
+```
+1. API请求 → 2. 服务层 → 3. 检查数据库缓存
+                    ↓
+4. 返回数据 ← 5. 合并数据 ← 6. 调用AKShare (如需要)
+```
+
+### 智能缓存策略
+1. **检查现有数据**: 查询数据库中已有的数据范围
+2. **确定缺失数据**: 计算需要从AKShare获取的日期范围
+3. **批量获取**: 分组连续日期，减少API调用
+4. **存储数据**: 将新数据保存到数据库
+5. **返回结果**: 合并缓存和新数据
+
+## 数据模型
+
+### 核心表结构
+
+**Assets (资产表)**
+```sql
+CREATE TABLE assets (
+    asset_id INTEGER PRIMARY KEY,
+    symbol VARCHAR(10) UNIQUE NOT NULL,
+    name VARCHAR(100),
+    asset_type VARCHAR(20),
+    exchange VARCHAR(20),
+    currency VARCHAR(10)
+);
+```
+
+**Prices (价格表)**
+```sql
+CREATE TABLE prices (
+    id INTEGER PRIMARY KEY,
+    asset_id INTEGER REFERENCES assets(asset_id),
+    date DATE NOT NULL,
+    open DECIMAL(10,4),
+    high DECIMAL(10,4),
+    low DECIMAL(10,4),
+    close DECIMAL(10,4),
+    volume BIGINT,
+    turnover DECIMAL(15,2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 关键特性
+
+### 1. 简化缓存
+- **无复杂缓存层**: 直接使用数据库作为缓存
+- **智能数据获取**: 只获取缺失的数据范围
+- **持久化存储**: 数据永久保存，无过期问题
+
+### 2. 错误处理
+- **统一错误格式**: 所有API使用相同的错误响应结构
+- **增强日志**: 详细的错误日志和调试信息
+- **优雅降级**: 部分数据失败不影响整体服务
+
+### 3. 测试覆盖
+- **单元测试**: 62个单元测试覆盖核心逻辑
+- **API测试**: 18个API测试验证接口功能
+- **集成测试**: 端到端测试验证完整流程
+
+## 性能特点
+
+- **数据库查询优化**: 使用索引和批量操作
+- **智能缓存**: 避免重复获取相同数据
+- **异步处理**: 数据导入使用后台任务
+- **轻量级架构**: 最小化组件依赖
+
+## 扩展性
+
+### 当前支持
+- SQLite 开发环境
+- AKShare 数据源
+- RESTful API 接口
+
+### 未来扩展 (已规划但暂缓)
+- MCP 协议支持
+- Supabase 云部署
+- 多数据源支持
+- 实时数据流
