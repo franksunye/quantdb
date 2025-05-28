@@ -1,29 +1,31 @@
 # QuantDB: 面向Agent时代的开源金融智能中间件平台
 
-![Version](https://img.shields.io/badge/version-0.6.0--sqlite-blue)
+![Version](https://img.shields.io/badge/version-0.7.0--unified-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
-![Tests](https://img.shields.io/badge/Tests-80%2F80%20Passing-success)
-![Architecture](https://img.shields.io/badge/Architecture-Simplified-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-Passing-success)
+![Architecture](https://img.shields.io/badge/Architecture-Unified-brightgreen)
 
 ## 项目概述
 
 QuantDB是一个面向Agent时代的开源金融智能中间件平台，通过MCP（Model Context Protocol）协议标准化自然语言与金融数据之间的接口，提供结构化的金融数据服务。作为一个数据提供者，QuantDB专注于高质量的数据API服务，让外部系统（如Agent或LLM）能够轻松获取和处理金融数据。
 
-### 🎆 当前版本状态 (v0.6.0-sqlite)
+### 🎉 当前版本状态 (v0.7.0-unified)
 
-**✅ 简化架构完成** - 2025-05-28
-**✅ SQLite开发版本稳定运行**
-**✅ 80/80 核心功能测试通过**
-**✅ 所有API端点正常工作**
+**✅ API重构完成** - 2025-01-02
+**✅ 统一数据模型完成**
+**✅ 与AKShare保持一致**
+**✅ 所有测试通过**
+**✅ 系统运行稳定**
 
-当前版本专注于 SQLite 开发环境，提供稳定的核心功能。系统已经完成了大规模的代码整理和架构简化，移除了复杂的缓存层，采用数据库作为主要缓存，显著提高了系统的可维护性和稳定性。
+当前版本完成了重要的API重构，消除了价格数据和历史数据的重复问题。系统现在使用统一的 `DailyStockData` 模型，与AKShare保持完全一致的数据格式和字段命名，提供更加简洁、一致的API体验。
 
 ### 核心特点
 
 - **📊 高质量数据服务**：提供结构化、标准化的金融数据API
-- **🤖 MCP协议支持**：将自然语言请求转化为结构化查询 (未来版本)
+- **🔄 统一数据模型**：使用统一的 `DailyStockData` 模型，消除数据重复
+- **📊 AKShare兼容**：与AKShare保持完全一致的数据格式和字段命名
 - **⚡ 简化架构**：移除复杂缓存层，使用SQLite数据库作为主要缓存
 - **🛠️ 高可维护性**：清晰的代码结构，统一的错误处理，全面的测试覆盖
 - **🚀 开发友好**：快速搭建开发环境，完整的API文档，统一的测试管理

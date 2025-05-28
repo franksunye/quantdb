@@ -1,6 +1,15 @@
 # QuantDB API 文档
 
-**版本**: v0.6.0-sqlite | **架构**: 简化架构 | **数据库**: SQLite
+**版本**: v0.7.0-unified | **架构**: 统一架构 | **数据库**: SQLite
+
+## 重要更新 (v0.7.0)
+
+🎉 **API重构完成**: 消除了价格数据重复，统一使用历史数据API
+
+- ❌ **已移除**: `/api/v1/prices/` 端点（完全删除）
+- ✅ **保留**: `/api/v1/historical/` 端点（与AKShare格式一致）
+- 🔄 **统一**: 使用 `DailyStockData` 模型存储所有股票数据
+- 📊 **一致性**: 与AKShare保持完全一致的数据格式
 
 ## 快速开始
 
@@ -25,10 +34,10 @@ GET /api/v1/assets/{asset_id}
 GET /api/v1/assets/symbol/{symbol}
 ```
 
-### 历史数据
+### 股票历史数据 (统一API)
 
 ```bash
-# 获取股票历史数据
+# 获取股票历史数据 (与AKShare保持一致)
 GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 
 # 参数:
@@ -36,13 +45,23 @@ GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 # - start_date: 开始日期 YYYYMMDD (可选)
 # - end_date: 结束日期 YYYYMMDD (可选)
 # - adjust: 复权方式 "", "qfq", "hfq" (可选)
+# - limit: 最大返回数量 (默认100)
 ```
+
+**特点**:
+- 🔄 **统一数据源**: 唯一的股票数据API端点
+- 📊 **AKShare兼容**: 与AKShare保持完全一致的数据格式
+- ⚡ **智能缓存**: 自动缓存和更新数据
+- 💾 **持久化**: 数据存储在SQLite数据库中
 
 **响应示例**:
 ```json
 {
   "symbol": "000001",
   "name": "平安银行",
+  "start_date": "20230101",
+  "end_date": "20230131",
+  "adjust": "",
   "data": [
     {
       "date": "2023-01-03",
@@ -51,15 +70,33 @@ GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
       "low": 12.30,
       "close": 12.65,
       "volume": 1234567,
-      "turnover": 15432100.50
+      "turnover": 15432100.50,
+      "amplitude": 4.0,
+      "pct_change": 1.2,
+      "change": 0.15,
+      "turnover_rate": 0.8
     }
   ],
   "metadata": {
     "count": 1,
-    "status": "success"
+    "status": "success",
+    "message": "Successfully retrieved 1 data points"
   }
 }
 ```
+
+**数据字段说明** (与AKShare一致):
+- `date`: 交易日期
+- `open`: 开盘价
+- `high`: 最高价
+- `low`: 最低价
+- `close`: 收盘价
+- `volume`: 成交量
+- `turnover`: 成交额
+- `amplitude`: 振幅(%)
+- `pct_change`: 涨跌幅(%)
+- `change`: 涨跌额
+- `turnover_rate`: 换手率(%)
 
 
 
@@ -83,8 +120,11 @@ Content-Type: application/json
 # 获取缓存状态
 GET /api/v1/cache/status
 
-# 清除缓存数据
-DELETE /api/v1/cache/clear?table=prices
+# 清除缓存数据 (更新后使用daily_stock_data表)
+DELETE /api/v1/cache/clear?table=daily_stock_data
+
+# 清除特定股票的缓存
+DELETE /api/v1/cache/clear/symbol/{symbol}
 ```
 
 ## 错误处理
@@ -110,14 +150,39 @@ DELETE /api/v1/cache/clear?table=prices
 ## 使用示例
 
 ```bash
-# 完整工作流程
+# 完整工作流程 - 获取股票历史数据
 curl "http://localhost:8000/api/v1/historical/stock/000001?start_date=20230101&end_date=20230131"
 
-# 导入数据
+# 获取最近10天数据
+curl "http://localhost:8000/api/v1/historical/stock/000001?limit=10"
+
+# 获取前复权数据
+curl "http://localhost:8000/api/v1/historical/stock/000001?adjust=qfq&limit=20"
+
+# 导入数据 (异步后台任务)
 curl -X POST http://localhost:8000/api/v1/import/stock \
   -H "Content-Type: application/json" \
   -d '{"symbol": "000001", "start_date": "20230101", "end_date": "20230131"}'
 
 # 检查缓存状态
 curl http://localhost:8000/api/v1/cache/status
+
+# 清除特定股票缓存
+curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/000001
 ```
+
+## 迁移指南
+
+### 从 v0.6.0 升级到 v0.7.0
+
+**重要变更**:
+- ❌ **已移除**: `/api/v1/prices/` 所有端点
+- ✅ **保留**: `/api/v1/historical/` 端点保持不变
+
+**无需修改**:
+- 如果您使用的是 `/api/v1/historical/` 端点，无需任何修改
+- 数据格式和字段保持完全一致
+
+**需要修改**:
+- 如果您使用的是 `/api/v1/prices/` 端点，请更换为 `/api/v1/historical/`
+- 新的统一API提供更丰富的数据和更好的性能
