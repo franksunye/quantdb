@@ -26,11 +26,11 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         # Get database statistics
         assets_count = db.execute(text("SELECT COUNT(*) FROM assets")).scalar()
-        prices_count = db.execute(text("SELECT COUNT(*) FROM prices")).scalar()
+        daily_data_count = db.execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
 
-        # Get latest data timestamp
-        latest_price = db.execute(text(
-            "SELECT MAX(updated_at) FROM prices"
+        # Get latest data timestamp (using trade_date since daily_stock_data doesn't have updated_at)
+        latest_data = db.execute(text(
+            "SELECT MAX(trade_date) FROM daily_stock_data"
         )).scalar()
 
         # Get database size (SQLite specific)
@@ -41,8 +41,8 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
         stats = {
             "database": {
                 "assets_count": assets_count or 0,
-                "prices_count": prices_count or 0,
-                "latest_update": latest_price.isoformat() if latest_price else None,
+                "daily_data_count": daily_data_count or 0,
+                "latest_data_date": str(latest_data) if latest_data else None,
                 "database_size_bytes": db_size or 0
             },
             "cache_type": "SQLite Database",

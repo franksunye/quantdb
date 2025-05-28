@@ -14,7 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.api.main import app  # , mcp_interpreter  # MCP功能已归档
 from src.api.database import get_db, Base
-from src.api.models import Asset, Price
+from src.api.models import Asset, DailyStockData
 from src.cache.akshare_adapter import AKShareAdapter
 from datetime import date, timedelta
 

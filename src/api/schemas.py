@@ -35,28 +35,6 @@ class Asset(AssetBase):
 
     model_config = ConfigDict(from_attributes=True)
 
-# Price schemas
-class PriceBase(BaseModel):
-    """Base schema for Price"""
-    date: date
-    open: Optional[float] = None
-    high: Optional[float] = None
-    low: Optional[float] = None
-    close: Optional[float] = None
-    volume: Optional[float] = None
-    adjusted_close: Optional[float] = None
-
-class PriceCreate(PriceBase):
-    """Schema for creating a Price"""
-    asset_id: int
-
-class Price(PriceBase):
-    """Schema for returning a Price"""
-    price_id: int
-    asset_id: int
-
-    model_config = ConfigDict(from_attributes=True)
-
 # Daily stock data schemas
 class DailyStockDataBase(BaseModel):
     """Base schema for DailyStockData"""
@@ -66,6 +44,7 @@ class DailyStockDataBase(BaseModel):
     low: Optional[float] = None
     close: Optional[float] = None
     volume: Optional[int] = None
+    adjusted_close: Optional[float] = None  # 新增字段，从Price模型迁移
     turnover: Optional[float] = None
     amplitude: Optional[float] = None
     pct_change: Optional[float] = None

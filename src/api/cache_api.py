@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from src.api.database import get_db
-from src.api.models import Asset, Price
+from src.api.models import Asset, DailyStockData
 from src.logger import setup_logger
 
 # Setup logger
@@ -35,12 +35,12 @@ async def get_cache_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         # Count assets and prices in database
         asset_count = db.query(Asset).count()
-        price_count = db.query(Price).count()
-        
+        price_count = db.query(DailyStockData).count()
+
         # Get latest price date
-        latest_price = db.query(Price).order_by(Price.trade_date.desc()).first()
+        latest_price = db.query(DailyStockData).order_by(DailyStockData.trade_date.desc()).first()
         latest_date = latest_price.trade_date if latest_price else None
-        
+
         stats = {
             "cache_type": "database",
             "total_assets": asset_count,
@@ -48,10 +48,10 @@ async def get_cache_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "latest_data_date": latest_date,
             "timestamp": datetime.now().isoformat()
         }
-        
+
         logger.info(f"Cache stats retrieved: {stats}")
         return stats
-        
+
     except Exception as e:
         logger.error(f"Error getting cache stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to get cache statistics")
@@ -67,16 +67,16 @@ async def clear_cache(db: Session = Depends(get_db)) -> Dict[str, str]:
     """
     try:
         # Delete all price data but keep assets
-        deleted_count = db.query(Price).delete()
+        deleted_count = db.query(DailyStockData).delete()
         db.commit()
-        
+
         logger.info(f"Cleared {deleted_count} price records from cache")
-        
+
         return {
             "message": f"Successfully cleared {deleted_count} price records from cache",
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Error clearing cache: {e}")
         db.rollback()
@@ -99,18 +99,18 @@ async def clear_symbol_cache(symbol: str, db: Session = Depends(get_db)) -> Dict
         asset = db.query(Asset).filter(Asset.symbol == symbol).first()
         if not asset:
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
-        
+
         # Delete price data for this asset
-        deleted_count = db.query(Price).filter(Price.asset_id == asset.asset_id).delete()
+        deleted_count = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).delete()
         db.commit()
-        
+
         logger.info(f"Cleared {deleted_count} price records for symbol {symbol}")
-        
+
         return {
             "message": f"Successfully cleared {deleted_count} price records for symbol {symbol}",
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -129,16 +129,16 @@ async def get_cached_symbols(db: Session = Depends(get_db)) -> List[Dict[str, An
     """
     try:
         # Query assets that have price data
-        assets_with_prices = db.query(Asset).join(Price).distinct().all()
-        
+        assets_with_prices = db.query(Asset).join(DailyStockData).distinct().all()
+
         symbols = []
         for asset in assets_with_prices:
             # Get price count and date range for this asset
-            price_count = db.query(Price).filter(Price.asset_id == asset.asset_id).count()
-            
-            earliest_price = db.query(Price).filter(Price.asset_id == asset.asset_id).order_by(Price.trade_date.asc()).first()
-            latest_price = db.query(Price).filter(Price.asset_id == asset.asset_id).order_by(Price.trade_date.desc()).first()
-            
+            price_count = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).count()
+
+            earliest_price = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).order_by(DailyStockData.trade_date.asc()).first()
+            latest_price = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).order_by(DailyStockData.trade_date.desc()).first()
+
             symbols.append({
                 "symbol": asset.symbol,
                 "name": asset.name,
@@ -146,10 +146,10 @@ async def get_cached_symbols(db: Session = Depends(get_db)) -> List[Dict[str, An
                 "earliest_date": earliest_price.trade_date if earliest_price else None,
                 "latest_date": latest_price.trade_date if latest_price else None
             })
-        
+
         logger.info(f"Retrieved cache info for {len(symbols)} symbols")
         return symbols
-        
+
     except Exception as e:
         logger.error(f"Error getting cached symbols: {e}")
         raise HTTPException(status_code=500, detail="Failed to get cached symbols")
@@ -166,14 +166,14 @@ async def cache_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         # Simple health check - try to query the database
         asset_count = db.query(Asset).count()
-        
+
         return {
             "status": "healthy",
             "cache_type": "database",
             "asset_count": asset_count,
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Cache health check failed: {e}")
         return {

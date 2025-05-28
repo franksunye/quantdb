@@ -30,29 +30,11 @@ class Asset(Base):
     currency = Column(String, nullable=False)
 
     # Relationships
-    prices = relationship("Price", back_populates="asset")
     daily_data = relationship("DailyStockData", back_populates="asset")
     intraday_data = relationship("IntradayStockData", back_populates="asset")
 
-class Price(Base):
-    """Price model for historical price data"""
-    __tablename__ = "prices"
-
-    price_id = Column(Integer, primary_key=True, index=True)
-    asset_id = Column(Integer, ForeignKey("assets.asset_id"), nullable=False)
-    date = Column(Date, nullable=False)
-    open = Column(Float)
-    high = Column(Float)
-    low = Column(Float)
-    close = Column(Float)
-    volume = Column(Float)
-    adjusted_close = Column(Float)
-
-    # Relationships
-    asset = relationship("Asset", back_populates="prices")
-
 class DailyStockData(Base):
-    """Daily stock data model"""
+    """Daily stock data model - 统一的股票数据模型"""
     __tablename__ = "daily_stock_data"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -63,6 +45,7 @@ class DailyStockData(Base):
     low = Column(Float)
     close = Column(Float)
     volume = Column(Integer)
+    adjusted_close = Column(Float)  # 新增字段，从Price模型迁移
     turnover = Column(Float)
     amplitude = Column(Float)
     pct_change = Column(Float)

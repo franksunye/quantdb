@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
-from src.api.models import Asset, Price, DailyStockData, ImportTask
+from src.api.models import Asset, DailyStockData, ImportTask
 from src.api.schemas import ImportTaskStatusEnum
 from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
@@ -102,7 +102,7 @@ class DataImportService:
 
     def import_price_data(self,
                          asset_id: int,
-                         price_data: List[Dict[str, Any]]) -> List[Price]:
+                         price_data: List[Dict[str, Any]]) -> List[DailyStockData]:
         """
         Import price data for an asset
 
@@ -112,7 +112,7 @@ class DataImportService:
                         date, open, high, low, close, volume, adjusted_close
 
         Returns:
-            List of created or updated Price objects
+            List of created or updated DailyStockData objects
         """
         try:
             # Check if asset exists
@@ -130,36 +130,47 @@ class DataImportService:
                     price_date = datetime.strptime(price_date, "%Y-%m-%d").date()
 
                 # Check if price data already exists for this date
-                price = self.db.query(Price).filter(
-                    Price.asset_id == asset_id,
-                    Price.date == price_date
+                daily_data = self.db.query(DailyStockData).filter(
+                    DailyStockData.asset_id == asset_id,
+                    DailyStockData.trade_date == price_date
                 ).first()
 
-                if price:
+                if daily_data:
                     # Update existing price data
-                    price.open = data.get('open')
-                    price.high = data.get('high')
-                    price.low = data.get('low')
-                    price.close = data.get('close')
-                    price.volume = data.get('volume')
-                    price.adjusted_close = data.get('adjusted_close')
-                    logger.debug(f"Updated price data for {asset.symbol} on {price_date}")
+                    daily_data.open = data.get('open')
+                    daily_data.high = data.get('high')
+                    daily_data.low = data.get('low')
+                    daily_data.close = data.get('close')
+                    daily_data.volume = data.get('volume')
+                    daily_data.adjusted_close = data.get('adjusted_close')
+                    # Update technical indicators if available
+                    daily_data.turnover = data.get('turnover', 0)
+                    daily_data.amplitude = data.get('amplitude', 0)
+                    daily_data.pct_change = data.get('pct_change', 0)
+                    daily_data.change = data.get('change', 0)
+                    daily_data.turnover_rate = data.get('turnover_rate', 0)
+                    logger.debug(f"Updated daily stock data for {asset.symbol} on {price_date}")
                 else:
                     # Create new price data
-                    price = Price(
+                    daily_data = DailyStockData(
                         asset_id=asset_id,
-                        date=price_date,
+                        trade_date=price_date,
                         open=data.get('open'),
                         high=data.get('high'),
                         low=data.get('low'),
                         close=data.get('close'),
                         volume=data.get('volume'),
-                        adjusted_close=data.get('adjusted_close')
+                        adjusted_close=data.get('adjusted_close'),
+                        turnover=data.get('turnover', 0),
+                        amplitude=data.get('amplitude', 0),
+                        pct_change=data.get('pct_change', 0),
+                        change=data.get('change', 0),
+                        turnover_rate=data.get('turnover_rate', 0)
                     )
-                    self.db.add(price)
-                    logger.debug(f"Created new price data for {asset.symbol} on {price_date}")
+                    self.db.add(daily_data)
+                    logger.debug(f"Created new daily stock data for {asset.symbol} on {price_date}")
 
-                imported_prices.append(price)
+                imported_prices.append(daily_data)
 
             self.db.commit()
             logger.info(f"Imported {len(imported_prices)} price records for asset {asset.symbol}")

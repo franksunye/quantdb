@@ -81,6 +81,7 @@ class DatabaseCache:
                     "low": result.low,
                     "close": result.close,
                     "volume": result.volume,
+                    "adjusted_close": result.adjusted_close,  # 新增字段
                     "turnover": result.turnover,
                     "amplitude": result.amplitude,
                     "pct_change": result.pct_change,
@@ -144,6 +145,7 @@ class DatabaseCache:
                     low=item.get('low'),
                     close=item.get('close'),
                     volume=item.get('volume'),
+                    adjusted_close=item.get('adjusted_close'),  # 新增字段
                     turnover=item.get('turnover'),
                     amplitude=item.get('amplitude'),
                     pct_change=item.get('pct_change'),

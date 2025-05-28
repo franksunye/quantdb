@@ -61,12 +61,7 @@ GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 }
 ```
 
-### 价格数据
 
-```bash
-# 获取股票价格数据 (数组格式)
-GET /api/v1/prices/stock/{symbol}?start_date=20230101&end_date=20231231
-```
 
 ### 数据导入
 

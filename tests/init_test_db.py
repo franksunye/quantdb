@@ -12,7 +12,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from src.api.database import Base
-from src.api.models import Asset, Price
+from src.api.models import Asset, DailyStockData
 from datetime import date, timedelta
 
 def init_test_db():
@@ -24,15 +24,15 @@ def init_test_db():
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
     )
-    
+
     # Create tables
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    
+
     # Create session
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = TestingSessionLocal()
-    
+
     # Add test data
     test_assets = [
         Asset(
@@ -76,14 +76,14 @@ def init_test_db():
             currency="USD"
         )
     ]
-    
+
     db.add_all(test_assets)
     db.commit()
-    
+
     # Add test prices
     today = date.today()
     test_prices = []
-    
+
     # Add prices for test assets
     for asset in test_assets:
         for i in range(30):
@@ -100,12 +100,12 @@ def init_test_db():
                     adjusted_close=102.0 + i
                 )
             )
-    
+
     db.add_all(test_prices)
     db.commit()
-    
+
     db.close()
-    
+
     print("Test database initialized successfully.")
 
 if __name__ == "__main__":
