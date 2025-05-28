@@ -31,7 +31,7 @@ load_dotenv()
 
 # 导入测试目标
 from src.db.adapter_factory import create_db_adapter
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.api.database import get_db
 from sqlalchemy.orm import Session
@@ -227,7 +227,6 @@ class TestReservoirMechanism(unittest.TestCase):
         self.assertIsNotNone(db_data)
         self.assertGreater(len(db_data), 10)
         logger.info(f"数据库中有 {len(db_data)} 条股票数据记录")
-
 
 if __name__ == '__main__':
     unittest.main()

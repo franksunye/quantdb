@@ -7,7 +7,7 @@ from datetime import datetime, time, timedelta
 
 from src.logger import logger
 from src.config import DATABASE_PATH, INDICES
-from src.database import get_last_trade_date, get_all_stock_symbols
+from src.api.database import get_last_trade_date, get_all_stock_symbols
 from src.downloader import *
 
 def is_market_closed():

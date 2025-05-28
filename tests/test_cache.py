@@ -10,11 +10,8 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.cache.models import FreshnessStatus
-
 
 class TestCacheEngine(unittest.TestCase):
     """Tests for the CacheEngine class."""
@@ -114,7 +111,6 @@ class TestCacheEngine(unittest.TestCase):
         self.assertEqual(stats["misses"], 1)
         self.assertAlmostEqual(stats["hit_rate"], 2/3, places=2)
 
-
 class TestFreshnessTracker(unittest.TestCase):
     """Tests for the FreshnessTracker class."""
     
@@ -193,7 +189,6 @@ class TestFreshnessTracker(unittest.TestCase):
         self.assertEqual(updates[0]["cache_key"], key)
         self.assertEqual(updates[0]["priority"], 5)
 
-
 class TestAKShareAdapter(unittest.TestCase):
     """Tests for the AKShareAdapter class."""
     
@@ -243,7 +238,6 @@ class TestAKShareAdapter(unittest.TestCase):
         except Exception as e:
             # Skip the test if there's an error (e.g., no internet connection)
             self.skipTest(f"Error accessing AKShare: {e}")
-
 
 if __name__ == "__main__":
     unittest.main()

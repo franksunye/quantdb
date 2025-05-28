@@ -10,10 +10,7 @@ from tempfile import NamedTemporaryFile
 from fastapi.testclient import TestClient
 
 from src.api.cache_api import router as cache_router
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.models import CacheEntryStatus, FreshnessStatus
-
 
 class TestCacheAPI(unittest.TestCase):
     """Integration tests for the cache API."""
@@ -208,7 +205,6 @@ class TestCacheAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         keys = response.json()
         self.assertEqual(len(keys), 0)
-
 
 if __name__ == "__main__":
     unittest.main()

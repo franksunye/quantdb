@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.api.models import Base, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -28,7 +28,6 @@ from src.enhanced_logger import setup_enhanced_logger
 
 # Setup logger
 logger = setup_enhanced_logger(__name__)
-
 
 class TestCachePerformance(unittest.TestCase):
     """Performance tests for the cache system."""
@@ -279,7 +278,6 @@ class TestCachePerformance(unittest.TestCase):
 
         # Verify data was returned
         self.assertEqual(len(result), 31)  # Full month of data
-
 
 if __name__ == '__main__':
     unittest.main()

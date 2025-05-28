@@ -24,7 +24,6 @@ class TestDBAdapterFactory(unittest.TestCase):
         adapter = create_db_adapter('supabase')
         self.assertEqual(adapter.__class__.__name__, 'SupabaseAdapter')
 
-
 class TestSQLiteAdapter(unittest.TestCase):
     """测试SQLite适配器"""
 
@@ -142,7 +141,6 @@ class TestSQLiteAdapter(unittest.TestCase):
         self.assertEqual(min_date, '2025-01-01')
         self.assertEqual(max_date, '2025-01-10')
 
-
 class TestSupabaseAdapter(unittest.TestCase):
     """测试Supabase适配器"""
 
@@ -231,7 +229,6 @@ class TestSupabaseAdapter(unittest.TestCase):
             "SELECT * FROM assets WHERE symbol = %s",
             ('000001',)
         )
-
 
 if __name__ == '__main__':
     unittest.main()

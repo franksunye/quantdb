@@ -15,8 +15,6 @@ from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_excep
 
 from src.api.models import Asset, Price, DailyStockData, ImportTask
 from src.api.schemas import ImportTaskStatusEnum
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
 
@@ -32,26 +30,17 @@ class DataImportService:
     """
 
     def __init__(self, db: Session,
-                cache_engine: Optional[CacheEngine] = None,
-                freshness_tracker: Optional[FreshnessTracker] = None,
                 akshare_adapter: Optional[AKShareAdapter] = None):
         """
         Initialize the data import service
 
         Args:
             db: SQLAlchemy database session
-            cache_engine: Cache engine instance (optional)
-            freshness_tracker: Freshness tracker instance (optional)
             akshare_adapter: AKShare adapter instance (optional)
         """
         self.db = db
-        self.cache_engine = cache_engine or CacheEngine()
-        self.freshness_tracker = freshness_tracker or FreshnessTracker()
-        self.akshare_adapter = akshare_adapter or AKShareAdapter(
-            cache_engine=self.cache_engine,
-            freshness_tracker=self.freshness_tracker
-        )
-        logger.info("Data import service initialized with Reservoir Cache integration")
+        self.akshare_adapter = akshare_adapter or AKShareAdapter()
+        logger.info("Data import service initialized with simplified architecture")
 
     def import_asset(self,
                     symbol: str,

@@ -39,7 +39,6 @@ class APIVersion(str, Enum):
         except ValueError:
             return False
 
-
 class VersionInfo(BaseModel):
     """API version information model."""
     version: str
@@ -48,7 +47,6 @@ class VersionInfo(BaseModel):
     deprecated: bool = False
     sunset_date: Optional[str] = ""
     description: str
-
 
 # Version information for each API version
 VERSION_INFO: Dict[APIVersion, VersionInfo] = {
@@ -70,7 +68,6 @@ VERSION_INFO: Dict[APIVersion, VersionInfo] = {
     )
 }
 
-
 def get_version_info(version: Union[APIVersion, str]) -> Optional[VersionInfo]:
     """
     Get information about a specific API version.
@@ -90,7 +87,6 @@ def get_version_info(version: Union[APIVersion, str]) -> Optional[VersionInfo]:
 
     return VERSION_INFO.get(version)
 
-
 def get_all_versions() -> Dict[str, VersionInfo]:
     """
     Get information about all API versions.
@@ -99,7 +95,6 @@ def get_all_versions() -> Dict[str, VersionInfo]:
         Dictionary with version information for all API versions.
     """
     return {v.value: info for v, info in VERSION_INFO.items()}
-
 
 def get_version_prefix(version: Union[APIVersion, str]) -> str:
     """
@@ -120,7 +115,6 @@ def get_version_prefix(version: Union[APIVersion, str]) -> str:
 
     return f"/api/{version.value}"
 
-
 def is_version_deprecated(version: Union[APIVersion, str]) -> bool:
     """
     Check if an API version is deprecated.
@@ -136,7 +130,6 @@ def is_version_deprecated(version: Union[APIVersion, str]) -> bool:
         return False
 
     return info.deprecated
-
 
 def get_latest_version_info() -> VersionInfo:
     """

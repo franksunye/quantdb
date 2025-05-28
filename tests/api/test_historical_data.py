@@ -27,12 +27,10 @@ SAMPLE_STOCK_DATA = pd.DataFrame({
 @pytest.fixture
 def mock_akshare_adapter():
     """Mock AKShareAdapter for testing"""
-    # First patch the is_fresh method to always return False to avoid cache hits
-    with patch('src.cache.freshness_tracker.FreshnessTracker.is_fresh', return_value=False):
-        # Then patch the get_stock_data method
-        with patch.object(AKShareAdapter, 'get_stock_data') as mock_get_stock_data:
-            mock_get_stock_data.return_value = SAMPLE_STOCK_DATA
-            yield mock_get_stock_data
+    # Patch the get_stock_data method (simplified architecture)
+    with patch.object(AKShareAdapter, 'get_stock_data') as mock_get_stock_data:
+        mock_get_stock_data.return_value = SAMPLE_STOCK_DATA
+        yield mock_get_stock_data
 
 def test_get_historical_stock_data(mock_akshare_adapter, test_db):
     """Test getting historical stock data"""
@@ -96,27 +94,25 @@ def test_get_historical_stock_data_invalid_symbol(test_db):
 
 def test_get_historical_stock_data_empty_result(test_db):
     """Test getting historical stock data with empty result"""
-    # Patch both the freshness tracker and the get_stock_data method
-    with patch('src.cache.freshness_tracker.FreshnessTracker.is_fresh', return_value=False):
-        with patch('src.cache.akshare_adapter.AKShareAdapter.get_stock_data', return_value=pd.DataFrame()):
-            response = client.get("/api/v1/historical/stock/000001")
+    # Patch the get_stock_data method to return empty DataFrame
+    with patch('src.cache.akshare_adapter.AKShareAdapter.get_stock_data', return_value=pd.DataFrame()):
+        response = client.get("/api/v1/historical/stock/000001")
 
-            assert response.status_code == 200
-            data = response.json()
+        assert response.status_code == 200
+        data = response.json()
 
-            assert data["symbol"] == "000001"
-            assert len(data["data"]) == 0
-            assert data["metadata"]["count"] == 0
-            assert data["metadata"]["status"] == "success"
-            assert "No data found" in data["metadata"]["message"]
+        assert data["symbol"] == "000001"
+        assert len(data["data"]) == 0
+        assert data["metadata"]["count"] == 0
+        assert data["metadata"]["status"] == "success"
+        assert "No data found" in data["metadata"]["message"]
 
 def test_get_historical_stock_data_error(test_db):
     """Test getting historical stock data with error"""
-    # Patch both the freshness tracker and the get_stock_data method
-    with patch('src.cache.freshness_tracker.FreshnessTracker.is_fresh', return_value=False):
-        with patch('src.cache.akshare_adapter.AKShareAdapter.get_stock_data', side_effect=Exception("Test error")):
-            response = client.get("/api/v1/historical/stock/000001")
+    # Patch the get_stock_data method to raise an exception
+    with patch('src.cache.akshare_adapter.AKShareAdapter.get_stock_data', side_effect=Exception("Test error")):
+        response = client.get("/api/v1/historical/stock/000001")
 
-            assert response.status_code == 500
-            data = response.json()
-            assert "Error fetching data" in data["detail"]
+        assert response.status_code == 500
+        data = response.json()
+        assert "Error fetching data" in data["detail"]

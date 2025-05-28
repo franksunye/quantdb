@@ -10,10 +10,7 @@ from tempfile import NamedTemporaryFile
 
 import pandas as pd
 
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.models import FreshnessStatus
-
 
 class TestCacheIntegration(unittest.TestCase):
     """Integration tests for the cache system."""
@@ -211,7 +208,6 @@ class TestCacheIntegration(unittest.TestCase):
 
         # Check the results
         self.assertFalse(freshness_info["update_scheduled"])
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -17,14 +17,11 @@ import pandas as pd
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
 
 class TestAKShareAdapterFix(unittest.TestCase):
     """Tests for the fixed AKShareAdapter class."""
@@ -32,9 +29,7 @@ class TestAKShareAdapterFix(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         # Initialize cache engine and freshness tracker
-        self.cache_engine = CacheEngine()
-        self.freshness_tracker = FreshnessTracker()
-        
+        self.        self.        
         # Initialize AKShare adapter with the cache engine and freshness tracker
         self.adapter = AKShareAdapter(
             cache_engine=self.cache_engine,
@@ -253,7 +248,6 @@ class TestAKShareAdapterFix(unittest.TestCase):
         
         except Exception as e:
             self.fail(f"get_index_data raised an exception: {e}")
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,7 +12,6 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, Optional, List
 
-
 class FreshnessStatus(Enum):
     """Enumeration of possible freshness statuses for cached data."""
     FRESH = "fresh"  # Data is fresh and can be used
@@ -20,14 +19,12 @@ class FreshnessStatus(Enum):
     EXPIRED = "expired"  # Data is expired and should be refreshed
     UNKNOWN = "unknown"  # Freshness status is unknown
 
-
 class CacheEntryStatus(Enum):
     """Enumeration of possible statuses for cache entries."""
     VALID = "valid"  # Entry is valid and can be used
     INVALID = "invalid"  # Entry is invalid and should not be used
     UPDATING = "updating"  # Entry is currently being updated
     PENDING = "pending"  # Entry is pending creation
-
 
 @dataclass
 class CacheMetadata:
@@ -49,7 +46,6 @@ class CacheMetadata:
     # Additional metadata
     extra: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class CacheEntry:
     """A cache entry containing data and metadata."""
@@ -59,7 +55,6 @@ class CacheEntry:
     data: Any
     # Metadata for the cache entry
     metadata: CacheMetadata = field(default_factory=CacheMetadata)
-
 
 @dataclass
 class FreshnessInfo:
@@ -78,7 +73,6 @@ class FreshnessInfo:
     update_priority: int = 0
     # Additional information
     extra: Dict[str, Any] = field(default_factory=dict)
-
 
 @dataclass
 class CacheStats:

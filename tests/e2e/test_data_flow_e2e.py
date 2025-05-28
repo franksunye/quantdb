@@ -24,7 +24,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.api.main import app
 from src.api.models import Base, Asset, DailyStockData
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
 from sqlalchemy import create_engine
@@ -34,7 +34,6 @@ from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
 
 class TestDataFlowE2E(unittest.TestCase):
     """End-to-end tests for the complete data flow."""
@@ -303,7 +302,6 @@ class TestDataFlowE2E(unittest.TestCase):
         stock_data = self.session.query(DailyStockData).filter(DailyStockData.asset_id == assets[0].asset_id).all()
         logger.info(f"Database now has {len(stock_data)} records for {symbol}")
 
-
     def test_edge_cases(self):
         """Test edge cases like future dates and non-trading days."""
         # Get test parameters
@@ -381,7 +379,6 @@ class TestDataFlowE2E(unittest.TestCase):
         self.assertIn("total_assets", status_data)
         self.assertIn("total_data_points", status_data)
         logger.info(f"Database cache status: {json.dumps(status_data, indent=2)}")
-
 
 if __name__ == '__main__':
     unittest.main()

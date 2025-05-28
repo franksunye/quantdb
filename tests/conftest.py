@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.api.main import app, mcp_interpreter
 from src.api.database import get_db, Base
 from src.api.models import Asset, Price
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from datetime import date, timedelta
 
 # Use a file-based SQLite database for testing

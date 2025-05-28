@@ -16,7 +16,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 from src.services.database_cache import DatabaseCache
 from src.api.models import Asset, DailyStockData
 
-
 class TestDatabaseCache(unittest.TestCase):
     """Test cases for DatabaseCache."""
 
@@ -382,7 +381,6 @@ class TestDatabaseCache(unittest.TestCase):
 
         # Verify mocks
         self.db_mock.rollback.assert_called_once()
-
 
 if __name__ == '__main__':
     unittest.main()

@@ -23,7 +23,6 @@ from src.api.errors import (
 # Create test client
 client = TestClient(app)
 
-
 class TestErrorHandlingIntegration(unittest.TestCase):
     """Integration tests for error handling."""
     
@@ -184,7 +183,6 @@ class TestErrorHandlingIntegration(unittest.TestCase):
         self.assertIn("status_code", content["error"])
         self.assertIn("path", content["error"])
         self.assertIn("timestamp", content["error"])
-
 
 if __name__ == "__main__":
     unittest.main()

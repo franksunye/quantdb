@@ -6,8 +6,7 @@ import os
 import sqlite3
 from unittest.mock import patch
 
-from src.database import initialize_database, insert_asset
-
+from src.api.database import initialize_database, insert_asset
 
 class TestDatabase(unittest.TestCase):
 

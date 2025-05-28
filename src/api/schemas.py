@@ -160,18 +160,15 @@ class HistoricalDataResponse(BaseModel):
     data: List[HistoricalDataPoint]
     metadata: Dict[str, Any]
 
-
 # Import task schemas
 class ImportTaskBase(BaseModel):
     """Base schema for ImportTask"""
     task_type: str
     parameters: Optional[Dict[str, Any]] = None
 
-
 class ImportTaskCreate(ImportTaskBase):
     """Schema for creating an ImportTask"""
     pass
-
 
 class ImportTask(ImportTaskBase):
     """Schema for returning an ImportTask"""

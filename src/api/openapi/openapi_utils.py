@@ -17,7 +17,6 @@ from fastapi.responses import JSONResponse
 
 from src.logger import logger
 
-
 def get_openapi_schema() -> Dict[str, Any]:
     """
     Get the OpenAPI schema from the JSON file.
@@ -32,7 +31,6 @@ def get_openapi_schema() -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Error loading OpenAPI schema: {e}")
         return {}
-
 
 def setup_openapi(app: FastAPI) -> None:
     """
@@ -82,7 +80,6 @@ def setup_openapi(app: FastAPI) -> None:
         return JSONResponse(app.openapi())
     
     logger.info("OpenAPI documentation set up successfully")
-
 
 def setup_swagger_ui(app: FastAPI) -> None:
     """

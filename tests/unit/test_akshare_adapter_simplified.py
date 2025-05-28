@@ -13,8 +13,7 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.cache.akshare_adapter_simplified import AKShareAdapter
-
+from src.cache.akshare_adapter import AKShareAdapter
 
 class TestAKShareAdapterSimplified(unittest.TestCase):
     """Test cases for simplified AKShareAdapter."""
@@ -278,7 +277,6 @@ class TestAKShareAdapterSimplified(unittest.TestCase):
 
         # Verify mocks
         logger_mock.error.assert_called()
-
 
 if __name__ == '__main__':
     unittest.main()

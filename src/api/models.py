@@ -9,7 +9,6 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from src.api.database import Base
 
-
 class ImportTaskStatus(enum.Enum):
     """Enum for import task status"""
     PENDING = "pending"
@@ -105,7 +104,6 @@ class IntradayStockData(Base):
 
     # Relationships
     asset = relationship("Asset", back_populates="intraday_data")
-
 
 class ImportTask(Base):
     """Import task model for tracking data import tasks"""

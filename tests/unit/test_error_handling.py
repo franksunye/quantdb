@@ -40,7 +40,6 @@ class TestErrorCodes(unittest.TestCase):
         self.assertEqual(ErrorCode.DATABASE_ERROR, "DATABASE_ERROR")
         self.assertEqual(ErrorCode.MCP_PROCESSING_ERROR, "MCP_PROCESSING_ERROR")
 
-
 class TestQuantDBException(unittest.TestCase):
     """Tests for the QuantDBException class."""
 
@@ -75,7 +74,6 @@ class TestQuantDBException(unittest.TestCase):
         self.assertEqual(exc.status_code, 500)
         self.assertEqual(exc.details, {})
         self.assertIsNotNone(exc.timestamp)
-
 
 class TestSpecificExceptions(unittest.TestCase):
     """Tests for specific exception classes."""
@@ -150,7 +148,6 @@ class TestSpecificExceptions(unittest.TestCase):
         self.assertEqual(exc.status_code, 500)
         self.assertEqual(exc.details, {"query": "What is the price of AAPL?"})
 
-
 class TestErrorResponse(unittest.TestCase):
     """Tests for the create_error_response function."""
 
@@ -191,7 +188,6 @@ class TestErrorResponse(unittest.TestCase):
         self.assertEqual(response["error"]["details"], {})
         self.assertIsNone(response["error"]["path"])
         self.assertIn("timestamp", response["error"])
-
 
 class TestExceptionHandlers(unittest.TestCase):
     """Tests for exception handlers."""
@@ -246,7 +242,6 @@ class TestExceptionHandlers(unittest.TestCase):
             self.assertIn("request", sig.parameters)
             self.assertIn("exc", sig.parameters)
 
-
 class TestRegisterExceptionHandlers(unittest.TestCase):
     """Tests for register_exception_handlers function."""
 
@@ -266,7 +261,6 @@ class TestRegisterExceptionHandlers(unittest.TestCase):
         mock_app.add_exception_handler.assert_any_call(RequestValidationError, validation_exception_handler)
         mock_app.add_exception_handler.assert_any_call(ValidationError, validation_exception_handler)
         mock_app.add_exception_handler.assert_any_call(Exception, global_exception_handler)
-
 
 if __name__ == "__main__":
     unittest.main()

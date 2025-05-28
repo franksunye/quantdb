@@ -222,7 +222,6 @@ def plot_ma_above_ratio_v2(ma_above_ratios, start_date_str, end_date_str):
     except Exception as e:
         logger.error(f"绘制图形时发生错误: {e}")
 
-
 # 示例用法
 if __name__ == "__main__":
     start_date = "2023-01-01"

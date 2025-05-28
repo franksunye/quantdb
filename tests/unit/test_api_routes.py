@@ -25,7 +25,6 @@ logger = setup_enhanced_logger(__name__)
 # Create test client
 client = TestClient(app)
 
-
 class TestAPIRoutes(unittest.TestCase):
     """Unit tests for API routes."""
 
@@ -149,7 +148,6 @@ class TestAPIRoutes(unittest.TestCase):
         # Test validation error
         response = client.post(f"{API_PREFIX}/mcp/query", json={})
         self.assertEqual(response.status_code, 422)
-
 
 if __name__ == "__main__":
     unittest.main()

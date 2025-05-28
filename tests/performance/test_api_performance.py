@@ -18,7 +18,6 @@ logger = setup_enhanced_logger(__name__)
 # Create test client
 client = TestClient(app)
 
-
 class TestAPIPerformance(unittest.TestCase):
     """Performance tests for the API."""
     
@@ -249,7 +248,6 @@ class TestAPIPerformance(unittest.TestCase):
         
         # Assert that the average response time is below the threshold
         self.assertLess(avg_time, self.medium_threshold)
-
 
 if __name__ == "__main__":
     unittest.main()

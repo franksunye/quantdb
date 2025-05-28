@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from src.mcp.schemas import MCPRequest, MCPResponse
 from src.api.models import Asset, Price
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.enhanced_logger import setup_enhanced_logger, log_function
 from src.api.errors import MCPProcessingException
 

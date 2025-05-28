@@ -29,7 +29,7 @@ load_dotenv()
 
 # 导入测试目标
 from src.db.adapter_factory import create_db_adapter
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.api.database import get_db
 from sqlalchemy.orm import Session
@@ -219,7 +219,6 @@ class TestSupabaseIntegration(unittest.TestCase):
         self.assertEqual(response2.status_code, 200)
         data2 = response2.json()
         self.assertEqual(len(data2['prices']), len(data['prices']))
-
 
 if __name__ == '__main__':
     unittest.main()

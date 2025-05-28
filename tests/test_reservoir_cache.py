@@ -19,11 +19,8 @@ import numpy as np
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.cache.models import FreshnessStatus
-
 
 class TestCacheEngine(unittest.TestCase):
     """Tests for the CacheEngine class."""
@@ -164,7 +161,6 @@ class TestCacheEngine(unittest.TestCase):
         self.assertEqual(stats["misses"], 1)
         self.assertAlmostEqual(stats["hit_rate"], 2/3, places=2)
 
-
 class TestFreshnessTracker(unittest.TestCase):
     """Tests for the FreshnessTracker class."""
     
@@ -233,7 +229,6 @@ class TestFreshnessTracker(unittest.TestCase):
         
         # Check if fresh with relaxed requirement (should be False)
         self.assertFalse(self.freshness_tracker.is_fresh(key, freshness_requirement="relaxed"))
-
 
 if __name__ == "__main__":
     unittest.main()

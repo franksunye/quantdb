@@ -16,8 +16,7 @@ from src.api.database import Base
 from src.api.models import Asset, Price
 from src.mcp.interpreter import MCPInterpreter
 from src.mcp.schemas import MCPRequest, MCPResponse
-from src.cache.akshare_adapter_simplified import AKShareAdapter
-
+from src.cache.akshare_adapter import AKShareAdapter
 
 class TestMCPCache(unittest.TestCase):
     """Tests for the MCP interpreter with simplified architecture."""
@@ -142,7 +141,6 @@ class TestMCPCache(unittest.TestCase):
 
         # Check that AKShare was called
         self.mock_akshare_adapter.get_stock_data.assert_called_once()
-
 
 if __name__ == "__main__":
     unittest.main()

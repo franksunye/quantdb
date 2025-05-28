@@ -4,15 +4,11 @@ Cache API routes for monitoring and managing the cache system.
 from typing import Dict, Any, Optional
 from fastapi import APIRouter, HTTPException, Query
 from src.logger import setup_logger
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 
 # Setup logger
 logger = setup_logger(__name__)
 
 # Create cache components
-cache_engine = CacheEngine()
-freshness_tracker = FreshnessTracker()
 
 # Create router
 router = APIRouter(

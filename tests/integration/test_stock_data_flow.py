@@ -18,11 +18,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.api.models import Base, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-
 
 class TestStockDataFlow(unittest.TestCase):
     """Integration tests for the stock data flow."""
@@ -306,7 +305,6 @@ class TestStockDataFlow(unittest.TestCase):
         # This is because the get_or_create_asset method in DatabaseCache
         # creates an asset if it doesn't exist, regardless of whether data is saved
         # So we don't check the number of assets here
-
 
 if __name__ == '__main__':
     unittest.main()

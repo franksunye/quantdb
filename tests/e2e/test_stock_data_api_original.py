@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.api.main import app
 from src.api.models import Base, Asset, DailyStockData
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
 from sqlalchemy import create_engine
@@ -33,7 +33,6 @@ from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
 
 class TestStockDataAPI(unittest.TestCase):
     """End-to-end tests for the stock data API."""
@@ -353,7 +352,6 @@ class TestStockDataAPI(unittest.TestCase):
 
         # Mark the test as passed
         logger.info("Database cache status test passed")
-
 
 if __name__ == '__main__':
     unittest.main()

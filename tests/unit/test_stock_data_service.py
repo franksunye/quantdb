@@ -15,7 +15,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.services.stock_data_service import StockDataService
 
-
 class TestStockDataService(unittest.TestCase):
     """Test cases for StockDataService."""
 
@@ -239,7 +238,6 @@ class TestStockDataService(unittest.TestCase):
         self.akshare_adapter_mock.get_stock_data.assert_called_once()
         self.db_cache_mock.save.assert_not_called()
         logger_mock.warning.assert_any_call("No data returned from AKShare for 600000 from 20230101 to 20230102")
-
 
 if __name__ == '__main__':
     unittest.main()

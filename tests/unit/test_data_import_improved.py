@@ -20,14 +20,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../.
 
 from src.services.data_import import DataImportService
 from src.api.models import Asset, Price, ImportTask, ImportTaskStatus
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
 
 class TestDataImportServiceImproved(unittest.TestCase):
     """Unit tests for the improved DataImportService class."""
@@ -208,7 +205,6 @@ class TestDataImportServiceImproved(unittest.TestCase):
         self.assertEqual(result["symbol"], "000001")
         self.assertEqual(result["records_imported"], 10)
         self.assertTrue(result["success"])
-
 
 if __name__ == "__main__":
     unittest.main()

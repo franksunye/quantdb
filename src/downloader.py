@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime, time, timedelta
 
 from src.logger import logger
-from src.database import get_asset_id,insert_daily_stock_data, insert_into_assets_and_index
+from src.api.database import get_asset_id,insert_daily_stock_data, insert_into_assets_and_index
 from src.config import DATABASE_PATH
 
 def save_raw_data(data: pd.DataFrame, filename: str):
@@ -24,7 +24,6 @@ def download_index_data(index_symbol: str) -> pd.DataFrame:
     """下载指数成分股数据"""
     # return ak.index_stock_cons(symbol=index_symbol)
     return ak.index_stock_cons_sina(symbol=index_symbol)
-
 
 def download_and_save_all_stocks(conn: sqlite3.Connection):
     """下载所有沪深股票信息，并保存到数据库中的assets表"""

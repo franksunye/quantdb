@@ -15,10 +15,7 @@ from sqlalchemy.pool import StaticPool
 from src.api.database import Base
 from src.api.models import Asset, Price
 from src.services.data_import import DataImportService
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
-
 
 class TestDataImportService(unittest.TestCase):
     """Tests for the DataImportService class."""
@@ -238,9 +235,6 @@ class TestDataImportService(unittest.TestCase):
             end_date="20230101",
             use_mock_data=False
         )
-
-
-
 
 if __name__ == "__main__":
     unittest.main()

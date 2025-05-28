@@ -12,9 +12,7 @@ from tempfile import NamedTemporaryFile
 
 import pandas as pd
 
-from src.cache.cache_engine import CacheEngine
 from src.cache.models import CacheEntryStatus
-
 
 class TestCacheEngine(unittest.TestCase):
     """Test cases for the CacheEngine class."""
@@ -243,7 +241,6 @@ class TestCacheEngine(unittest.TestCase):
         self.assertIn("bytes_per_entry", stats)
         self.assertIn("expiration_rate", stats)
         self.assertIn("cache_health", stats)
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -179,7 +179,6 @@ class TestEnhancedLogger(unittest.TestCase):
             self.assertIn("Test error", log_content)
             self.assertIn("Traceback", log_content)
 
-
 class TestLogFunctionDecorator(unittest.TestCase):
     """Tests for the log_function decorator."""
     
@@ -246,7 +245,6 @@ class TestLogFunctionDecorator(unittest.TestCase):
             self.assertIn("ValueError", log_content)
             self.assertIn("Test error", log_content)
 
-
 class TestSetupEnhancedLogger(unittest.TestCase):
     """Tests for the setup_enhanced_logger function."""
     
@@ -273,7 +271,6 @@ class TestSetupEnhancedLogger(unittest.TestCase):
             
             # Check that log file was created
             self.assertTrue(os.path.exists(log_file))
-
 
 if __name__ == "__main__":
     unittest.main()

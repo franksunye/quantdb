@@ -17,7 +17,6 @@ from src.api.models import Asset, DailyStockData
 from src.logger import logger
 from src.services.database_cache import DatabaseCache
 
-
 class StockDataService:
     """
     Stock data service that provides stock historical data with intelligent data fetching.

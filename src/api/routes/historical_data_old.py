@@ -1,11 +1,6 @@
-# src/api/routes/historical_data_simplified.py
 """
-Historical stock data API routes with simplified cache architecture.
-
-This module provides API endpoints for retrieving historical stock data,
-using the simplified cache architecture with database as persistent cache.
+Historical stock data API routes
 """
-
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -15,22 +10,8 @@ import pandas as pd
 from src.api.database import get_db
 from src.api.models import Asset
 from src.api.schemas import HistoricalDataResponse, HistoricalDataPoint
-from src.cache.akshare_adapter_simplified import AKShareAdapter
-from src.services.stock_data_service import StockDataService
-from src.services.database_cache import DatabaseCache
+from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
-
-# Create dependencies for services
-def get_akshare_adapter(db: Session = Depends(get_db)):
-    """Get AKShare adapter instance."""
-    return AKShareAdapter(db)
-
-def get_stock_data_service(
-    db: Session = Depends(get_db),
-    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
-):
-    """Get stock data service instance."""
-    return StockDataService(db, akshare_adapter)
 
 # Setup logger
 logger = setup_logger(__name__)
@@ -41,14 +22,16 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+# Create cache components
+akshare_adapter = AKShareAdapter()
+
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 async def get_historical_stock_data(
     symbol: str,
     start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query("", description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment"),
-    db: Session = Depends(get_db),
-    stock_data_service: StockDataService = Depends(get_stock_data_service)
+    db: Session = Depends(get_db)
 ):
     """
     Get historical stock data for a specific symbol
@@ -70,10 +53,20 @@ async def get_historical_stock_data(
         if end_date is None:
             end_date = datetime.now().strftime("%Y%m%d")
 
-        # Fetch data using the stock data service
+        # Generate cache key
+        cache_key = f"historical_stock_{symbol}_{start_date}_{end_date}_{adjust}"
+
+        # Check if data is in cache and fresh
+        if freshness_tracker.is_fresh(cache_key, "relaxed"):
+            cached_data = cache_engine.get(cache_key)
+            if cached_data is not None:
+                logger.info(f"Returning cached historical data for {symbol}")
+                return cached_data
+
+        # Fetch data from AKShare
         logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}")
         try:
-            df = stock_data_service.get_stock_data(
+            df = akshare_adapter.get_stock_data(
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
@@ -129,6 +122,10 @@ async def get_historical_stock_data(
                 }
             }
 
+            # Cache the response
+            cache_engine.set(cache_key, response, ttl=86400)  # Cache for 24 hours
+            freshness_tracker.mark_updated(cache_key, ttl=86400)
+
             return response
 
         except Exception as e:
@@ -140,40 +137,3 @@ async def get_historical_stock_data(
     except Exception as e:
         logger.error(f"Unexpected error in get_historical_stock_data: {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
-
-def get_database_cache(db: Session = Depends(get_db)):
-    """Get database cache instance."""
-    return DatabaseCache(db)
-
-@router.get("/database/cache/status")
-async def get_database_cache_status(
-    symbol: Optional[str] = Query(None, description="Stock symbol"),
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
-    end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
-    database_cache: DatabaseCache = Depends(get_database_cache)
-):
-    """
-    Get database cache status
-
-    - **symbol**: Optional stock symbol to check coverage for
-    - **start_date**: Optional start date for coverage check
-    - **end_date**: Optional end date for coverage check
-    """
-    try:
-        # If symbol and date range provided, get coverage information
-        if symbol and start_date and end_date:
-            coverage_info = database_cache.get_date_range_coverage(symbol, start_date, end_date)
-            return {
-                "symbol": symbol,
-                "start_date": start_date,
-                "end_date": end_date,
-                "coverage": coverage_info
-            }
-
-        # Otherwise, get general cache statistics
-        stats = database_cache.get_stats()
-        return stats
-
-    except Exception as e:
-        logger.error(f"Error getting database cache status: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")

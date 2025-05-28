@@ -10,9 +10,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.models import FreshnessStatus
-
 
 class TestFreshnessTracker(unittest.TestCase):
     """Test cases for the FreshnessTracker class."""
@@ -224,7 +222,6 @@ class TestFreshnessTracker(unittest.TestCase):
         self.assertIn("pending_updates", stats)
         self.assertIn("freshness_metrics", stats)
         self.assertIn("freshness_health", stats)
-
 
 if __name__ == "__main__":
     unittest.main()

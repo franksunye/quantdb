@@ -3,10 +3,8 @@ source = src
 omit =
     src/config.py
     src/logger.py
-    src/trace_logger.py
-    src/cache/cache_engine.py
-    src/cache/freshness_tracker.py
-    src/cache/akshare_adapter.py
+    src/cache/akshare_adapter_old.py
+    src/cache/akshare_adapter_complex.py.bak
     src/services/data_import.py
     src/api/openapi/openapi_utils.py
     src/api/openapi/swagger_ui.py

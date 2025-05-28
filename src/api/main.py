@@ -31,7 +31,7 @@ logger = setup_enhanced_logger(
 )
 
 # Import simplified components
-from src.cache.akshare_adapter_simplified import AKShareAdapter
+from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
 
@@ -116,7 +116,6 @@ async def health_check_v2():
 
 # Import and include routers
 from src.api.routes import assets, prices, data_import, cache, historical_data
-from src.api.routes.historical_data_simplified import router as historical_data_simplified_router
 from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
 from src.mcp.schemas import MCPRequest, MCPResponse
@@ -158,12 +157,7 @@ app.include_router(
     tags=["historical"]
 )
 
-# Include simplified historical data router (v2)
-app.include_router(
-    historical_data_simplified_router,
-    prefix=f"/api/v2/historical",
-    tags=["historical-v2"]
-)
+# Simplified historical data router has been merged into the main historical_data router
 
 # Include version router (available in both v1 and v2)
 app.include_router(
@@ -195,8 +189,6 @@ async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
 
 # Register exception handlers
 register_exception_handlers(app)
-
-
 
 if __name__ == "__main__":
     import uvicorn

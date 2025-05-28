@@ -22,7 +22,6 @@ from src.enhanced_logger import (
 # Create test client
 client = TestClient(app)
 
-
 class TestLoggingIntegration(unittest.TestCase):
     """Integration tests for logging system."""
     
@@ -225,7 +224,6 @@ class TestLoggingIntegration(unittest.TestCase):
             self.assertIn("CONTEXT METRICS", log_content)
             self.assertIn("api_request_time", log_content)
             self.assertIn("API request completed in", log_content)
-
 
 if __name__ == "__main__":
     unittest.main()

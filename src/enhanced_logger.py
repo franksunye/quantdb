@@ -288,7 +288,6 @@ class EnhancedLogger:
         except (TypeError, ValueError):
             self._log(level, f"DATA [{name}]: {str(data)} (not JSON serializable)")
 
-
 def log_function(logger=None, level: str = 'info'):
     """
     Decorator to log function calls with timing information.
@@ -346,7 +345,6 @@ def log_function(logger=None, level: str = 'info'):
         
         return wrapper
     return decorator
-
 
 def setup_enhanced_logger(
     name: str,

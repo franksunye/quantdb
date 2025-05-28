@@ -17,7 +17,6 @@ from sqlalchemy import and_, or_, func
 from src.api.models import Asset, DailyStockData
 from src.logger import logger
 
-
 class DatabaseCache:
     """
     Database cache interface that uses the main database as a persistent cache.

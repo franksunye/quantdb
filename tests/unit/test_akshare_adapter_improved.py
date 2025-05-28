@@ -18,14 +18,11 @@ import numpy as np
 # Add the project root directory to the Python path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
 from src.cache.akshare_adapter import AKShareAdapter
 from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
 
 class TestAKShareAdapterImproved(unittest.TestCase):
     """Unit tests for the improved AKShareAdapter class."""
@@ -33,9 +30,7 @@ class TestAKShareAdapterImproved(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         # Initialize cache engine and freshness tracker
-        self.cache_engine = CacheEngine()
-        self.freshness_tracker = FreshnessTracker()
-
+        self.        self.
         # Initialize AKShare adapter with the cache engine and freshness tracker
         self.adapter = AKShareAdapter(
             cache_engine=self.cache_engine,
@@ -218,7 +213,6 @@ class TestAKShareAdapterImproved(unittest.TestCase):
         invalid_df4.loc[0, 'high'] = 5
         invalid_df4.loc[0, 'low'] = 10
         self.assertFalse(self.adapter._validate_stock_data(invalid_df4, "000001", "20230101", "20230131"))
-
 
 if __name__ == "__main__":
     unittest.main()

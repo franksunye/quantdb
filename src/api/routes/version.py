@@ -27,7 +27,6 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-
 class VersionResponse(BaseModel):
     """API version response model."""
     version: str
@@ -37,13 +36,11 @@ class VersionResponse(BaseModel):
     sunset_date: str = ""
     description: str
 
-
 class VersionsResponse(BaseModel):
     """API versions response model."""
     versions: Dict[str, VersionResponse]
     latest: str
     current: str
-
 
 @router.get("/", response_model=VersionsResponse)
 async def get_versions():
@@ -64,7 +61,6 @@ async def get_versions():
         "current": latest
     }
 
-
 @router.get("/latest", response_model=VersionResponse)
 async def get_latest_version():
     """
@@ -76,7 +72,6 @@ async def get_latest_version():
     logger.info("Getting information about the latest API version")
 
     return get_latest_version_info()
-
 
 @router.get("/{version}", response_model=VersionResponse)
 async def get_version(
