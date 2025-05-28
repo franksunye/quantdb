@@ -80,28 +80,33 @@ def init_test_db():
     db.add_all(test_assets)
     db.commit()
 
-    # Add test prices
+    # Add test daily stock data
     today = date.today()
-    test_prices = []
+    test_data = []
 
-    # Add prices for test assets
+    # Add daily stock data for test assets
     for asset in test_assets:
         for i in range(30):
-            price_date = today - timedelta(days=i)
-            test_prices.append(
-                Price(
+            trade_date = today - timedelta(days=i)
+            test_data.append(
+                DailyStockData(
                     asset_id=asset.asset_id,
-                    date=price_date,
+                    trade_date=trade_date,
                     open=100.0 + i,
                     high=105.0 + i,
                     low=95.0 + i,
                     close=102.0 + i,
                     volume=1000000 + i * 10000,
-                    adjusted_close=102.0 + i
+                    adjusted_close=102.0 + i,
+                    turnover=(100.0 + i) * (1000000 + i * 10000),
+                    amplitude=5.0,
+                    pct_change=1.0 + i * 0.1,
+                    change=1.0 + i * 0.1,
+                    turnover_rate=0.5 + i * 0.01
                 )
             )
 
-    db.add_all(test_prices)
+    db.add_all(test_data)
     db.commit()
 
     db.close()

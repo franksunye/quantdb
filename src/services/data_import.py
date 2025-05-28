@@ -226,16 +226,8 @@ class DataImportService:
             # Import price data
             imported_prices = self.import_price_data(asset_id, price_data)
 
-            # Generate cache key for this data
-            cache_key = self.cache_engine.generate_key("price_data", asset_id, len(imported_prices))
-
-            # Store in cache
-            self.cache_engine.set(cache_key, imported_prices, ttl=86400)  # Cache for 24 hours
-
-            # Mark as fresh
-            self.freshness_tracker.mark_updated(cache_key, ttl=86400)
-
-            logger.info(f"Imported price data cached with key: {cache_key}")
+            # Note: Caching is handled by the database layer in the simplified architecture
+            logger.info(f"Imported {len(imported_prices)} price records to database")
 
             return {
                 "asset_id": asset_id,
@@ -427,24 +419,7 @@ class DataImportService:
             if task:
                 self.update_task_status(task.task_id, ImportTaskStatusEnum.PROCESSING)
 
-            # Generate cache key for this request
-            cache_key = self.cache_engine.generate_key(
-                "import_stock_data", symbol, start_date, end_date
-            )
-
-            # Check if we have fresh data in cache
-            if self.freshness_tracker.is_fresh(cache_key, "relaxed"):
-                cached_result = self.cache_engine.get(cache_key)
-                if cached_result:
-                    logger.info(f"Using cached import result for {symbol}")
-
-                    if task:
-                        self.update_task_status(task.task_id,
-                                              ImportTaskStatusEnum.COMPLETED if cached_result.get("success", False)
-                                              else ImportTaskStatusEnum.FAILED,
-                                              cached_result)
-
-                    return cached_result
+            # Note: Simplified architecture - no caching layer, direct database operations
 
             # Get stock data from AKShare adapter with retry mechanism
             try:
@@ -464,8 +439,7 @@ class DataImportService:
                     "success": False
                 }
 
-                # Cache the negative result to avoid repeated failed requests
-                self.cache_engine.set(cache_key, error_result, ttl=3600)  # Cache for 1 hour
+                # Note: No caching in simplified architecture
 
                 if task:
                     self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, error_result)
@@ -481,8 +455,7 @@ class DataImportService:
                     "message": "No data returned from AKShare",
                     "success": False
                 }
-                # Cache the negative result to avoid repeated failed requests
-                self.cache_engine.set(cache_key, result, ttl=3600)  # Cache for 1 hour
+                # Note: No caching in simplified architecture
 
                 if task:
                     self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, result)
@@ -515,7 +488,7 @@ class DataImportService:
                     "message": "No valid price data found",
                     "success": False
                 }
-                self.cache_engine.set(cache_key, result, ttl=3600)
+                # Note: No caching in simplified architecture
 
                 if task:
                     self.update_task_status(task.task_id, ImportTaskStatusEnum.FAILED, result)
@@ -540,8 +513,7 @@ class DataImportService:
                         "end_date": end_date,
                         "success": True
                     }
-                    self.cache_engine.set(cache_key, result, ttl=86400)  # Cache for 24 hours
-                    self.freshness_tracker.mark_updated(cache_key, ttl=86400)
+                    # Note: No caching in simplified architecture
 
                     if task:
                         self.update_task_status(task.task_id, ImportTaskStatusEnum.COMPLETED, result)
