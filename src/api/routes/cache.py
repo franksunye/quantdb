@@ -1,14 +1,16 @@
 """
-Cache API routes for monitoring and managing the cache system.
+Cache API routes for monitoring and managing the simplified cache system.
+In the simplified architecture, we use SQLite database as the primary cache.
 """
-from typing import Dict, Any, Optional
-from fastapi import APIRouter, HTTPException, Query
+from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, Depends, Query
+from sqlalchemy.orm import Session
+from sqlalchemy import text
+from src.api.database import get_db
 from src.logger import setup_logger
 
 # Setup logger
 logger = setup_logger(__name__)
-
-# Create cache components
 
 # Create router
 router = APIRouter(
@@ -17,21 +19,34 @@ router = APIRouter(
 )
 
 @router.get("/status")
-async def get_cache_status() -> Dict[str, Any]:
+async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
-    Get cache status and statistics
+    Get cache status and statistics from SQLite database
     """
     try:
-        # Get cache statistics
-        cache_stats = cache_engine.get_stats()
+        # Get database statistics
+        assets_count = db.execute(text("SELECT COUNT(*) FROM assets")).scalar()
+        prices_count = db.execute(text("SELECT COUNT(*) FROM prices")).scalar()
 
-        # Get freshness statistics
-        freshness_stats = freshness_tracker.get_stats()
+        # Get latest data timestamp
+        latest_price = db.execute(text(
+            "SELECT MAX(updated_at) FROM prices"
+        )).scalar()
 
-        # Combine statistics
+        # Get database size (SQLite specific)
+        db_size = db.execute(text(
+            "SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()"
+        )).scalar()
+
         stats = {
-            "cache": cache_stats,
-            "freshness": freshness_stats
+            "database": {
+                "assets_count": assets_count or 0,
+                "prices_count": prices_count or 0,
+                "latest_update": latest_price.isoformat() if latest_price else None,
+                "database_size_bytes": db_size or 0
+            },
+            "cache_type": "SQLite Database",
+            "status": "active"
         }
 
         return stats
@@ -41,114 +56,40 @@ async def get_cache_status() -> Dict[str, Any]:
 
 @router.delete("/clear")
 async def clear_cache(
-    key: str = Query(None, description="Specific cache key to clear. If not provided, clears all cache.")
+    table: str = Query(None, description="Specific table to clear: 'prices' or 'assets'. If not provided, clears all data."),
+    db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """
-    Clear cache entries
+    Clear cached data from SQLite database
     """
     try:
-        if key:
-            # Clear specific key
-            success = cache_engine.delete(key)
-            if success:
-                freshness_tracker.delete(key)
-                return {"status": "success", "message": f"Cache key {key} cleared"}
+        if table:
+            if table == "prices":
+                db.execute(text("DELETE FROM prices"))
+                db.commit()
+                logger.info("Cleared prices table")
+                return {"status": "success", "message": f"Table '{table}' cleared successfully"}
+            elif table == "assets":
+                # Clear assets and related prices (cascade)
+                db.execute(text("DELETE FROM prices"))
+                db.execute(text("DELETE FROM assets"))
+                db.commit()
+                logger.info("Cleared assets and prices tables")
+                return {"status": "success", "message": f"Table '{table}' and related data cleared successfully"}
             else:
-                return {"status": "warning", "message": f"Cache key {key} not found"}
+                raise HTTPException(status_code=400, detail="Invalid table name. Use 'prices' or 'assets'.")
         else:
-            # Clear all cache
-            cache_engine.clear()
-            freshness_tracker.clear()
-            return {"status": "success", "message": "All cache entries cleared"}
+            # Clear all cached data
+            db.execute(text("DELETE FROM prices"))
+            db.execute(text("DELETE FROM assets"))
+            db.commit()
+            logger.info("Cleared all cached data")
+            return {"status": "success", "message": "All cached data cleared successfully"}
     except Exception as e:
+        db.rollback()
         logger.error(f"Error clearing cache: {e}")
         raise HTTPException(status_code=500, detail=f"Error clearing cache: {str(e)}")
 
-@router.get("/keys")
-async def get_cache_keys(
-    prefix: Optional[str] = Query(None, description="Filter keys by prefix")
-) -> Dict[str, Any]:
-    """
-    Get all cache keys
-
-    Args:
-        prefix: Optional prefix to filter keys
-    """
-    try:
-        keys = cache_engine.get_keys()
-
-        # Filter by prefix if provided
-        if prefix:
-            keys = [key for key in keys if key.startswith(prefix)]
-
-        return {
-            "keys": keys,
-            "count": len(keys)
-        }
-    except Exception as e:
-        logger.error(f"Error getting cache keys: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache keys: {str(e)}")
-
-@router.get("/key/{key}")
-async def get_cache_entry(key: str) -> Dict[str, Any]:
-    """
-    Get details about a specific cache entry
-
-    Args:
-        key: Cache key to retrieve
-    """
-    try:
-        # Get cache entry
-        value = cache_engine.get(key)
-
-        if value is None:
-            raise HTTPException(status_code=404, detail=f"Cache key '{key}' not found")
-
-        # Get freshness info
-        freshness = freshness_tracker.get_freshness_status(key)
-
-        return {
-            "key": key,
-            "value_type": type(value).__name__,
-            "freshness": freshness,
-            "has_value": value is not None
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error getting cache entry: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache entry: {str(e)}")
-
-@router.post("/refresh")
-async def refresh_cache(
-    key: str = Query(..., description="Cache key to refresh")
-) -> Dict[str, Any]:
-    """
-    Force refresh a cache entry
-
-    Args:
-        key: Cache key to refresh
-    """
-    try:
-        # Check if key exists
-        if cache_engine.get(key) is None:
-            raise HTTPException(status_code=404, detail=f"Cache key '{key}' not found")
-
-        # Mark as expired in freshness tracker
-        success = freshness_tracker.mark_expired(key)
-
-        if success:
-            return {
-                "status": "success",
-                "message": f"Cache key '{key}' marked for refresh"
-            }
-        else:
-            return {
-                "status": "warning",
-                "message": f"Failed to mark cache key '{key}' for refresh"
-            }
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Error refreshing cache: {e}")
-        raise HTTPException(status_code=500, detail=f"Error refreshing cache: {str(e)}")
+# Note: In the simplified architecture, we only provide basic cache management
+# through database operations. Complex cache key management is not needed
+# since we use SQLite database as the primary cache storage.
