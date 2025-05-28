@@ -17,6 +17,17 @@ PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'data/processed/')
 # Database configuration
 DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{DATABASE_PATH}')
 
+# Determine database type
+DB_TYPE = 'supabase' if DATABASE_URL.startswith('postgresql') else 'sqlite'
+
+# Supabase configuration
+SUPABASE_DB_HOST = os.getenv('SUPABASE_DB_HOST', 'aws-0-us-west-1.pooler.supabase.com')
+SUPABASE_DB_PORT = os.getenv('SUPABASE_DB_PORT', '6543')
+SUPABASE_DB_NAME = os.getenv('SUPABASE_DB_NAME', 'postgres')
+SUPABASE_DB_USER = os.getenv('SUPABASE_DB_USER', 'postgres.dvusiqfijdmjcsubyapw')
+SUPABASE_DB_PASSWORD = os.getenv('SUPABASE_DB_PASSWORD')
+SUPABASE_SSL_CERT = os.getenv('SUPABASE_SSL_CERT', 'prod-ca-2021.crt')
+
 # API configuration
 API_PREFIX = os.getenv('API_PREFIX', '/api/v1')
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 't')

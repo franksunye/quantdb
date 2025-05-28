@@ -15,9 +15,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.api.main import app, mcp_interpreter
 from src.api.database import get_db, Base
 from src.api.models import Asset, Price
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
-from src.cache.akshare_adapter import AKShareAdapter
+from src.cache.akshare_adapter_simplified import AKShareAdapter
 from datetime import date, timedelta
 
 # Use a file-based SQLite database for testing
@@ -71,25 +69,12 @@ def test_db():
     db.close()
 
 @pytest.fixture
-def mock_cache_components():
+def mock_akshare_adapter():
     """
-    Create mock cache components for testing.
+    Create a mock AKShare adapter for testing.
     """
     from unittest.mock import MagicMock
 
-    mock_cache_engine = MagicMock(spec=CacheEngine)
-    mock_freshness_tracker = MagicMock(spec=FreshnessTracker)
     mock_akshare_adapter = MagicMock(spec=AKShareAdapter)
 
-    # Configure mock cache engine
-    mock_cache_engine.generate_key.return_value = "test_cache_key"
-    mock_cache_engine.get.return_value = None  # Default to cache miss
-
-    # Configure mock freshness tracker
-    mock_freshness_tracker.is_fresh.return_value = False  # Default to not fresh
-
-    return {
-        "cache_engine": mock_cache_engine,
-        "freshness_tracker": mock_freshness_tracker,
-        "akshare_adapter": mock_akshare_adapter
-    }
+    return mock_akshare_adapter

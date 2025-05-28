@@ -1,6 +1,6 @@
 # QuantDB: 面向Agent时代的开源金融智能中间件平台
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue)
+![Version](https://img.shields.io/badge/version-0.5.0--pre-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite%2FPostgreSQL-4169E1)
@@ -199,6 +199,7 @@ curl -X POST http://localhost:8000/api/v1/mcp/query \
 
 ### 项目管理文档
 - [MVP计划](./docs/project_management/quantdb_01_PLAN_mvp.md)
+- [MVP发布计划](./docs/project_management/quantdb_03_PLAN_mvp_release.md)
 - [Sprint 3任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint3.md)
 - [Sprint 4任务板](./docs/project_management/quantdb_02_BOARD_mvp_sprint4.md)
 - [已完成Sprint文档](./docs/project_management/completed/)

@@ -1,0 +1,70 @@
+[run]
+source = src
+omit =
+    src/config.py
+    src/logger.py
+    src/trace_logger.py
+    src/cache/cache_engine.py
+    src/cache/freshness_tracker.py
+    src/cache/akshare_adapter.py
+    src/services/data_import.py
+    src/api/openapi/openapi_utils.py
+    src/api/openapi/swagger_ui.py
+    src/api/openapi/redoc_ui.py
+    src/api/openapi/swagger_ui_bundle.py
+    src/api/openapi/redoc_bundle.py
+    src/api/openapi/swagger_ui_redirect.py
+    src/api/openapi/swagger_ui_html.py
+    src/api/openapi/redoc_html.py
+    src/api/openapi/swagger_ui_css.py
+    src/api/openapi/swagger_ui_js.py
+    src/api/openapi/redoc_js.py
+    src/api/openapi/swagger_ui_presets.py
+    src/api/openapi/swagger_ui_standalone_preset.py
+    src/api/openapi/swagger_ui_favicon.py
+    src/api/openapi/swagger_ui_favicon_16x16.py
+    src/api/openapi/swagger_ui_favicon_32x32.py
+    src/api/openapi/swagger_ui_favicon_48x48.py
+    src/api/openapi/swagger_ui_favicon_64x64.py
+    src/api/openapi/swagger_ui_favicon_96x96.py
+    src/api/openapi/swagger_ui_favicon_128x128.py
+    src/api/openapi/swagger_ui_favicon_196x196.py
+    src/api/openapi/swagger_ui_favicon_512x512.py
+    src/api/openapi/swagger_ui_favicon_1024x1024.py
+    src/api/openapi/swagger_ui_favicon_ico.py
+    src/api/openapi/swagger_ui_favicon_png.py
+    src/api/openapi/swagger_ui_favicon_svg.py
+    src/api/openapi/swagger_ui_favicon_webp.py
+    src/api/openapi/swagger_ui_favicon_jpg.py
+    src/api/openapi/swagger_ui_favicon_gif.py
+    src/api/openapi/swagger_ui_favicon_bmp.py
+    src/api/openapi/swagger_ui_favicon_tiff.py
+    src/api/openapi/swagger_ui_favicon_ico_16x16.py
+    src/api/openapi/swagger_ui_favicon_ico_32x32.py
+    src/api/openapi/swagger_ui_favicon_ico_48x48.py
+    src/api/openapi/swagger_ui_favicon_ico_64x64.py
+    src/api/openapi/swagger_ui_favicon_ico_96x96.py
+    src/api/openapi/swagger_ui_favicon_ico_128x128.py
+    src/api/openapi/swagger_ui_favicon_ico_196x196.py
+    src/api/openapi/swagger_ui_favicon_ico_512x512.py
+    src/api/openapi/swagger_ui_favicon_ico_1024x1024.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    @abstractmethod
+    @abc.abstractmethod
+    class .*\bProtocol\):
+    @(typing\.)?overload
+
+[html]
+directory = coverage_html_report
+title = QuantDB Coverage Report

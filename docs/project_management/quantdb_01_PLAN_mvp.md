@@ -3,18 +3,21 @@
 ## 文档信息
 **文档类型**: 项目计划
 **文档编号**: quantdb-PLAN-001
-**版本**: 1.0.0
+**版本**: 1.3.0
 **创建日期**: 2025-05-13
-**最后更新**: 2025-05-13
-**状态**: 草稿
+**最后更新**: 2025-06-17
+**状态**: 已更新
 **负责人**: frank
 **团队成员**: [待定]
 
 **相关文档**:
-- [MVP Sprint 1: 基础设施搭建](./quantdb_02_BOARD_mvp_sprint1.md) (quantdb-BOARD-001)
-- [MVP Sprint 2: 后端开发](./quantdb_02_BOARD_mvp_sprint2.md) (quantdb-BOARD-002)
-- [MVP Sprint 3: 前端开发](./quantdb_02_BOARD_mvp_sprint3.md) (quantdb-BOARD-003)
+- [MVP Sprint 1: 基础设施搭建](./completed/quantdb_02_BOARD_mvp_sprint1.md) (quantdb-BOARD-001)
+- [MVP Sprint 2: 后端开发](./completed/quantdb_02_BOARD_mvp_sprint2.md) (quantdb-BOARD-002)
+- [MVP Sprint 2.5: 缓存系统优化](./completed/quantdb_02_BOARD_mvp_sprint2_5.md) (quantdb-BOARD-002.5)
+- [MVP Sprint 2.6: 测试与稳定性](./completed/quantdb_02_6_BOARD_mvp_sprint2_6.md) (quantdb-BOARD-002.6)
+- [MVP Sprint 3: API增强与文档](./quantdb_02_BOARD_mvp_sprint3.md) (quantdb-BOARD-003)
 - [MVP Sprint 4: 集成与部署](./quantdb_02_BOARD_mvp_sprint4.md) (quantdb-BOARD-004)
+- [MVP 发布计划](./quantdb_03_PLAN_mvp_release.md) (quantdb-PLAN-003)
 
 ## 1. MVP 概述
 
@@ -258,3 +261,4 @@ MVP 成功后，计划在以下方向继续迭代:
 | 1.0.0 | 2025-05-13 | frank | 初始版本 |
 | 1.1.0 | 2025-05-14 | frank | 调整MVP范围，移除图表功能和Web界面，专注于API服务 |
 | 1.2.0 | 2025-05-15 | frank | 增加"蓄水池"缓存机制作为核心组件，调整Sprint计划和系统架构 |
+| 1.3.0 | 2025-06-17 | frank | 更新相关文档链接，添加MVP发布计划引用，反映项目当前状态 |

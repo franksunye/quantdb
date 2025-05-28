@@ -4,40 +4,42 @@ QuantDB API main application
 from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
 import logging
 from sqlalchemy.orm import Session
+from datetime import datetime
 
 from src.config import API_PREFIX, DEBUG, ENVIRONMENT
-from src.logger import setup_logger
+from src.enhanced_logger import setup_enhanced_logger
 from src.api.database import get_db
 from src.mcp.interpreter import MCPInterpreter
+from src.api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
+from src.api.version import APIVersion, get_version_prefix, get_latest_version_info
+from src.api.errors import (
+    register_exception_handlers,
+    QuantDBException,
+    DataNotFoundException,
+    DataFetchException
+)
 
-# Setup logger
-logger = setup_logger(__name__)
+# Setup enhanced logger
+logger = setup_enhanced_logger(
+    name=__name__,
+    level="DEBUG" if DEBUG else "INFO",
+    detailed=True
+)
 
-# Import cache components
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
-from src.cache.akshare_adapter import AKShareAdapter
-from src.cache.akshare_adapter_simplified import AKShareAdapter as AKShareAdapterSimplified
+# Import simplified components
+from src.cache.akshare_adapter_simplified import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
 
-# Create cache components
-cache_engine = CacheEngine()
-freshness_tracker = FreshnessTracker()
-akshare_adapter = AKShareAdapter(
-    cache_engine=cache_engine,
-    freshness_tracker=freshness_tracker
-)
-
 # Create simplified components
-akshare_adapter_simplified = AKShareAdapterSimplified()
+akshare_adapter = AKShareAdapter()
 
-# Create MCP interpreter with cache components
+# Create MCP interpreter with simplified components
 mcp_interpreter = MCPInterpreter(
-    cache_engine=cache_engine,
-    freshness_tracker=freshness_tracker,
     akshare_adapter=akshare_adapter
 )
 
@@ -52,17 +54,24 @@ async def lifespan(app: FastAPI):
     # Shutdown logic
     logger.info("Shutting down QuantDB API")
 
+# Get latest version info
+latest_version_info = get_latest_version_info()
+
 # Create FastAPI app
 app = FastAPI(
     title="QuantDB API",
     description="Financial data API for QuantDB",
-    version="0.1.0",
+    version=latest_version_info.version,
     docs_url=f"{API_PREFIX}/docs",
     redoc_url=f"{API_PREFIX}/redoc",
     openapi_url=f"{API_PREFIX}/openapi.json",
     debug=DEBUG,
     lifespan=lifespan
 )
+
+# Set up OpenAPI documentation
+setup_openapi(app)
+setup_swagger_ui(app)
 
 # Add CORS middleware
 app.add_middleware(
@@ -87,11 +96,28 @@ async def root():
 @app.get(f"{API_PREFIX}/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy"}
+    return {
+        "status": "ok",
+        "version": latest_version_info.version,
+        "api_version": latest_version_info.api_version,
+        "timestamp": datetime.now().isoformat()
+    }
+
+# Health check endpoint (v2)
+@app.get(f"/api/v2/health")
+async def health_check_v2():
+    """Health check endpoint (v2)"""
+    return {
+        "status": "ok",
+        "version": latest_version_info.version,
+        "api_version": latest_version_info.api_version,
+        "timestamp": datetime.now().isoformat()
+    }
 
 # Import and include routers
 from src.api.routes import assets, prices, data_import, cache, historical_data
 from src.api.routes.historical_data_simplified import router as historical_data_simplified_router
+from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
 from src.mcp.schemas import MCPRequest, MCPResponse
 
@@ -139,6 +165,20 @@ app.include_router(
     tags=["historical-v2"]
 )
 
+# Include version router (available in both v1 and v2)
+app.include_router(
+    version_router,
+    prefix=f"{API_PREFIX}/version",
+    tags=["version"]
+)
+
+# Include version router for v2 as well
+app.include_router(
+    version_router,
+    prefix=f"/api/v2/version",
+    tags=["version-v2"]
+)
+
 # MCP endpoint
 @app.post(f"{API_PREFIX}/mcp/query", response_model=MCPResponse, tags=["mcp"])
 async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
@@ -153,15 +193,8 @@ async def mcp_query(request: MCPRequest, db: Session = Depends(get_db)):
 
     return response
 
-# Exception handler
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    """Global exception handler for the API"""
-    logger.error(f"Unhandled exception: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error", "message": str(exc)}
-    )
+# Register exception handlers
+register_exception_handlers(app)
 
 
 

@@ -27,4 +27,9 @@ def test_health_check():
     """Test the health check endpoint"""
     response = client.get(f"{API_PREFIX}/health")
     assert response.status_code == 200
-    assert response.json() == {"status": "healthy"}
+    data = response.json()
+    assert "status" in data
+    assert data["status"] == "ok"
+    assert "version" in data
+    assert "api_version" in data
+    assert "timestamp" in data

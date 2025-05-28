@@ -2,8 +2,7 @@
 """
 Performance tests for the cache system.
 
-These tests compare the performance of the simplified cache architecture
-with the original reservoir cache implementation.
+These tests measure the performance of the simplified cache architecture.
 """
 
 import unittest
@@ -14,6 +13,7 @@ import tempfile
 import pandas as pd
 from unittest.mock import patch
 from datetime import datetime, timedelta
+import statistics
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -24,12 +24,10 @@ from src.cache.akshare_adapter_simplified import AKShareAdapter
 from src.api.models import Base, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from src.enhanced_logger import setup_enhanced_logger
 
-# Import original implementation for comparison
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
-from src.cache.akshare_adapter import AKShareAdapter as OriginalAKShareAdapter
-from src.services.data_import import DataImportService
+# Setup logger
+logger = setup_enhanced_logger(__name__)
 
 
 class TestCachePerformance(unittest.TestCase):
@@ -38,7 +36,7 @@ class TestCachePerformance(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         """Set up test database."""
-        # Create temporary database for simplified implementation
+        # Create temporary database
         cls.db_fd, cls.db_path = tempfile.mkstemp()
         cls.engine = create_engine(f'sqlite:///{cls.db_path}')
 
@@ -47,12 +45,6 @@ class TestCachePerformance(unittest.TestCase):
 
         # Create session
         cls.Session = sessionmaker(bind=cls.engine)
-
-        # Create temporary databases for original implementation
-        cls.cache_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-        cls.cache_db.close()
-        cls.freshness_db = tempfile.NamedTemporaryFile(delete=False, suffix='.db')
-        cls.freshness_db.close()
 
     @classmethod
     def tearDownClass(cls):
@@ -70,46 +62,27 @@ class TestCachePerformance(unittest.TestCase):
             # Try to remove the files
             if os.path.exists(cls.db_path):
                 os.unlink(cls.db_path)
-            if os.path.exists(cls.cache_db.name):
-                os.unlink(cls.cache_db.name)
-            if os.path.exists(cls.freshness_db.name):
-                os.unlink(cls.freshness_db.name)
         except OSError as e:
             # If file is still in use, log the error but don't fail the test
-            print(f"Warning: Could not remove temporary database file: {e}")
+            logger.warning(f"Could not remove temporary database file: {e}")
 
     def setUp(self):
         """Set up test fixtures."""
         self.session = self.Session()
 
-        # Create components for simplified implementation
+        # Create components
         self.akshare_adapter = AKShareAdapter(self.session)
         self.db_cache = DatabaseCache(self.session)
         self.stock_data_service = StockDataService(self.session, self.akshare_adapter)
         self.stock_data_service.db_cache = self.db_cache
 
-        # Create components for original implementation
-        self.cache_engine = CacheEngine(db_path=self.cache_db.name)
-        self.freshness_tracker = FreshnessTracker(db_path=self.freshness_db.name)
-        self.original_akshare_adapter = OriginalAKShareAdapter()
-        self.data_import_service = DataImportService(
-            db=self.session,
-            cache_engine=self.cache_engine,
-            freshness_tracker=self.freshness_tracker,
-            akshare_adapter=self.original_akshare_adapter
-        )
-
-        # Mock AKShare API call for both implementations
+        # Mock AKShare API call
         self.akshare_patcher = patch.object(self.akshare_adapter, '_safe_call')
         self.mock_safe_call = self.akshare_patcher.start()
-
-        self.original_akshare_patcher = patch.object(self.original_akshare_adapter, 'get_stock_data')
-        self.mock_original_get_stock_data = self.original_akshare_patcher.start()
 
     def tearDown(self):
         """Clean up test fixtures."""
         self.akshare_patcher.stop()
-        self.original_akshare_patcher.stop()
 
         # Clean up database
         self.session.query(DailyStockData).delete()
@@ -145,32 +118,39 @@ class TestCachePerformance(unittest.TestCase):
         # Setup mock data
         mock_df = self._generate_mock_data('20230101', '20230131')
         self.mock_safe_call.return_value = mock_df
-        self.mock_original_get_stock_data.return_value = mock_df
 
-        # Test simplified implementation
-        start_time = time.time()
-        result_simplified = self.stock_data_service.get_stock_data('600000', '20230101', '20230131')
-        simplified_time = time.time() - start_time
+        # Run multiple times to get average performance
+        num_runs = 5
+        response_times = []
 
-        # Clean up database
-        self.session.query(DailyStockData).delete()
-        self.session.query(Asset).delete()
-        self.session.commit()
+        for _ in range(num_runs):
+            # Clean up database
+            self.session.query(DailyStockData).delete()
+            self.session.query(Asset).delete()
+            self.session.commit()
 
-        # Test original implementation
-        start_time = time.time()
-        result_original = self.data_import_service.import_from_akshare('600000', '20230101', '20230131')
-        original_time = time.time() - start_time
+            # Test implementation
+            start_time = time.time()
+            result = self.stock_data_service.get_stock_data('600000', '20230101', '20230131')
+            end_time = time.time()
 
-        # Print performance comparison
-        print(f"\nPerformance comparison (empty database):")
-        print(f"Simplified implementation: {simplified_time:.4f} seconds")
-        print(f"Original implementation: {original_time:.4f} seconds")
-        print(f"Improvement: {(original_time - simplified_time) / original_time * 100:.2f}%")
+            # Calculate response time
+            response_time = end_time - start_time
+            response_times.append(response_time)
 
-        # Verify both implementations returned data
-        self.assertGreater(len(result_simplified), 0)
-        self.assertTrue(result_original.get('success', False))
+        # Calculate statistics
+        avg_time = statistics.mean(response_times)
+        max_time = max(response_times)
+        min_time = min(response_times)
+
+        # Log results
+        logger.info(f"Empty database performance:")
+        logger.info(f"  Average: {avg_time:.4f}s")
+        logger.info(f"  Maximum: {max_time:.4f}s")
+        logger.info(f"  Minimum: {min_time:.4f}s")
+
+        # Verify data was returned
+        self.assertGreater(len(result), 0)
 
     def test_performance_partial_database(self):
         """Test performance when database has partial data."""
@@ -209,27 +189,96 @@ class TestCachePerformance(unittest.TestCase):
         # Setup mock data for second half
         mock_df_second_half = self._generate_mock_data('20230116', '20230131')
         self.mock_safe_call.return_value = mock_df_second_half
-        self.mock_original_get_stock_data.return_value = mock_df_second_half
 
-        # Test simplified implementation
-        start_time = time.time()
-        result_simplified = self.stock_data_service.get_stock_data('600000', '20230101', '20230131')
-        simplified_time = time.time() - start_time
+        # Run multiple times to get average performance
+        num_runs = 5
+        response_times = []
 
-        # Test original implementation
-        start_time = time.time()
-        result_original = self.data_import_service.import_from_akshare('600000', '20230101', '20230131')
-        original_time = time.time() - start_time
+        for _ in range(num_runs):
+            # Test implementation
+            start_time = time.time()
+            result = self.stock_data_service.get_stock_data('600000', '20230101', '20230131')
+            end_time = time.time()
 
-        # Print performance comparison
-        print(f"\nPerformance comparison (partial database):")
-        print(f"Simplified implementation: {simplified_time:.4f} seconds")
-        print(f"Original implementation: {original_time:.4f} seconds")
-        print(f"Improvement: {(original_time - simplified_time) / original_time * 100:.2f}%")
+            # Calculate response time
+            response_time = end_time - start_time
+            response_times.append(response_time)
 
-        # Verify both implementations returned data
-        self.assertEqual(len(result_simplified), 31)  # Full month of data
-        self.assertTrue(result_original.get('success', False))
+        # Calculate statistics
+        avg_time = statistics.mean(response_times)
+        max_time = max(response_times)
+        min_time = min(response_times)
+
+        # Log results
+        logger.info(f"Partial database performance:")
+        logger.info(f"  Average: {avg_time:.4f}s")
+        logger.info(f"  Maximum: {max_time:.4f}s")
+        logger.info(f"  Minimum: {min_time:.4f}s")
+
+        # Verify data was returned
+        self.assertEqual(len(result), 31)  # Full month of data
+
+    def test_performance_full_database(self):
+        """Test performance when database has all data."""
+        # Create asset
+        asset = Asset(
+            symbol='600000',
+            name='Stock 600000',
+            isin='CN600000',
+            asset_type='stock',
+            exchange='CN',
+            currency='CNY'
+        )
+        self.session.add(asset)
+        self.session.commit()
+
+        # Create stock data for all days
+        mock_df = self._generate_mock_data('20230101', '20230131')
+        for _, row in mock_df.iterrows():
+            stock_data = DailyStockData(
+                asset_id=asset.asset_id,
+                trade_date=row['date'].date(),
+                open=row['open'],
+                high=row['high'],
+                low=row['low'],
+                close=row['close'],
+                volume=row['volume'],
+                turnover=row['turnover'],
+                amplitude=row['amplitude'],
+                pct_change=row['pct_change'],
+                change=row['change'],
+                turnover_rate=row['turnover_rate']
+            )
+            self.session.add(stock_data)
+        self.session.commit()
+
+        # Run multiple times to get average performance
+        num_runs = 5
+        response_times = []
+
+        for _ in range(num_runs):
+            # Test implementation
+            start_time = time.time()
+            result = self.stock_data_service.get_stock_data('600000', '20230101', '20230131')
+            end_time = time.time()
+
+            # Calculate response time
+            response_time = end_time - start_time
+            response_times.append(response_time)
+
+        # Calculate statistics
+        avg_time = statistics.mean(response_times)
+        max_time = max(response_times)
+        min_time = min(response_times)
+
+        # Log results
+        logger.info(f"Full database performance:")
+        logger.info(f"  Average: {avg_time:.4f}s")
+        logger.info(f"  Maximum: {max_time:.4f}s")
+        logger.info(f"  Minimum: {min_time:.4f}s")
+
+        # Verify data was returned
+        self.assertEqual(len(result), 31)  # Full month of data
 
 
 if __name__ == '__main__':

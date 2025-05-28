@@ -345,3 +345,47 @@ response = requests.get(
 historical_data = response.json()
 print(json.dumps(historical_data, indent=2))
 ```
+
+## API文档
+
+QuantDB API提供了完整的OpenAPI/Swagger文档，可以通过以下方式访问：
+
+### Swagger UI
+
+Swagger UI提供了一个交互式的API文档界面，可以直接在浏览器中测试API。
+
+```
+http://localhost:8000/api/v2/docs
+```
+
+### OpenAPI JSON
+
+OpenAPI规范的JSON文件可以通过以下URL获取：
+
+```
+http://localhost:8000/api/v2/openapi.json
+```
+
+### ReDoc
+
+ReDoc提供了另一种查看API文档的方式，更加简洁和易读：
+
+```
+http://localhost:8000/api/v1/redoc
+```
+
+### 使用API文档
+
+1. 打开Swagger UI
+2. 浏览可用的API端点
+3. 点击任意端点查看详细信息
+4. 使用"Try it out"按钮测试API
+5. 查看请求和响应示例
+
+API文档包含了所有端点的详细信息，包括：
+- 请求参数
+- 响应格式
+- 错误代码
+- 示例值
+
+这使得开发者可以快速了解和使用API，无需查阅额外的文档。

@@ -44,11 +44,17 @@ This directory contains documentation for the QuantDB project. The documentation
 
 ## Technical Guides (`/technical`)
 
+### General Guides
 - `akshare_usage_guide.md` - Guide for using AKShare
-- `ci_cd_setup.md` - CI/CD setup documentation
 - `development_environment.md` - Development environment setup
-- `supabase_setup.md` - Supabase setup documentation
-- `vercel_setup.md` - Vercel setup documentation
+
+### Deployment Guides (`/technical/deployment`)
+- `supabase_setup_guide.md` - Supabase setup documentation
+- `vercel_setup_guide.md` - Vercel setup documentation
+- `ci_cd_setup_guide.md` - CI/CD setup documentation
+
+### Protocols (`/technical/protocols`)
+- `mcp_protocol_guide.md` - Model Context Protocol documentation
 
 ## Project Management (`/project_management`)
 
@@ -58,6 +64,10 @@ This directory contains documentation for the QuantDB project. The documentation
 - Current sprint: `quantdb_02_6_BOARD_mvp_sprint2_6.md`
 - `sprint_planning_template.md` - Sprint planning template
 - `/completed` - Completed sprint documentation
+
+## Examples (`/examples`)
+
+- `mcp_example_queries.md` - Example queries for the MCP protocol
 
 ## Archived Documents (`/archive`)
 

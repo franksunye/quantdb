@@ -1,6 +1,6 @@
 # tests/test_mcp_cache.py
 """
-Tests for the MCP interpreter with cache integration
+Tests for the MCP interpreter with simplified architecture
 """
 import unittest
 from unittest.mock import MagicMock, patch
@@ -16,13 +16,11 @@ from src.api.database import Base
 from src.api.models import Asset, Price
 from src.mcp.interpreter import MCPInterpreter
 from src.mcp.schemas import MCPRequest, MCPResponse
-from src.cache.cache_engine import CacheEngine
-from src.cache.freshness_tracker import FreshnessTracker
-from src.cache.akshare_adapter import AKShareAdapter
+from src.cache.akshare_adapter_simplified import AKShareAdapter
 
 
 class TestMCPCache(unittest.TestCase):
-    """Tests for the MCP interpreter with cache integration."""
+    """Tests for the MCP interpreter with simplified architecture."""
 
     def setUp(self):
         """Set up test fixtures."""
@@ -40,23 +38,12 @@ class TestMCPCache(unittest.TestCase):
         TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
         self.db = TestingSessionLocal()
 
-        # Create mock cache components
-        self.mock_cache_engine = MagicMock(spec=CacheEngine)
-        self.mock_freshness_tracker = MagicMock(spec=FreshnessTracker)
+        # Create mock AKShare adapter
         self.mock_akshare_adapter = MagicMock(spec=AKShareAdapter)
-
-        # Configure mock cache engine
-        self.mock_cache_engine.generate_key.return_value = "test_cache_key"
-        self.mock_cache_engine.get.return_value = None  # Default to cache miss
-
-        # Configure mock freshness tracker
-        self.mock_freshness_tracker.is_fresh.return_value = False  # Default to not fresh
 
         # Create MCP interpreter with mock components
         self.interpreter = MCPInterpreter(
             db=self.db,
-            cache_engine=self.mock_cache_engine,
-            freshness_tracker=self.mock_freshness_tracker,
             akshare_adapter=self.mock_akshare_adapter
         )
 
@@ -99,8 +86,8 @@ class TestMCPCache(unittest.TestCase):
 
         self.db.commit()
 
-    def test_get_price_cache_miss(self):
-        """Test get_price intent with cache miss."""
+    def test_get_price_from_database(self):
+        """Test get_price intent with data from database."""
         # Create a test request
         request = MCPRequest(
             query="What is the price of AAPL?",
@@ -116,59 +103,8 @@ class TestMCPCache(unittest.TestCase):
         self.assertIn("prices", response.data)
         self.assertEqual(len(response.data["prices"]), 10)
 
-        # Check that the cache was checked
-        self.mock_cache_engine.generate_key.assert_called_once()
-        self.mock_freshness_tracker.is_fresh.assert_called_once()
-
-        # Check that the result was stored in the cache
-        self.mock_cache_engine.set.assert_called_once()
-        self.mock_freshness_tracker.mark_updated.assert_called_once()
-
-    def test_get_price_cache_hit(self):
-        """Test get_price intent with cache hit."""
-        # Configure mock cache to return cached data
-        today = date.today()
-        cached_prices = []
-        for i in range(10):
-            price_date = today - timedelta(days=i)
-            price = Price(
-                asset_id=1,
-                date=price_date,
-                open=100.0 + i,
-                high=105.0 + i,
-                low=99.0 + i,
-                close=102.0 + i,
-                volume=1000000 + i * 10000,
-                adjusted_close=102.0 + i
-            )
-            cached_prices.append(price)
-
-        self.mock_cache_engine.get.return_value = cached_prices
-        self.mock_freshness_tracker.is_fresh.return_value = True
-
-        # Create a test request
-        request = MCPRequest(
-            query="What is the price of AAPL?",
-            session_id="test_session",
-            context={}
-        )
-
-        # Process the request using asyncio.run
-        response = asyncio.run(self.interpreter.process_request(request))
-
-        # Check that the response is correct
-        self.assertEqual(response.intent, "get_price")
-        self.assertIn("prices", response.data)
-        self.assertEqual(len(response.data["prices"]), 10)
-
-        # Check that the cache was checked
-        self.mock_cache_engine.generate_key.assert_called_once()
-        self.mock_freshness_tracker.is_fresh.assert_called_once()
-        self.mock_cache_engine.get.assert_called_once()
-
-        # Check that the database was not queried (we used cached data)
-        self.mock_cache_engine.set.assert_not_called()
-        self.mock_freshness_tracker.mark_updated.assert_not_called()
+        # Verify the AKShare adapter was not called (data was in database)
+        self.mock_akshare_adapter.get_stock_data.assert_not_called()
 
     def test_get_price_akshare_fallback(self):
         """Test get_price intent with AKShare fallback."""
@@ -206,10 +142,6 @@ class TestMCPCache(unittest.TestCase):
 
         # Check that AKShare was called
         self.mock_akshare_adapter.get_stock_data.assert_called_once()
-
-        # Check that the result was stored in the cache
-        self.mock_cache_engine.set.assert_called_once()
-        self.mock_freshness_tracker.mark_updated.assert_called_once()
 
 
 if __name__ == "__main__":

@@ -55,3 +55,10 @@ coverage_reports/
 
 # Examples directory (for development only)
 examples/
+
+# IDE workspace files
+*.code-workspace
+
+# Certificate files
+*.crt
+*.pem
