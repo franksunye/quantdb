@@ -115,7 +115,7 @@ async def health_check_v2():
     }
 
 # Import and include routers
-from src.api.routes import assets, data_import, cache, historical_data
+from src.api.routes import assets, cache, historical_data
 from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
 # from src.mcp.schemas import MCPRequest, MCPResponse  # MCP功能已归档
@@ -125,12 +125,6 @@ app.include_router(
     assets.router,
     prefix=f"{API_PREFIX}/assets",
     tags=["assets"]
-)
-
-app.include_router(
-    data_import.router,
-    prefix=f"{API_PREFIX}/import",
-    tags=["import"]
 )
 
 app.include_router(

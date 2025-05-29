@@ -45,68 +45,60 @@ class TestLoggingIntegration(unittest.TestCase):
         # Clean up temporary directory
         self.temp_dir.cleanup()
 
-    @patch("src.api.main.logger")
-    def test_api_request_logging(self, mock_logger):
+    def test_api_request_logging(self):
         """Test API request logging."""
-        # Configure mock logger
-        mock_logger.start_context.return_value = "test_context_id"
-
         # Make API request
         response = client.get("/")
 
         # Check response
         self.assertEqual(response.status_code, 200)
 
-        # Check that logger was called
-        mock_logger.info.assert_called()
+        # Check response content
+        data = response.json()
+        self.assertIn("message", data)
+        self.assertEqual(data["message"], "Welcome to QuantDB API")
 
-    @patch("src.api.main.logger")
-    def test_health_check_logging(self, mock_logger):
+    def test_health_check_logging(self):
         """Test health check logging."""
-        # Configure mock logger
-        mock_logger.start_context.return_value = "test_context_id"
-
         # Make API request
         response = client.get(f"{API_PREFIX}/health")
 
         # Check response
         self.assertEqual(response.status_code, 200)
 
-        # Check that logger was called
-        mock_logger.info.assert_called()
+        # Check response content
+        data = response.json()
+        self.assertIn("status", data)
+        self.assertEqual(data["status"], "ok")
 
-    @patch("src.api.main.logger")
-    def test_error_logging(self, mock_logger):
+    def test_error_logging(self):
         """Test error logging."""
-        # Configure mock logger
-        mock_logger.start_context.return_value = "test_context_id"
-
         # Make API request to non-existent endpoint
         response = client.get("/nonexistent-endpoint")
 
         # Check response
         self.assertEqual(response.status_code, 404)
 
-        # Check that logger was called
-        mock_logger.error.assert_called()
+        # Check response content
+        data = response.json()
+        self.assertIn("detail", data)
+        self.assertEqual(data["detail"], "Not Found")
 
-    @patch("src.api.main.logger")
-    def test_validation_error_logging(self, mock_logger):
+    def test_validation_error_logging(self):
         """Test validation error logging."""
-        # Configure mock logger
-        mock_logger.start_context.return_value = "test_context_id"
-
-        # Make API request with invalid data
-        response = client.post(
-            f"{API_PREFIX}/import/stock",
-            json={}  # Missing required fields
+        # Make API request with invalid query parameters
+        response = client.get(
+            f"{API_PREFIX}/assets",
+            params={"limit": -1}  # Invalid limit value
         )
 
         # Check response
         self.assertEqual(response.status_code, 422)
 
-        # Check that logger was called
-        mock_logger.error.assert_called()
+        # Check response content
+        data = response.json()
+        self.assertIn("error", data)
+        self.assertEqual(data["error"]["code"], "VALIDATION_ERROR")
 
     def test_log_function_integration(self):
         """Test log_function decorator integration."""

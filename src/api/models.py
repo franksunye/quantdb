@@ -9,13 +9,7 @@ from sqlalchemy.ext.mutable import MutableDict
 
 from src.api.database import Base
 
-class ImportTaskStatus(enum.Enum):
-    """Enum for import task status"""
-    PENDING = "pending"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
-    FAILED = "failed"
-    CANCELLED = "cancelled"
+
 
 class Asset(Base):
     """Asset model representing stocks, indices, etc."""
@@ -88,19 +82,4 @@ class IntradayStockData(Base):
     # Relationships
     asset = relationship("Asset", back_populates="intraday_data")
 
-class ImportTask(Base):
-    """Import task model for tracking data import tasks"""
-    __tablename__ = "import_tasks"
 
-    task_id = Column(Integer, primary_key=True, index=True)
-    task_type = Column(String, nullable=False)
-    parameters = Column(MutableDict.as_mutable(JSON), nullable=True)
-    status = Column(String, nullable=False, default="pending")
-    created_at = Column(DateTime, nullable=False)
-    updated_at = Column(DateTime, nullable=False)
-    completed_at = Column(DateTime, nullable=True)
-    result = Column(MutableDict.as_mutable(JSON), nullable=True)
-    error_message = Column(Text, nullable=True)
-
-    def __repr__(self):
-        return f"<ImportTask(task_id={self.task_id}, task_type='{self.task_type}', status={self.status})>"

@@ -45,8 +45,91 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="session", autouse=True)
 def initialize_test_db():
     """Initialize the test database before all tests"""
-    # Create all tables
+    # Drop and recreate all tables to ensure clean state
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
+
+    # Add test data
+    db = TestingSessionLocal()
+    try:
+        # Add test assets
+        test_assets = [
+            Asset(
+                symbol="000001",
+                name="平安银行",
+                isin="CNE000000040",
+                asset_type="stock",
+                exchange="SZSE",
+                currency="CNY"
+            ),
+            Asset(
+                symbol="600519",
+                name="贵州茅台",
+                isin="CNE0000018R8",
+                asset_type="stock",
+                exchange="SHSE",
+                currency="CNY"
+            ),
+            Asset(
+                symbol="AAPL",
+                name="Apple Inc.",
+                isin="US0378331005",
+                asset_type="stock",
+                exchange="NASDAQ",
+                currency="USD"
+            ),
+            Asset(
+                symbol="MSFT",
+                name="Microsoft Corporation",
+                isin="US5949181045",
+                asset_type="stock",
+                exchange="NASDAQ",
+                currency="USD"
+            ),
+            Asset(
+                symbol="GOOG",
+                name="Alphabet Inc.",
+                isin="US02079K1079",
+                asset_type="stock",
+                exchange="NASDAQ",
+                currency="USD"
+            )
+        ]
+
+        db.add_all(test_assets)
+        db.commit()
+
+        # Add test daily stock data
+        today = date.today()
+        test_data = []
+
+        # Add daily stock data for test assets
+        for asset in test_assets:
+            for i in range(30):
+                trade_date = today - timedelta(days=i)
+                test_data.append(
+                    DailyStockData(
+                        asset_id=asset.asset_id,
+                        trade_date=trade_date,
+                        open=100.0 + i,
+                        high=105.0 + i,
+                        low=95.0 + i,
+                        close=102.0 + i,
+                        volume=1000000 + i * 10000,
+                        adjusted_close=102.0 + i,
+                        turnover=(100.0 + i) * (1000000 + i * 10000),
+                        amplitude=5.0,
+                        pct_change=1.0 + i * 0.1,
+                        change=1.0 + i * 0.1,
+                        turnover_rate=0.5 + i * 0.01
+                    )
+                )
+
+        db.add_all(test_data)
+        db.commit()
+    finally:
+        db.close()
+
     yield
     # Clean up after all tests
     Base.metadata.drop_all(bind=engine)
