@@ -98,7 +98,8 @@ class MonitoringService:
         """获取"水池蓄水"状态"""
         
         # 数据库总体统计
-        total_symbols = self.db.query(func.count(func.distinct(DailyStockData.symbol))).scalar() or 0
+        from src.api.models import Asset
+        total_symbols = self.db.query(func.count(Asset.asset_id)).scalar() or 0
         total_records = self.db.query(func.count(DailyStockData.id)).scalar() or 0
         
         # 今日统计

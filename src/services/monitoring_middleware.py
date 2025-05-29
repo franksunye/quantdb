@@ -115,8 +115,8 @@ def monitor_stock_request(db_getter: Callable[[], Session]):
                         cache_hit_ratio = cache_info.get('cache_hit_ratio', 0.0)
                 
                 # 记录监控数据
-                db = db_getter()
-                monitor = RequestMonitor(db)
+                db_session = next(db_getter())
+                monitor = RequestMonitor(db_session)
                 monitor.log_stock_request(
                     symbol=symbol,
                     start_date=start_date,
@@ -136,9 +136,9 @@ def monitor_stock_request(db_getter: Callable[[], Session]):
             except Exception as e:
                 # 记录错误请求
                 response_time_ms = (time.time() - start_time) * 1000
-                
-                db = db_getter()
-                monitor = RequestMonitor(db)
+
+                db_session = next(db_getter())
+                monitor = RequestMonitor(db_session)
                 monitor.log_stock_request(
                     symbol=symbol,
                     start_date=start_date,

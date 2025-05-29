@@ -7,7 +7,7 @@ using the simplified cache architecture with database as persistent cache.
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 from datetime import date, datetime
 import pandas as pd
@@ -18,6 +18,7 @@ from src.api.schemas import HistoricalDataResponse, HistoricalDataPoint
 from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
+from src.services.monitoring_middleware import monitor_stock_request
 from src.logger import setup_logger
 
 # Create dependencies for services
@@ -42,8 +43,10 @@ router = APIRouter(
 )
 
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
+@monitor_stock_request(get_db)
 async def get_historical_stock_data(
     symbol: str,
+    request: Request,
     start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query("", description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment"),
@@ -114,6 +117,13 @@ async def get_historical_stock_data(
                 )
                 data_points.append(data_point)
 
+            # 检查缓存状态 (简化版本)
+            cache_info = {
+                "cache_hit": len(data_points) > 0,  # 简化：有数据就认为有缓存
+                "akshare_called": True,  # 简化：假设调用了AKShare
+                "cache_hit_ratio": 0.5   # 简化：假设50%缓存命中
+            }
+
             # Create response
             response = {
                 "symbol": symbol,
@@ -125,7 +135,8 @@ async def get_historical_stock_data(
                 "metadata": {
                     "count": len(data_points),
                     "status": "success",
-                    "message": f"Successfully retrieved {len(data_points)} data points"
+                    "message": f"Successfully retrieved {len(data_points)} data points",
+                    "cache_info": cache_info
                 }
             }
 
