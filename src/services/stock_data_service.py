@@ -72,19 +72,21 @@ class StockDataService:
         start_date = self._validate_and_format_date(start_date)
         end_date = self._validate_and_format_date(end_date)
 
-        # Get trading days in the requested date range
+        # Get trading days in the requested date range (now excludes weekends and holidays)
         trading_days = self._get_trading_days(start_date, end_date)
+        logger.info(f"Identified {len(trading_days)} trading days for {symbol} from {start_date} to {end_date}")
 
         # Check database for existing data
         existing_data = self.db_cache.get(symbol, trading_days)
         existing_dates = set(existing_data.keys())
+        logger.info(f"Found {len(existing_dates)} existing records in database for {symbol}")
 
-        # Find missing dates
+        # Find missing dates (only among actual trading days)
         missing_dates = [day for day in trading_days if day not in existing_dates]
 
         # If there are missing dates, fetch them from external sources
         if missing_dates:
-            logger.info(f"Found {len(missing_dates)} missing dates for {symbol}")
+            logger.info(f"Found {len(missing_dates)} missing trading days for {symbol}")
 
             # Group consecutive dates to minimize API calls
             date_groups = self._group_consecutive_dates(missing_dates)
@@ -119,10 +121,10 @@ class StockDataService:
                     today = datetime.now().strftime('%Y%m%d')
                     if group_start > today and group_end > today:
                         logger.info(f"Date range {group_start} to {group_end} is in the future. No data expected.")
-                    elif self._is_weekend_or_holiday(group_start, group_end):
-                        logger.info(f"Date range {group_start} to {group_end} may contain weekends or holidays. Limited data expected.")
+                    else:
+                        logger.info(f"Date range {group_start} to {group_end} may be a holiday or have no trading data.")
         else:
-            logger.info(f"All requested data for {symbol} already exists in database")
+            logger.info(f"✅ All requested trading day data for {symbol} already exists in database - CACHE HIT!")
 
         # Convert dictionary to DataFrame
         if existing_data:
@@ -189,24 +191,60 @@ class StockDataService:
         """
         Get list of trading days in the given date range.
 
+        This method now intelligently filters out weekends and known holidays
+        to avoid unnecessary AKShare API calls for non-trading days.
+
         Args:
             start_date: Start date in format YYYYMMDD
             end_date: End date in format YYYYMMDD
 
         Returns:
-            List of trading days
+            List of trading days (excluding weekends and major holidays)
         """
-        # For simplicity, we'll use calendar days and let the database filter out non-trading days
         start_dt = datetime.strptime(start_date, '%Y%m%d')
         end_dt = datetime.strptime(end_date, '%Y%m%d')
 
-        days = []
+        trading_days = []
         current_dt = start_dt
+
         while current_dt <= end_dt:
-            days.append(current_dt.strftime('%Y%m%d'))
+            # Skip weekends (Saturday = 5, Sunday = 6)
+            if current_dt.weekday() < 5:  # Monday = 0, Friday = 4
+                # Skip major Chinese holidays (simplified list)
+                if not self._is_chinese_holiday(current_dt):
+                    trading_days.append(current_dt.strftime('%Y%m%d'))
             current_dt += timedelta(days=1)
 
-        return days
+        return trading_days
+
+    def _is_chinese_holiday(self, date_dt: datetime) -> bool:
+        """
+        Check if a date is a major Chinese holiday.
+
+        Args:
+            date_dt: Date to check
+
+        Returns:
+            True if it's a holiday, False otherwise
+        """
+        # Simplified holiday check - in production, you'd use a proper holiday library
+        # For now, we'll just check for New Year's Day and National Day
+        month_day = (date_dt.month, date_dt.day)
+
+        # Major fixed holidays
+        major_holidays = [
+            (1, 1),   # New Year's Day
+            (10, 1),  # National Day
+            (10, 2),  # National Day Holiday
+            (10, 3),  # National Day Holiday
+        ]
+
+        # Check for Spring Festival (around late January/February)
+        # This is a simplified check - in production, use a proper lunar calendar library
+        if date_dt.month == 2 and 10 <= date_dt.day <= 17:
+            return True
+
+        return month_day in major_holidays
 
     def _group_consecutive_dates(self, dates: List[str]) -> List[Tuple[str, str]]:
         """
