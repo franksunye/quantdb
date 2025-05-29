@@ -1,6 +1,6 @@
 # QuantDB: 面向Agent时代的开源金融智能中间件平台
 
-![Version](https://img.shields.io/badge/version-0.7.1--simplified-blue)
+![Version](https://img.shields.io/badge/version-0.7.3--monitoring-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)

@@ -29,6 +29,26 @@ uvicorn src.api.main:app --reload
 - 首次数据请求: ~1.2秒 (含AKShare获取)
 - 缓存命中: ~0.76秒 (平均32%性能提升)
 
+### 系统监控
+
+**蓄水池状态监控**:
+```bash
+# 查看当前蓄水池状态
+python tools/monitoring/water_pool_monitor.py
+```
+
+**系统性能监控**:
+```bash
+# 完整性能基准测试
+python tools/monitoring/system_performance_monitor.py
+```
+
+**监控指标**:
+- 🏊‍♂️ 蓄水池容量: 缓存股票数量和数据记录数
+- ⚡ 缓存效果: 命中率和性能提升比例
+- 💰 成本节省: AKShare调用减少量化
+- 📊 数据覆盖: 时间跨度和数据分布情况
+
 ## 核心端点
 
 ### 资产管理

@@ -80,6 +80,24 @@ python tests/e2e/performance_analysis.py
 - 缓存命中: < 1秒 ✅
 - 缓存性能提升: > 30% ✅
 
+### 5. 系统监控
+
+监控系统运行状态和核心价值指标。
+
+```bash
+# 蓄水池状态监控
+python tools/monitoring/water_pool_monitor.py
+
+# 系统性能监控
+python tools/monitoring/system_performance_monitor.py
+```
+
+**监控指标**:
+- 🏊‍♂️ 蓄水池容量和数据覆盖
+- ⚡ 缓存命中率和性能提升
+- 💰 AKShare调用减少和成本节省
+- 📊 系统健康度和运行状态
+
 ## 测试运行器选项
 
 ### 基础选项

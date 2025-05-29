@@ -88,7 +88,16 @@ python scripts/test_runner.py --file tests/unit/test_your_module.py
 python scripts/test_runner.py --all --verbose
 ```
 
-### 3. 提交代码
+### 3. 系统监控
+```bash
+# 检查蓄水池状态
+python tools/monitoring/water_pool_monitor.py
+
+# 性能基准测试 (开发完成后)
+python tools/monitoring/system_performance_monitor.py
+```
+
+### 4. 提交代码
 ```bash
 git add .
 git commit -m "feat: add new feature"
