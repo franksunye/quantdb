@@ -115,13 +115,13 @@ curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 │   └── stock_data.db              # SQLite数据库文件
 │
 ├── docs/                          # 项目文档
-│   ├── API.md                     # API文档
-│   ├── ARCHITECTURE.md            # 系统架构文档
-│   ├── BACKLOG.md                 # 待办事项清单
-│   ├── CHANGELOG.md               # 更新日志
-│   ├── DATABASE.md                # 数据库文档
-│   ├── DEVELOPMENT.md             # 开发指南
-│   ├── TESTING.md                 # 测试指南
+│   ├── 00_BACKLOG.md              # 待办事项清单
+│   ├── 01_CHANGELOG.md            # 更新日志
+│   ├── 10_ARCHITECTURE.md         # 系统架构文档
+│   ├── 11_DATABASE.md             # 数据库文档
+│   ├── 20_API.md                  # API文档
+│   ├── 30_DEVELOPMENT.md          # 开发指南
+│   ├── 31_TESTING.md              # 测试指南
 │   └── archive/                   # 归档文档
 │
 ├── logs/                          # 日志目录
@@ -199,18 +199,20 @@ curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 
 详细文档请参阅[docs目录](./docs)：
 
-### 核心文档
-- [📋 API文档](./docs/API.md) - 完整的API使用指南
-- [🏗️ 系统架构](./docs/ARCHITECTURE.md) - 系统架构设计
-- [🗄️ 数据库文档](./docs/DATABASE.md) - 数据库设计和使用
+### 项目概览 (推荐阅读顺序)
+- [📝 00_待办事项](./docs/00_BACKLOG.md) - 项目现状和优先级 **（建议首先阅读）**
+- [📅 01_更新日志](./docs/01_CHANGELOG.md) - 版本更新记录
+
+### 架构设计
+- [🏗️ 10_系统架构](./docs/10_ARCHITECTURE.md) - 系统架构设计
+- [🗄️ 11_数据库文档](./docs/11_DATABASE.md) - 数据库设计和使用
+
+### API使用
+- [📋 20_API文档](./docs/20_API.md) - 完整的API使用指南
 
 ### 开发指南
-- [🛠️ 开发指南](./docs/DEVELOPMENT.md) - 开发环境设置和开发流程
-- [🧪 测试指南](./docs/TESTING.md) - 测试运行和编写指南
-
-### 项目管理
-- [📝 待办事项](./docs/BACKLOG.md) - 项目待办事项和优先级
-- [📅 更新日志](./docs/CHANGELOG.md) - 版本更新记录
+- [🛠️ 30_开发指南](./docs/30_DEVELOPMENT.md) - 开发环境设置和开发流程
+- [🧪 31_测试指南](./docs/31_TESTING.md) - 测试运行和编写指南
 
 ## 开发历程
 
