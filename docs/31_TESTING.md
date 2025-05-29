@@ -58,22 +58,27 @@ python scripts/test_runner.py --integration
 ```
 
 ### 4. 端到端测试 (E2E)
-测试完整的用户场景，使用真实HTTP请求和独立的测试环境。
+测试完整用户场景，真实HTTP请求，自动环境管理。
 
 ```bash
-# 运行E2E测试（自动管理服务器）
+# 运行E2E测试
 python scripts/test_runner.py --e2e
 
-# 运行特定E2E测试
-python -m pytest tests/e2e/test_user_scenarios.py -v
+# 性能分析
+python tests/e2e/performance_analysis.py
 ```
 
-**E2E测试特点**:
-- 🔄 自动启动/停止测试服务器
-- 🗄️ 使用独立的测试数据库
-- 🌐 真实HTTP请求测试
-- 🧹 自动环境清理
-- 👤 模拟真实用户场景
+**测试场景**:
+- 新用户工作流程 (健康检查→资产→数据→缓存)
+- 数据范围扩展 (部分缓存命中)
+- 错误处理 (无效输入)
+- 缓存管理 (一致性验证)
+
+**性能基准**:
+- 基础API: < 20ms ✅
+- 首次数据请求: < 2秒 ✅
+- 缓存命中: < 1秒 ✅
+- 缓存性能提升: > 30% ✅
 
 ## 测试运行器选项
 
