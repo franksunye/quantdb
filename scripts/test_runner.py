@@ -151,37 +151,43 @@ class TestRunner:
         print("RUNNING END-TO-END TESTS")
         print("="*50)
 
-        # Check if API server is running
-        server_process = None
-        if not self.is_api_running():
-            print("API server is not running.")
+        # 新的E2E测试不需要外部服务器，它们会自己管理服务器
+        test_files = [
+            "tests/e2e/test_user_scenarios.py"
+        ]
 
-            if auto_start_server:
+        print("运行新的自管理E2E测试...")
+        result = self._run_test_files(test_files, "End-to-End Tests", verbose, coverage)
+
+        # 如果新测试失败，可以尝试运行旧的E2E测试（如果用户要求）
+        if not result and auto_start_server:
+            print("\n新E2E测试失败，尝试运行传统E2E测试...")
+
+            # Check if API server is running
+            server_process = None
+            if not self.is_api_running():
+                print("API server is not running.")
                 print("Auto-starting API server...")
                 server_process = self.start_api_server()
                 if not server_process:
-                    print("Cannot run E2E tests without the API server.")
+                    print("Cannot run legacy E2E tests without the API server.")
                     return False
-            else:
-                print("Skipping E2E tests. Start API server manually or use --auto-start-server")
-                return True
 
-        try:
-            test_files = [
-                "tests/e2e/test_data_flow_api.py",
-                "tests/e2e/test_data_flow_e2e.py",
-                "tests/e2e/test_stock_data_api_simplified.py",
-                "tests/e2e/test_stock_data_http_api.py"
-            ]
+            try:
+                legacy_test_files = [
+                    "tests/e2e/test_stock_data_api_simplified.py",
+                    "tests/e2e/test_stock_data_http_api.py"
+                ]
 
-            result = self._run_test_files(test_files, "End-to-End Tests", verbose, coverage)
-        finally:
-            # Stop the API server if we started it
-            if server_process:
-                print("Stopping API server...")
-                server_process.terminate()
-                server_process.wait()
-                print("API server stopped.")
+                legacy_result = self._run_test_files(legacy_test_files, "Legacy End-to-End Tests", verbose, coverage)
+                result = result or legacy_result
+            finally:
+                # Stop the API server if we started it
+                if server_process:
+                    print("Stopping API server...")
+                    server_process.terminate()
+                    server_process.wait()
+                    print("API server stopped.")
 
         return result
 
@@ -403,7 +409,8 @@ def main():
             success &= runner.run_unit_tests(verbose, args.with_coverage)
             success &= runner.run_integration_tests(verbose, args.with_coverage)
             success &= runner.run_api_tests(verbose, args.with_coverage)
-            success &= runner.run_e2e_tests(verbose, args.with_coverage, args.auto_start_server)
+            # Auto-start server for E2E tests when running all tests
+            success &= runner.run_e2e_tests(verbose, args.with_coverage, True)
             success &= runner.run_performance_tests(verbose)
         else:
             # Default: run the most stable tests
