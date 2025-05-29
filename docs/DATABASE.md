@@ -110,21 +110,19 @@ python -m src.scripts.init_db
 python check_database.py
 ```
 
-### 数据导入
+### 数据获取
 ```bash
-# 导入股票数据
-curl -X POST http://localhost:8000/api/v1/import/stock \
-  -H "Content-Type: application/json" \
-  -d '{"symbol": "000001", "start_date": "20230101", "end_date": "20230131"}'
+# 获取股票历史数据 (自动缓存到数据库)
+curl "http://localhost:8000/api/v1/historical/stock/000001?start_date=20230101&end_date=20230131"
 ```
 
 ### 数据清理
 ```bash
 # 清理价格数据
-curl -X DELETE "http://localhost:8000/api/v1/cache/clear?table=prices"
+curl -X DELETE "http://localhost:8000/api/v1/cache/clear?table=daily_stock_data"
 
-# 清理所有数据
-curl -X DELETE "http://localhost:8000/api/v1/cache/clear"
+# 清理特定股票数据
+curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 ```
 
 ## 性能优化

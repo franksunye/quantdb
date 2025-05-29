@@ -1,5 +1,39 @@
 # QuantDB 更新日志
 
+## [0.7.1-simplified] - 2025-01-27
+
+### 🎯 功能简化 - 移除导入功能
+
+#### ❌ 移除功能
+- 完全移除 `/api/v1/import/` 端点和相关功能
+- 删除 `DataImportService` 和导入相关服务
+- 移除 `ImportTask` 模型和相关数据库表
+- 清理导入相关的测试和文档
+
+#### 🔧 代码清理
+- 删除 `src/api/routes/data_import.py`
+- 删除 `src/services/data_import.py`
+- 删除 `src/scripts/import_sample_data.py`
+- 清理 `models.py` 和 `schemas.py` 中的导入相关定义
+- 移除数据库中的 `import_tasks` 表
+
+#### 📚 文档同步更新
+- 更新 API.md，移除导入功能说明
+- 更新 BACKLOG.md，反映当前功能范围
+- 更新 ARCHITECTURE.md，移除导入服务引用
+- 更新 DATABASE.md，移除导入相关操作
+
+#### 🧪 测试优化
+- 修复集成测试，使用现有API端点
+- 简化日志测试，移除mock依赖
+- 所有测试通过 (12/12)
+
+#### 🎉 结果
+- 进一步简化项目功能范围
+- 专注于核心数据查询和缓存功能
+- 提高代码可维护性
+- MVP评分提升至 8/10
+
 ## [0.6.0-sqlite] - 2025-05-28
 
 ### 🎉 重大更新 - 简化架构完成

@@ -100,19 +100,7 @@ GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 
 
 
-### 数据导入
 
-```bash
-# 导入股票数据 (异步后台任务)
-POST /api/v1/import/stock
-Content-Type: application/json
-
-{
-  "symbol": "000001",
-  "start_date": "20230101",
-  "end_date": "20230131"
-}
-```
 
 ### 缓存管理
 
@@ -159,10 +147,7 @@ curl "http://localhost:8000/api/v1/historical/stock/000001?limit=10"
 # 获取前复权数据
 curl "http://localhost:8000/api/v1/historical/stock/000001?adjust=qfq&limit=20"
 
-# 导入数据 (异步后台任务)
-curl -X POST http://localhost:8000/api/v1/import/stock \
-  -H "Content-Type: application/json" \
-  -d '{"symbol": "000001", "start_date": "20230101", "end_date": "20230131"}'
+
 
 # 检查缓存状态
 curl http://localhost:8000/api/v1/cache/status
