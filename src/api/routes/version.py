@@ -16,10 +16,10 @@ from src.api.version import (
     get_latest_version_info,
     is_version_deprecated
 )
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(

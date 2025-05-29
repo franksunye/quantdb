@@ -24,10 +24,10 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup test logger
-logger = setup_logger("real_user_scenarios_e2e")
+logger = get_logger("real_user_scenarios_e2e")
 
 class TestRealUserScenarios(unittest.TestCase):
     """测试真实用户使用场景的端到端测试"""

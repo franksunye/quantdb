@@ -14,7 +14,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 
 from src.api.models import Asset, DailyStockData
-from src.logger import logger
+from src.logger_unified import logger
 from src.services.database_cache import DatabaseCache
 from src.services.trading_calendar import get_trading_calendar
 

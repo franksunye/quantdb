@@ -15,10 +15,10 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from src.api.main import app
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # 设置测试日志记录器
-logger = setup_logger("test_openapi")
+logger = get_logger("test_openapi")
 
 class TestOpenAPI(unittest.TestCase):
     """测试OpenAPI文档功能"""

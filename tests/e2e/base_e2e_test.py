@@ -17,9 +17,9 @@ sys.path.insert(0, str(project_root))
 
 from tests.e2e.config import e2e_config
 from tests.e2e.server_manager import server_manager
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
-logger = setup_logger("e2e_base_test")
+logger = get_logger("e2e_base_test")
 
 class BaseE2ETest(unittest.TestCase):
     """E2E测试基类"""

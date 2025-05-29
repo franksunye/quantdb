@@ -9,10 +9,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.api.database import get_db
 from src.api.models import Asset
 from src.api.schemas import Asset as AssetSchema
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(

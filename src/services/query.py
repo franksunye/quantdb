@@ -8,10 +8,10 @@ from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import BinaryExpression
 
 from src.api.models import Asset, DailyStockData
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 class QueryService:
     """

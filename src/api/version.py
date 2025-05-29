@@ -10,10 +10,10 @@ from typing import Dict, List, Optional, Union
 from datetime import datetime
 from pydantic import BaseModel
 
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 class APIVersion(str, Enum):
     """API version enum."""

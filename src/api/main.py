@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from src.config import API_PREFIX, DEBUG, ENVIRONMENT
-from src.enhanced_logger import setup_enhanced_logger
+from src.logger_unified import get_logger
 from src.api.database import get_db
 # from src.mcp.interpreter import MCPInterpreter  # MCP功能已归档
 from src.api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
@@ -24,11 +24,7 @@ from src.api.errors import (
 )
 
 # Setup enhanced logger
-logger = setup_enhanced_logger(
-    name=__name__,
-    level="DEBUG" if DEBUG else "INFO",
-    detailed=True
-)
+logger = get_logger(__name__)
 
 # Import simplified components
 from src.cache.akshare_adapter import AKShareAdapter

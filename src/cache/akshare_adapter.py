@@ -17,7 +17,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.logger import logger
+from src.logger_unified import logger
 
 class AKShareAdapter:
     """

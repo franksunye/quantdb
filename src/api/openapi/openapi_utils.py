@@ -15,7 +15,7 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 
-from src.logger import logger
+from src.logger_unified import logger
 
 def get_openapi_schema() -> Dict[str, Any]:
     """

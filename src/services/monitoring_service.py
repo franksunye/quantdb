@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, Integer
 
 from src.api.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
-logger = setup_logger("monitoring_service")
+logger = get_logger("monitoring_service")
 
 class MonitoringService:
     """监控服务类"""

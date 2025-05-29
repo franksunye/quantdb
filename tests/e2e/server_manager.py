@@ -18,11 +18,11 @@ project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from tests.e2e.config import e2e_config
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 from src.api.models import Base
 from sqlalchemy import create_engine
 
-logger = setup_logger("e2e_server_manager")
+logger = get_logger("e2e_server_manager")
 
 class E2EServerManager:
     """E2E测试服务器管理器"""

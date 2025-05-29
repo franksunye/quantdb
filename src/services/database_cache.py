@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
 
 from src.api.models import Asset, DailyStockData
-from src.logger import logger
+from src.logger_unified import logger
 
 class DatabaseCache:
     """

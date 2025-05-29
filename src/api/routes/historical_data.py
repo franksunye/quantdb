@@ -19,7 +19,7 @@ from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
 from src.services.monitoring_middleware import monitor_stock_request
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Create dependencies for services
 def get_akshare_adapter(db: Session = Depends(get_db)):
@@ -34,7 +34,7 @@ def get_stock_data_service(
     return StockDataService(db, akshare_adapter)
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 # Create router
 router = APIRouter(

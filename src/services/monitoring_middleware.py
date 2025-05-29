@@ -11,9 +11,9 @@ from fastapi import Request
 from sqlalchemy.orm import Session
 
 from src.services.monitoring_service import MonitoringService
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
-logger = setup_logger("monitoring_middleware")
+logger = get_logger("monitoring_middleware")
 
 class RequestMonitor:
     """请求监控器"""

@@ -88,9 +88,9 @@ class TestStockDataFlow(unittest.TestCase):
 
     def test_empty_database_flow(self):
         """Test data flow when database is empty."""
-        # Setup mock data
+        # Setup mock data - using actual trading days (2023-01-03 and 2023-01-04)
         mock_df = pd.DataFrame({
-            'date': pd.to_datetime(['2023-01-01', '2023-01-02']),
+            'date': pd.to_datetime(['2023-01-03', '2023-01-04']),
             'open': [100.0, 101.0],
             'high': [105.0, 106.0],
             'low': [99.0, 100.0],
@@ -104,8 +104,8 @@ class TestStockDataFlow(unittest.TestCase):
         })
         self.mock_safe_call.return_value = mock_df
 
-        # Call service
-        result = self.stock_data_service.get_stock_data('600000', '20230101', '20230102')
+        # Call service - using actual trading days
+        result = self.stock_data_service.get_stock_data('600000', '20230103', '20230104')
 
         # Check result
         self.assertEqual(len(result), 2)
@@ -121,7 +121,7 @@ class TestStockDataFlow(unittest.TestCase):
 
         # Call service again - should use database cache
         self.mock_safe_call.reset_mock()
-        result2 = self.stock_data_service.get_stock_data('600000', '20230101', '20230102')
+        result2 = self.stock_data_service.get_stock_data('600000', '20230103', '20230104')
 
         # Check result
         self.assertEqual(len(result2), 2)
@@ -143,10 +143,10 @@ class TestStockDataFlow(unittest.TestCase):
         self.session.add(asset)
         self.session.commit()
 
-        # Create stock data for first day
+        # Create stock data for first trading day (2023-01-03)
         stock_data = DailyStockData(
             asset_id=asset.asset_id,
-            trade_date=datetime(2023, 1, 1).date(),
+            trade_date=datetime(2023, 1, 3).date(),
             open=100.0,
             high=105.0,
             low=99.0,
@@ -161,9 +161,9 @@ class TestStockDataFlow(unittest.TestCase):
         self.session.add(stock_data)
         self.session.commit()
 
-        # Setup mock data for second day
+        # Setup mock data for second trading day (2023-01-04)
         mock_df = pd.DataFrame({
-            'date': pd.to_datetime(['2023-01-02']),
+            'date': pd.to_datetime(['2023-01-04']),
             'open': [101.0],
             'high': [106.0],
             'low': [100.0],
@@ -177,8 +177,8 @@ class TestStockDataFlow(unittest.TestCase):
         })
         self.mock_safe_call.return_value = mock_df
 
-        # Call service
-        result = self.stock_data_service.get_stock_data('600000', '20230101', '20230102')
+        # Call service - using actual trading days
+        result = self.stock_data_service.get_stock_data('600000', '20230103', '20230104')
 
         # Check result
         self.assertEqual(len(result), 2)
@@ -187,8 +187,8 @@ class TestStockDataFlow(unittest.TestCase):
         self.mock_safe_call.assert_called_once()
         args, kwargs = self.mock_safe_call.call_args
         self.assertEqual(kwargs['symbol'], '600000')
-        self.assertEqual(kwargs['start_date'], '20230102')
-        self.assertEqual(kwargs['end_date'], '20230102')
+        self.assertEqual(kwargs['start_date'], '20230104')
+        self.assertEqual(kwargs['end_date'], '20230104')
 
         # Verify data was saved to database
         stock_data = self.session.query(DailyStockData).all()
@@ -208,8 +208,8 @@ class TestStockDataFlow(unittest.TestCase):
         self.session.add(asset)
         self.session.commit()
 
-        # Create stock data for days 1, 2, 5
-        dates = [datetime(2023, 1, 1).date(), datetime(2023, 1, 2).date(), datetime(2023, 1, 5).date()]
+        # Create stock data for trading days 3, 4, 6 (2023-01-03, 2023-01-04, 2023-01-06)
+        dates = [datetime(2023, 1, 3).date(), datetime(2023, 1, 4).date(), datetime(2023, 1, 6).date()]
         for date in dates:
             stock_data = DailyStockData(
                 asset_id=asset.asset_id,
@@ -228,27 +228,27 @@ class TestStockDataFlow(unittest.TestCase):
             self.session.add(stock_data)
         self.session.commit()
 
-        # Setup mock data for days 3, 4, 6, 7
+        # Setup mock data for missing trading days (2023-01-05, 2023-01-09, 2023-01-10)
         mock_df = pd.DataFrame({
-            'date': pd.to_datetime(['2023-01-03', '2023-01-04', '2023-01-06', '2023-01-07']),
-            'open': [101.0, 102.0, 103.0, 104.0],
-            'high': [106.0, 107.0, 108.0, 109.0],
-            'low': [100.0, 101.0, 102.0, 103.0],
-            'close': [102.0, 103.0, 104.0, 105.0],
-            'volume': [1100, 1200, 1300, 1400],
-            'turnover': [111100.0, 121200.0, 131300.0, 141400.0],
-            'amplitude': [5.9, 5.8, 5.7, 5.6],
-            'pct_change': [1.0, 1.0, 1.0, 1.0],
-            'change': [1.0, 1.0, 1.0, 1.0],
-            'turnover_rate': [0.55, 0.56, 0.57, 0.58]
+            'date': pd.to_datetime(['2023-01-05', '2023-01-09', '2023-01-10']),
+            'open': [101.0, 102.0, 103.0],
+            'high': [106.0, 107.0, 108.0],
+            'low': [100.0, 101.0, 102.0],
+            'close': [102.0, 103.0, 104.0],
+            'volume': [1100, 1200, 1300],
+            'turnover': [111100.0, 121200.0, 131300.0],
+            'amplitude': [5.9, 5.8, 5.7],
+            'pct_change': [1.0, 1.0, 1.0],
+            'change': [1.0, 1.0, 1.0],
+            'turnover_rate': [0.55, 0.56, 0.57]
         })
         self.mock_safe_call.return_value = mock_df
 
-        # Call service
-        result = self.stock_data_service.get_stock_data('600000', '20230101', '20230107')
+        # Call service - request range that includes existing and missing data
+        result = self.stock_data_service.get_stock_data('600000', '20230103', '20230110')
 
-        # Check result
-        self.assertEqual(len(result), 7)
+        # Check result - should have 6 trading days (3 existing + 3 new)
+        self.assertEqual(len(result), 6)
 
         # Verify AKShare was called at least once
         # Note: The actual number of calls depends on how the date ranges are grouped
@@ -258,15 +258,15 @@ class TestStockDataFlow(unittest.TestCase):
 
         # Verify data was saved to database
         stock_data = self.session.query(DailyStockData).all()
-        self.assertEqual(len(stock_data), 7)
+        self.assertEqual(len(stock_data), 6)
 
     def test_empty_akshare_response(self):
         """Test handling of empty AKShare response."""
         # Setup mock data
         self.mock_safe_call.return_value = pd.DataFrame()
 
-        # Call service
-        result = self.stock_data_service.get_stock_data('600000', '20230101', '20230102')
+        # Call service - using actual trading days
+        result = self.stock_data_service.get_stock_data('600000', '20230103', '20230104')
 
         # Check result
         self.assertTrue(result.empty)
@@ -288,8 +288,8 @@ class TestStockDataFlow(unittest.TestCase):
         # Setup mock to raise exception
         self.mock_safe_call.side_effect = Exception("Test exception")
 
-        # Call service
-        result = self.stock_data_service.get_stock_data('600000', '20230101', '20230102')
+        # Call service - using actual trading days
+        result = self.stock_data_service.get_stock_data('600000', '20230103', '20230104')
 
         # Check result
         self.assertTrue(result.empty)

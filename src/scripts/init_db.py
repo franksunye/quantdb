@@ -15,10 +15,10 @@ import logging
 from src.config import DATABASE_URL, DATABASE_PATH
 from src.api.models import Base
 from src.api.database import engine
-from src.logger import setup_logger
+from src.logger_unified import get_logger
 
 # Setup logger
-logger = setup_logger(__name__)
+logger = get_logger(__name__)
 
 def init_db():
     """
