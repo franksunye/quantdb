@@ -111,7 +111,10 @@ class TestRunner:
             "tests/unit/test_database_cache.py",
             "tests/unit/test_stock_data_service.py",
             "tests/unit/test_enhanced_logger.py",
-            "tests/unit/test_error_handling.py"
+            "tests/unit/test_error_handling.py",
+            "tests/unit/test_monitoring_service.py",
+            "tests/unit/test_monitoring_middleware.py",
+            "tests/unit/test_monitoring_tools.py"
         ]
 
         return self._run_test_files(test_files, "Unit Tests", verbose, coverage)
@@ -125,7 +128,8 @@ class TestRunner:
         test_files = [
             "tests/integration/test_stock_data_flow.py",
             "tests/integration/test_error_handling_integration.py",
-            "tests/integration/test_logging_integration.py"
+            "tests/integration/test_logging_integration.py",
+            "tests/integration/test_monitoring_integration.py"
         ]
 
         return self._run_test_files(test_files, "Integration Tests", verbose, coverage)
@@ -203,6 +207,21 @@ class TestRunner:
         ]
 
         return self._run_test_files(test_files, "Performance Tests", verbose, False)
+
+    def run_monitoring_tests(self, verbose=True, coverage=False):
+        """Run monitoring system tests."""
+        print("\n" + "="*50)
+        print("RUNNING MONITORING TESTS")
+        print("="*50)
+
+        test_files = [
+            "tests/unit/test_monitoring_service.py",
+            "tests/unit/test_monitoring_middleware.py",
+            "tests/unit/test_monitoring_tools.py",
+            "tests/integration/test_monitoring_integration.py"
+        ]
+
+        return self._run_test_files(test_files, "Monitoring Tests", verbose, coverage)
 
     def run_specific_tests(self, test_pattern: str, verbose=True, coverage=False):
         """Run specific tests matching a pattern."""
@@ -343,6 +362,7 @@ def main():
     parser.add_argument("--api", action="store_true", help="Run API tests")
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
     parser.add_argument("--performance", action="store_true", help="Run performance tests")
+    parser.add_argument("--monitoring", action="store_true", help="Run monitoring system tests")
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--coverage", action="store_true", help="Run coverage analysis")
 
@@ -403,12 +423,15 @@ def main():
             success = runner.run_e2e_tests(verbose, args.with_coverage, args.auto_start_server)
         elif args.performance:
             success = runner.run_performance_tests(verbose)
+        elif args.monitoring:
+            success = runner.run_monitoring_tests(verbose, args.with_coverage)
         elif args.all:
             print("Running all test suites...")
             success = True
             success &= runner.run_unit_tests(verbose, args.with_coverage)
             success &= runner.run_integration_tests(verbose, args.with_coverage)
             success &= runner.run_api_tests(verbose, args.with_coverage)
+            success &= runner.run_monitoring_tests(verbose, args.with_coverage)
             # Auto-start server for E2E tests when running all tests
             success &= runner.run_e2e_tests(verbose, args.with_coverage, True)
             success &= runner.run_performance_tests(verbose)

@@ -1,6 +1,6 @@
 # QuantDB 测试指南
 
-**测试状态**: 80/80 通过 (100%) | **覆盖率**: 核心功能全覆盖 | **工具**: 统一测试运行器
+**测试状态**: 95/95 通过 (100%) | **覆盖率**: 核心功能全覆盖 | **工具**: 统一测试运行器
 
 ## 快速测试
 
@@ -17,7 +17,7 @@ python scripts/test_runner.py --coverage
 
 ## 测试分类
 
-### 1. 单元测试 (62个)
+### 1. 单元测试 (77个)
 测试独立组件的功能逻辑。
 
 ```bash
@@ -34,6 +34,9 @@ python scripts/test_runner.py --file tests/unit/test_stock_data_service.py
 - `test_stock_data_service.py` - 股票数据服务 (11个测试)
 - `test_enhanced_logger.py` - 增强日志 (8个测试)
 - `test_error_handling.py` - 错误处理 (13个测试)
+- `test_monitoring_service.py` - 监控服务 (12个测试)
+- `test_monitoring_middleware.py` - 监控中间件 (8个测试)
+- `test_monitoring_tools.py` - 监控工具 (7个测试)
 
 ### 2. API测试 (18个)
 测试HTTP API端点的功能。
@@ -56,6 +59,12 @@ python scripts/test_runner.py --api
 # 运行集成测试
 python scripts/test_runner.py --integration
 ```
+
+**覆盖模块**:
+- `test_stock_data_flow.py` - 股票数据流集成
+- `test_error_handling_integration.py` - 错误处理集成
+- `test_logging_integration.py` - 日志集成
+- `test_monitoring_integration.py` - 监控系统集成
 
 ### 4. 端到端测试 (E2E)
 测试完整用户场景，真实HTTP请求，自动环境管理。
@@ -80,17 +89,24 @@ python tests/e2e/performance_analysis.py
 - 缓存命中: < 1秒 ✅
 - 缓存性能提升: > 30% ✅
 
-### 5. 系统监控
+### 5. 监控系统测试
 
-监控系统运行状态和核心价值指标。
+专门测试监控系统的功能和集成。
 
 ```bash
-# 蓄水池状态监控
-python tools/monitoring/water_pool_monitor.py
+# 运行监控系统测试
+python scripts/test_runner.py --monitoring
 
-# 系统性能监控
+# 运行监控工具
+python tools/monitoring/water_pool_monitor.py
 python tools/monitoring/system_performance_monitor.py
 ```
+
+**测试覆盖**:
+- 🔍 监控服务单元测试 - 请求日志、数据覆盖、性能趋势
+- 🔧 监控中间件测试 - 装饰器、请求拦截、错误处理
+- 🛠️ 监控工具测试 - 水池监控、性能监控、输出验证
+- 🔗 监控集成测试 - 端到端监控流程、数据库集成
 
 **监控指标**:
 - 🏊‍♂️ 蓄水池容量和数据覆盖
@@ -105,6 +121,7 @@ python tools/monitoring/system_performance_monitor.py
 --unit          # 单元测试
 --api           # API测试
 --integration   # 集成测试
+--monitoring    # 监控系统测试
 --all           # 所有测试
 ```
 
@@ -121,8 +138,11 @@ python tools/monitoring/system_performance_monitor.py
 # 详细输出的单元测试
 python scripts/test_runner.py --unit --verbose
 
+# 监控系统测试
+python scripts/test_runner.py --monitoring --verbose
+
 # 特定文件的测试
-python scripts/test_runner.py --file tests/api/test_historical_data.py
+python scripts/test_runner.py --file tests/unit/test_monitoring_service.py
 
 # 带覆盖率的完整测试
 python scripts/test_runner.py --all --coverage

@@ -8,9 +8,9 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, Integer
 
-from src.api.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData
+from src.api.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
 from src.logger import setup_logger
 
 logger = setup_logger("monitoring_service")
@@ -59,13 +59,13 @@ class MonitoringService:
     
     def _update_data_coverage(self, symbol: str):
         """更新数据覆盖统计"""
-        
+
         # 查询该股票的数据范围
         data_stats = self.db.query(
-            func.min(DailyStockData.date).label('earliest'),
-            func.max(DailyStockData.date).label('latest'),
+            func.min(DailyStockData.trade_date).label('earliest'),
+            func.max(DailyStockData.trade_date).label('latest'),
             func.count(DailyStockData.id).label('total')
-        ).filter(DailyStockData.symbol == symbol).first()
+        ).join(Asset, DailyStockData.asset_id == Asset.asset_id).filter(Asset.symbol == symbol).first()
         
         if not data_stats or not data_stats.total:
             return
@@ -86,8 +86,8 @@ class MonitoringService:
             coverage.access_count += 1
         
         # 更新统计信息
-        coverage.earliest_date = data_stats.earliest
-        coverage.latest_date = data_stats.latest
+        coverage.earliest_date = data_stats.earliest.strftime('%Y%m%d') if data_stats.earliest else None
+        coverage.latest_date = data_stats.latest.strftime('%Y%m%d') if data_stats.latest else None
         coverage.total_records = data_stats.total
         coverage.last_accessed = datetime.now()
         coverage.last_updated = datetime.now()
@@ -98,7 +98,6 @@ class MonitoringService:
         """获取"水池蓄水"状态"""
         
         # 数据库总体统计
-        from src.api.models import Asset
         total_symbols = self.db.query(func.count(Asset.asset_id)).scalar() or 0
         total_records = self.db.query(func.count(DailyStockData.id)).scalar() or 0
         
@@ -121,7 +120,7 @@ class MonitoringService:
         ).scalar() or 0
         
         # 计算缓存命中率
-        cache_hit_rate = (today_cache_hits / today_requests * 100) if today_requests > 0 else 0
+        cache_hit_rate = (today_cache_hits / today_requests * 100) if (today_requests and today_requests > 0) else 0
         
         # 平均响应时间
         avg_response_time = self.db.query(func.avg(RequestLog.response_time_ms)).filter(
@@ -168,8 +167,8 @@ class MonitoringService:
         for coverage in coverages:
             # 计算数据跨度天数
             if coverage.earliest_date and coverage.latest_date:
-                start_date = datetime.strptime(coverage.earliest_date, '%Y-%m-%d')
-                end_date = datetime.strptime(coverage.latest_date, '%Y-%m-%d')
+                start_date = datetime.strptime(coverage.earliest_date, '%Y%m%d')
+                end_date = datetime.strptime(coverage.latest_date, '%Y%m%d')
                 span_days = (end_date - start_date).days + 1
             else:
                 span_days = 0
@@ -207,7 +206,7 @@ class MonitoringService:
             cache_hit_rate = ((stat.total_requests - stat.akshare_calls) / stat.total_requests * 100) if stat.total_requests > 0 else 0
             
             trends.append({
-                "date": stat.date.strftime('%Y-%m-%d'),
+                "date": stat.date if isinstance(stat.date, str) else stat.date.strftime('%Y-%m-%d'),
                 "total_requests": stat.total_requests,
                 "akshare_calls": stat.akshare_calls,
                 "cache_hit_rate": f"{cache_hit_rate:.1f}%",

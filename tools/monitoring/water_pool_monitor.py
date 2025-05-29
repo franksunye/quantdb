@@ -97,7 +97,10 @@ def monitor_water_pool_status():
         print(f"❌ 监控演示出错: {e}")
     
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception as e:
+            print(f"⚠️ 数据库连接关闭时出错: {e}")
     
     print("\n" + "=" * 60)
 
