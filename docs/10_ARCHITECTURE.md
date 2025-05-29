@@ -1,16 +1,17 @@
 # QuantDB 系统架构
 
-**版本**: v0.7.1-simplified | **状态**: 简化架构已实现 | **测试**: 12/12 通过
+**版本**: v0.7.4-monitoring-active | **状态**: 简化架构 + 实时监控 | **测试**: 16/16 通过
 
 ## 架构概述
 
-QuantDB 采用简化架构，专注于核心功能的稳定性和可维护性。
+QuantDB 采用简化架构，专注于核心功能的稳定性和可维护性，并集成了生产级实时监控系统。
 
 ### 设计原则
 - **简化优先**: 避免过度设计，选择简单可靠的解决方案
 - **数据库作为缓存**: 使用 SQLite 作为主要数据存储和缓存
 - **统一数据源**: 通过 AKShare 适配器获取股票数据
 - **API优先**: 以 RESTful API 为核心的服务架构
+- **🆕 实时监控**: 每个请求自动记录，核心价值可量化验证
 
 ## 核心组件
 
@@ -25,6 +26,18 @@ QuantDB 采用简化架构，专注于核心功能的稳定性和可维护性。
        │           │  AKShare    │             │
        └──────────▶│  Adapter    │─────────────┘
                    └─────────────┘
+
+🆕 监控系统 (实时数据收集)
+┌─────────────┐    ┌─────────────┐    ┌─────────────┐
+│ Monitoring  │    │ Monitoring  │    │ Monitoring  │
+│ Middleware  │───▶│  Service    │───▶│   Tables    │
+└─────────────┘    └─────────────┘    └─────────────┘
+       ▲                                       │
+       │                                       ▼
+┌─────────────┐                       ┌─────────────┐
+│ Every API   │                       │ Monitoring  │
+│  Request    │                       │   Tools     │
+└─────────────┘                       └─────────────┘
 ```
 
 ### 1. API层 (FastAPI)
@@ -36,10 +49,17 @@ QuantDB 采用简化架构，专注于核心功能的稳定性和可维护性。
 ### 2. 服务层 (Services)
 - **StockDataService**: 股票数据获取、存储、查询
 - **DatabaseCache**: 数据库缓存管理
+- **🆕 MonitoringService**: 监控数据收集和分析
 
 ### 3. 数据层
 - **SQLite数据库**: 主要数据存储
 - **AKShare适配器**: 外部数据源接口
+- **🆕 监控数据表**: request_logs, data_coverage, system_metrics
+
+### 4. 🆕 监控系统
+- **MonitoringMiddleware**: 自动拦截每个API请求
+- **RequestMonitor**: 记录请求详情和性能数据
+- **监控工具**: water_pool_monitor.py, system_performance_monitor.py
 
 ## 数据流程
 

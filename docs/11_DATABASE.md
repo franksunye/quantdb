@@ -1,12 +1,14 @@
 # QuantDB 数据库文档
 
-**数据库**: SQLite | **版本**: 简化架构 | **状态**: 生产就绪
+**数据库**: SQLite | **版本**: 简化架构 + 监控系统 | **状态**: 生产就绪
 
 ## 数据库概述
 
-QuantDB 使用 SQLite 作为主要数据存储，同时作为智能缓存层。数据库设计专注于股票历史数据的高效存储和查询。
+QuantDB 使用 SQLite 作为主要数据存储，同时作为智能缓存层。数据库设计专注于股票历史数据的高效存储和查询，并集成了实时监控系统。
 
 ## 核心表结构
+
+### 业务数据表
 
 ### Assets (资产表)
 存储股票、指数等金融资产的基本信息。
@@ -57,6 +59,101 @@ CREATE TABLE prices (
 CREATE INDEX idx_prices_asset_date ON prices(asset_id, date);
 CREATE INDEX idx_prices_date ON prices(date);
 CREATE INDEX idx_prices_symbol_date ON prices(asset_id, date DESC);
+```
+
+### 🆕 监控数据表
+
+### RequestLog (请求日志表)
+记录每个API请求的详细信息，用于性能监控和用户行为分析。
+
+```sql
+CREATE TABLE request_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- 请求信息
+    symbol VARCHAR(10),
+    start_date VARCHAR(8),
+    end_date VARCHAR(8),
+    endpoint VARCHAR(100),
+
+    -- 响应信息
+    response_time_ms REAL,
+    status_code INTEGER,
+    record_count INTEGER,
+
+    -- 缓存信息
+    cache_hit BOOLEAN DEFAULT 0,
+    akshare_called BOOLEAN DEFAULT 0,
+    cache_hit_ratio REAL,
+
+    -- 用户信息
+    user_agent VARCHAR(500),
+    ip_address VARCHAR(45)
+);
+
+-- 索引
+CREATE INDEX idx_request_logs_timestamp ON request_logs(timestamp);
+CREATE INDEX idx_request_logs_symbol ON request_logs(symbol);
+CREATE INDEX idx_request_logs_endpoint ON request_logs(endpoint);
+```
+
+### DataCoverage (数据覆盖表)
+跟踪每只股票的数据覆盖情况和访问统计。
+
+```sql
+CREATE TABLE data_coverage (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    symbol VARCHAR(10) UNIQUE,
+
+    -- 数据范围
+    earliest_date VARCHAR(8),
+    latest_date VARCHAR(8),
+    total_records INTEGER,
+
+    -- 统计信息
+    first_requested DATETIME,
+    last_accessed DATETIME,
+    access_count INTEGER DEFAULT 0,
+
+    -- 更新信息
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 索引
+CREATE INDEX idx_data_coverage_symbol ON data_coverage(symbol);
+CREATE INDEX idx_data_coverage_last_accessed ON data_coverage(last_accessed);
+```
+
+### SystemMetrics (系统指标表)
+存储系统整体性能快照，用于趋势分析。
+
+```sql
+CREATE TABLE system_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    -- 数据库统计
+    total_symbols INTEGER,
+    total_records INTEGER,
+    db_size_mb REAL,
+
+    -- 性能统计
+    avg_response_time_ms REAL,
+    cache_hit_rate REAL,
+    akshare_requests_today INTEGER,
+
+    -- 使用统计
+    requests_today INTEGER,
+    active_symbols_today INTEGER,
+
+    -- 计算字段
+    performance_improvement REAL,
+    cost_savings REAL
+);
+
+-- 索引
+CREATE INDEX idx_system_metrics_timestamp ON system_metrics(timestamp);
 ```
 
 ## 关键查询
