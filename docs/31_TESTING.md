@@ -288,3 +288,55 @@ async def test_async_function():
     result = await async_function()
     assert result == expected_value
 ```
+
+## 缓存性能测试
+
+### 测试目标
+验证 QuantDB 作为 AKShare 缓存服务的核心价值，量化性能提升。
+
+### 测试场景
+- **首次数据获取**：QuantDB + AKShare 调用的性能基准
+- **缓存命中**：纯数据库查询的性能
+- **部分缓存**：智能数据获取策略的效率
+
+### 运行性能测试
+```bash
+# 运行缓存性能测试
+python scripts/test_runner.py --performance
+
+# 生成详细性能报告
+python tools/performance/cache_performance_report.py
+```
+
+### 性能指标
+- **响应时间**：各场景下的平均响应时间
+- **性能提升**：缓存相比首次获取的提升幅度
+- **缓存效率**：智能缓存策略的效果验证
+
+### 预期结果
+- **测试环境**：可能显示缓存性能与首次获取相当
+- **生产环境**：缓存通常比 AKShare 调用快 50-80%
+- **核心价值**：减少 API 调用，提供数据持久化
+
+### 性能测试示例
+```python
+@pytest.mark.performance
+def test_cache_vs_fresh_data():
+    """测试缓存性能 vs 首次数据获取"""
+    symbol = "000001"
+    start_date = "20240101"
+    end_date = "20240131"
+
+    # 清除缓存
+    clear_cache(symbol)
+
+    # 测试首次获取
+    fresh_time = measure_api_performance(symbol, start_date, end_date)
+
+    # 测试缓存命中
+    cached_time = measure_api_performance(symbol, start_date, end_date)
+
+    # 分析性能
+    improvement = (fresh_time - cached_time) / fresh_time * 100
+    print(f"缓存性能提升: {improvement:.1f}%")
+```

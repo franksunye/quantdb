@@ -1,0 +1,76 @@
+{
+  "fresh_data": [
+    {
+      "symbol": "000001",
+      "date_range": "1个月",
+      "start_date": "20240101",
+      "end_date": "20240131",
+      "quantdb_time_ms": 906.6128730773926,
+      "record_count": 22
+    },
+    {
+      "symbol": "000001",
+      "date_range": "3个月",
+      "start_date": "20240101",
+      "end_date": "20240301",
+      "quantdb_time_ms": 5350.133895874023,
+      "record_count": 38
+    },
+    {
+      "symbol": "600000",
+      "date_range": "1个月",
+      "start_date": "20240101",
+      "end_date": "20240131",
+      "quantdb_time_ms": 631.6494941711426,
+      "record_count": 22
+    },
+    {
+      "symbol": "600000",
+      "date_range": "3个月",
+      "start_date": "20240101",
+      "end_date": "20240301",
+      "quantdb_time_ms": 5043.891668319702,
+      "record_count": 38
+    }
+  ],
+  "cached_data": [
+    {
+      "symbol": "000001",
+      "date_range": "1个月",
+      "avg_cached_time_ms": 4457.2362422943115,
+      "min_cached_time_ms": 3588.456630706787,
+      "record_count": 22
+    },
+    {
+      "symbol": "000001",
+      "date_range": "3个月",
+      "avg_cached_time_ms": 6312.132215499878,
+      "min_cached_time_ms": 5192.747354507446,
+      "record_count": 38
+    },
+    {
+      "symbol": "600000",
+      "date_range": "1个月",
+      "avg_cached_time_ms": 3471.0500717163086,
+      "min_cached_time_ms": 3330.146551132202,
+      "record_count": 22
+    },
+    {
+      "symbol": "600000",
+      "date_range": "3个月",
+      "avg_cached_time_ms": 5536.731672286987,
+      "min_cached_time_ms": 5066.202402114868,
+      "record_count": 38
+    }
+  ],
+  "partial_cache": [
+    {
+      "symbol": "000001",
+      "scenario": "扩展2个月数据",
+      "cached_range": "1月",
+      "requested_range": "1-3月",
+      "partial_time_ms": 6090.16752243042,
+      "record_count": 58
+    }
+  ]
+}

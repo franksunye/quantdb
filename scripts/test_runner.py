@@ -195,18 +195,24 @@ class TestRunner:
 
         return result
 
-    def run_performance_tests(self, verbose=True):
-        """Run performance tests."""
-        print("\n" + "="*50)
-        print("RUNNING PERFORMANCE TESTS")
-        print("="*50)
+    def run_cache_performance_tests(self, verbose=True):
+        """Run cache performance tests to validate core value proposition."""
+        print("\n" + "="*60)
+        print("RUNNING CACHE PERFORMANCE TESTS")
+        print("验证 QuantDB 相比 AKShare 的核心价值")
+        print("="*60)
 
         test_files = [
-            "tests/performance/test_api_performance.py",
-            "tests/performance/test_cache_performance.py"
+            "tests/performance/test_cache_vs_akshare.py"
         ]
 
-        return self._run_test_files(test_files, "Performance Tests", verbose, False)
+        success = self._run_test_files(test_files, "Cache Performance Tests", verbose, False)
+
+        if success and verbose:
+            print("\n🎯 缓存性能测试完成！")
+            print("📊 详细结果请查看 tests/performance/results/ 目录")
+
+        return success
 
     def run_monitoring_tests(self, verbose=True, coverage=False):
         """Run monitoring system tests."""
@@ -222,6 +228,8 @@ class TestRunner:
         ]
 
         return self._run_test_files(test_files, "Monitoring Tests", verbose, coverage)
+
+
 
     def run_specific_tests(self, test_pattern: str, verbose=True, coverage=False):
         """Run specific tests matching a pattern."""
@@ -361,7 +369,7 @@ def main():
     parser.add_argument("--integration", action="store_true", help="Run integration tests")
     parser.add_argument("--api", action="store_true", help="Run API tests")
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    parser.add_argument("--performance", action="store_true", help="Run performance tests")
+    parser.add_argument("--performance", action="store_true", help="Run cache performance tests")
     parser.add_argument("--monitoring", action="store_true", help="Run monitoring system tests")
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--coverage", action="store_true", help="Run coverage analysis")
@@ -422,7 +430,7 @@ def main():
         elif args.e2e:
             success = runner.run_e2e_tests(verbose, args.with_coverage, args.auto_start_server)
         elif args.performance:
-            success = runner.run_performance_tests(verbose)
+            success = runner.run_cache_performance_tests(verbose)
         elif args.monitoring:
             success = runner.run_monitoring_tests(verbose, args.with_coverage)
         elif args.all:
@@ -434,7 +442,7 @@ def main():
             success &= runner.run_monitoring_tests(verbose, args.with_coverage)
             # Auto-start server for E2E tests when running all tests
             success &= runner.run_e2e_tests(verbose, args.with_coverage, True)
-            success &= runner.run_performance_tests(verbose)
+            success &= runner.run_cache_performance_tests(verbose)
         else:
             # Default: run the most stable tests
             print("Running default test suite (unit + integration + API tests)...")
