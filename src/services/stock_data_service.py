@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from src.api.models import Asset, DailyStockData
 from src.logger import logger
 from src.services.database_cache import DatabaseCache
+from src.services.trading_calendar import get_trading_calendar
 
 class StockDataService:
     """
@@ -191,60 +192,44 @@ class StockDataService:
         """
         Get list of trading days in the given date range.
 
-        This method now intelligently filters out weekends and known holidays
-        to avoid unnecessary AKShare API calls for non-trading days.
+        This method uses AKShare's official trading calendar to accurately
+        identify trading days, avoiding unnecessary API calls for non-trading days.
 
         Args:
             start_date: Start date in format YYYYMMDD
             end_date: End date in format YYYYMMDD
 
         Returns:
-            List of trading days (excluding weekends and major holidays)
+            List of actual trading days based on official calendar
         """
-        start_dt = datetime.strptime(start_date, '%Y%m%d')
-        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        try:
+            # Use the official trading calendar service
+            trading_calendar = get_trading_calendar()
+            trading_days = trading_calendar.get_trading_days(start_date, end_date)
 
-        trading_days = []
-        current_dt = start_dt
+            logger.info(f"Using official trading calendar: found {len(trading_days)} trading days")
+            return trading_days
 
-        while current_dt <= end_dt:
-            # Skip weekends (Saturday = 5, Sunday = 6)
-            if current_dt.weekday() < 5:  # Monday = 0, Friday = 4
-                # Skip major Chinese holidays (simplified list)
-                if not self._is_chinese_holiday(current_dt):
+        except Exception as e:
+            logger.warning(f"Failed to get trading calendar, using fallback: {e}")
+
+            # Fallback to simple weekend filtering
+            start_dt = datetime.strptime(start_date, '%Y%m%d')
+            end_dt = datetime.strptime(end_date, '%Y%m%d')
+
+            trading_days = []
+            current_dt = start_dt
+
+            while current_dt <= end_dt:
+                # Simple fallback: only skip weekends
+                if current_dt.weekday() < 5:  # Monday = 0, Friday = 4
                     trading_days.append(current_dt.strftime('%Y%m%d'))
-            current_dt += timedelta(days=1)
+                current_dt += timedelta(days=1)
 
-        return trading_days
+            logger.warning(f"Using fallback calendar: found {len(trading_days)} potential trading days")
+            return trading_days
 
-    def _is_chinese_holiday(self, date_dt: datetime) -> bool:
-        """
-        Check if a date is a major Chinese holiday.
 
-        Args:
-            date_dt: Date to check
-
-        Returns:
-            True if it's a holiday, False otherwise
-        """
-        # Simplified holiday check - in production, you'd use a proper holiday library
-        # For now, we'll just check for New Year's Day and National Day
-        month_day = (date_dt.month, date_dt.day)
-
-        # Major fixed holidays
-        major_holidays = [
-            (1, 1),   # New Year's Day
-            (10, 1),  # National Day
-            (10, 2),  # National Day Holiday
-            (10, 3),  # National Day Holiday
-        ]
-
-        # Check for Spring Festival (around late January/February)
-        # This is a simplified check - in production, use a proper lunar calendar library
-        if date_dt.month == 2 and 10 <= date_dt.day <= 17:
-            return True
-
-        return month_day in major_holidays
 
     def _group_consecutive_dates(self, dates: List[str]) -> List[Tuple[str, str]]:
         """
