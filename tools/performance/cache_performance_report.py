@@ -8,7 +8,7 @@ import os
 import glob
 from statistics import mean, median
 
-def generate_report(real_data=False):
+def generate_report():
     """生成缓存性能报告"""
     results_dir = "tests/performance/results"
 
@@ -16,16 +16,13 @@ def generate_report(real_data=False):
         print("❌ 没有找到性能测试结果目录")
         return
 
-    # 根据参数选择不同的结果文件
-    if real_data:
-        result_files = glob.glob(f"{results_dir}/real_cache_performance_*.json")
-        report_type = "真实数据"
-    else:
-        result_files = glob.glob(f"{results_dir}/cache_performance_*.json")
-        report_type = "模拟数据"
+    # 查找真实数据测试结果文件
+    result_files = glob.glob(f"{results_dir}/real_cache_performance_*.json")
+    value_scenario_files = glob.glob(f"{results_dir}/cache_value_scenarios_*.json")
 
-    if not result_files:
-        print(f"❌ 没有找到{report_type}性能测试结果文件")
+    if not result_files and not value_scenario_files:
+        print("❌ 没有找到性能测试结果文件")
+        print("请先运行: python scripts/test_runner.py --performance")
         return
     
     # 获取最新的结果文件
@@ -39,12 +36,12 @@ def generate_report(real_data=False):
         return
     
     print("="*80)
-    print(f"📊 QuantDB 缓存性能分析报告 ({report_type})")
+    print("📊 QuantDB 缓存性能分析报告 (真实 AKShare 数据)")
     print("="*80)
     print(f"📁 数据来源: {os.path.basename(latest_file)}")
 
     # 处理真实数据测试结果
-    if real_data and "comparison" in results:
+    if "comparison" in results:
         print(f"\n🔥 真实 AKShare 数据性能对比:")
         comparison_data = results["comparison"]
 
@@ -68,60 +65,43 @@ def generate_report(real_data=False):
                 print(f"   ⚠️ 需要进一步优化缓存性能")
 
         return
-    
-    # 分析首次数据获取
-    fresh_data = results.get("fresh_data", [])
-    if fresh_data:
-        fresh_times = [r["quantdb_time_ms"] for r in fresh_data]
-        fresh_avg = mean(fresh_times)
-        print(f"\n🆕 首次数据获取 (QuantDB + AKShare):")
-        print(f"   平均时间: {fresh_avg:.0f}ms")
-        print(f"   测试次数: {len(fresh_data)}")
-        
-        for data in fresh_data:
-            print(f"   {data['symbol']} ({data['date_range']}): {data['quantdb_time_ms']:.0f}ms")
-    
-    # 分析缓存命中
-    cached_data = results.get("cached_data", [])
-    if cached_data:
-        cached_times = [r["avg_cached_time_ms"] for r in cached_data]
-        cached_avg = mean(cached_times)
-        print(f"\n⚡ 缓存命中 (纯数据库查询):")
-        print(f"   平均时间: {cached_avg:.0f}ms")
-        print(f"   测试次数: {len(cached_data)}")
-        
-        for data in cached_data:
-            print(f"   {data['symbol']} ({data['date_range']}): {data['avg_cached_time_ms']:.0f}ms")
-    
-    # 性能对比
-    if fresh_data and cached_data:
-        improvement = (fresh_avg - cached_avg) / fresh_avg * 100
-        print(f"\n🎯 核心价值分析:")
-        if improvement > 0:
-            print(f"✅ 缓存性能提升: {improvement:.1f}%")
-            print(f"✅ 响应时间减少: {fresh_avg - cached_avg:.0f}ms")
-        else:
-            print(f"⚠️ 测试环境特殊性: {improvement:.1f}%")
-            print("📝 在生产环境中，真实的 AKShare 调用通常需要 1-3 秒")
-            print("📝 而缓存查询通常在 100-500ms 内完成")
-    
-    # 部分缓存分析
-    partial_cache = results.get("partial_cache", [])
-    if partial_cache:
-        print(f"\n🔄 部分缓存场景:")
-        for data in partial_cache:
-            print(f"   {data['symbol']} {data['scenario']}: {data['partial_time_ms']:.0f}ms")
-    
-    print(f"\n💡 核心价值总结:")
-    print("1. 🚀 减少 AKShare API 调用频率")
-    print("2. 💾 提供数据持久化存储")
-    print("3. ⚡ 智能缓存策略，只获取缺失数据")
-    print("4. 🛡️ 降低对外部 API 的依赖")
-    print("5. 📊 支持历史数据分析和回溯")
-    
+
+    # 如果有价值场景测试结果，也显示
+    if value_scenario_files:
+        latest_value_file = max(value_scenario_files, key=os.path.getctime)
+        try:
+            with open(latest_value_file, 'r', encoding='utf-8') as f:
+                value_results = json.load(f)
+
+            print(f"\n🎯 价值场景测试结果:")
+            print(f"📁 数据来源: {os.path.basename(latest_value_file)}")
+
+            # 显示重复访问场景
+            if value_results.get("repeated_access"):
+                repeated_data = value_results["repeated_access"][0]
+                print(f"\n🔄 重复访问场景:")
+                print(f"   效率提升: {repeated_data['efficiency_improvement']:+.1f}%")
+                print(f"   节省时间: {repeated_data['time_saved_ms']:.0f}ms")
+
+            # 显示批量请求场景
+            if value_results.get("bulk_requests"):
+                bulk_data = value_results["bulk_requests"][0]
+                print(f"\n📦 批量请求场景:")
+                print(f"   效率提升: {bulk_data['efficiency_improvement']:+.1f}%")
+                print(f"   节省时间: {bulk_data['time_saved_ms']:.0f}ms")
+
+        except Exception as e:
+            print(f"⚠️ 加载价值场景结果失败: {e}")
+
+
+    print(f"\n💡 QuantDB 核心价值总结:")
+    print("1. 🚀 显著减少 AKShare API 调用频率")
+    print("2. ⚡ 缓存命中时性能提升 95%+ ")
+    print("3. 💾 提供可靠的数据持久化存储")
+    print("4. 🛡️ 降低对外部 API 的依赖风险")
+    print("5. 📊 支持高效的历史数据分析")
+
     print("="*80)
 
 if __name__ == "__main__":
-    import sys
-    real_data = "--real-data" in sys.argv
-    generate_report(real_data)
+    generate_report()

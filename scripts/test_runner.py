@@ -195,31 +195,24 @@ class TestRunner:
 
         return result
 
-    def run_cache_performance_tests(self, verbose=True, real_data=False):
-        """Run cache performance tests to validate core value proposition."""
+    def run_cache_performance_tests(self, verbose=True):
+        """Run cache performance tests with real AKShare data to validate core value proposition."""
         print("\n" + "="*60)
         print("RUNNING CACHE PERFORMANCE TESTS")
-        print("验证 QuantDB 相比 AKShare 的核心价值")
+        print("🔥 使用真实 AKShare 数据验证 QuantDB 核心价值")
         print("="*60)
 
-        if real_data:
-            print("🔥 使用真实 AKShare 数据进行性能测试")
-            test_files = [
-                "tests/performance/test_real_cache_performance.py"
-            ]
-        else:
-            print("⚡ 使用模拟数据进行快速性能测试")
-            test_files = [
-                "tests/performance/test_cache_vs_akshare.py"
-            ]
+        test_files = [
+            "tests/performance/test_real_cache_performance.py",
+            "tests/performance/test_cache_value_scenarios.py"
+        ]
 
         success = self._run_test_files(test_files, "Cache Performance Tests", verbose, False)
 
         if success and verbose:
             print("\n🎯 缓存性能测试完成！")
             print("📊 详细结果请查看 tests/performance/results/ 目录")
-            if real_data:
-                print("🔥 真实数据测试结果更能反映生产环境性能")
+            print("🔥 真实数据测试结果准确反映生产环境性能")
 
         return success
 
@@ -378,8 +371,7 @@ def main():
     parser.add_argument("--integration", action="store_true", help="Run integration tests")
     parser.add_argument("--api", action="store_true", help="Run API tests")
     parser.add_argument("--e2e", action="store_true", help="Run end-to-end tests")
-    parser.add_argument("--performance", action="store_true", help="Run cache performance tests")
-    parser.add_argument("--real-data", action="store_true", help="Use real AKShare data for performance tests (slower but more accurate)")
+    parser.add_argument("--performance", action="store_true", help="Run cache performance tests with real AKShare data")
     parser.add_argument("--monitoring", action="store_true", help="Run monitoring system tests")
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--coverage", action="store_true", help="Run coverage analysis")
@@ -440,7 +432,7 @@ def main():
         elif args.e2e:
             success = runner.run_e2e_tests(verbose, args.with_coverage, args.auto_start_server)
         elif args.performance:
-            success = runner.run_cache_performance_tests(verbose, args.real_data)
+            success = runner.run_cache_performance_tests(verbose)
         elif args.monitoring:
             success = runner.run_monitoring_tests(verbose, args.with_coverage)
         elif args.all:

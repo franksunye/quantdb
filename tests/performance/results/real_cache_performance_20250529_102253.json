@@ -1,0 +1,31 @@
+{
+  "quantdb_fresh": [],
+  "quantdb_cached": [],
+  "akshare_direct": [],
+  "comparison": [
+    {
+      "symbol": "000001",
+      "date_range": "10天",
+      "start_date": "20240101",
+      "end_date": "20240110",
+      "record_count": 7,
+      "quantdb_fresh_ms": 1076.8654346466064,
+      "quantdb_cached_ms": 18.144687016805012,
+      "akshare_direct_ms": 873.4115759531657,
+      "cache_vs_fresh_improvement": 98.31504601846939,
+      "cache_vs_akshare_improvement": 97.9225502024056
+    },
+    {
+      "symbol": "000001",
+      "date_range": "1个月",
+      "start_date": "20240101",
+      "end_date": "20240131",
+      "record_count": 22,
+      "quantdb_fresh_ms": 689.0509128570557,
+      "quantdb_cached_ms": 18.950382868448894,
+      "akshare_direct_ms": 833.5491816202799,
+      "cache_vs_fresh_improvement": 97.2497848105485,
+      "cache_vs_akshare_improvement": 97.72654292196502
+    }
+  ]
+}

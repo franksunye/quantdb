@@ -1,6 +1,6 @@
 # QuantDB 开发指南
 
-**版本**: v0.7.5-monitoring-tests | **架构**: 简化架构 + 监控测试保障 | **环境**: SQLite开发版本
+**版本**: v0.7.6-performance-optimized | **架构**: 简化架构 + 高性能缓存 | **环境**: SQLite开发版本
 
 ## 快速设置
 
@@ -30,6 +30,7 @@ python scripts/test_runner.py --unit      # 单元测试
 python scripts/test_runner.py --api       # API测试
 python scripts/test_runner.py --integration # 集成测试
 python scripts/test_runner.py --monitoring  # 监控系统测试
+python scripts/test_runner.py --performance # 缓存性能测试
 
 # 运行所有测试
 python scripts/test_runner.py --all
