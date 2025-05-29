@@ -1,6 +1,6 @@
 # QuantDB 开发指南
 
-**版本**: v0.7.6-performance-optimized | **架构**: 简化架构 + 高性能缓存 | **环境**: SQLite开发版本
+**版本**: v0.7.6-performance-optimized | **架构**: 智能缓存 + 交易日历 | **环境**: SQLite
 
 ## 快速设置
 

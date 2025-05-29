@@ -10,7 +10,8 @@ tools/
 ├── monitoring/                  # 系统监控工具
 │   ├── water_pool_monitor.py    # 蓄水池状态监控
 │   └── system_performance_monitor.py  # 系统性能监控
-└── scripts/                     # 其他脚本工具 (未来扩展)
+└── performance/                 # 性能分析工具 🆕
+    └── cache_performance_report.py  # 缓存性能报告
 ```
 
 ## 🎯 工具分类
@@ -40,6 +41,20 @@ python tools/monitoring/system_performance_monitor.py
 - 缓存命中率和性能提升验证
 - AKShare调用减少效果监控
 - 智能数据获取策略验证
+
+### ⚡ 性能分析工具 (`performance/`)
+
+#### `cache_performance_report.py`
+**用途**: 生成详细的缓存性能分析报告
+```bash
+python tools/performance/cache_performance_report.py
+```
+
+**分析功能**:
+- 缓存性能对比分析 (QuantDB vs AKShare)
+- 响应时间统计和趋势分析
+- 价值场景验证报告
+- 性能提升量化展示
 
 ## 🚀 使用场景
 
