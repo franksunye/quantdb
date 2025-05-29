@@ -1,6 +1,6 @@
 # QuantDB API 文档
 
-**版本**: v0.7.0-unified | **架构**: 统一架构 | **数据库**: SQLite
+**版本**: v0.7.5-monitoring-tests | **架构**: 统一架构 + 监控测试保障 | **数据库**: SQLite
 
 ## 重要更新 (v0.7.0)
 
@@ -58,6 +58,7 @@ python tools/monitoring/system_performance_monitor.py
 - ✅ **实时存储**: 数据存储在SQLite监控表中
 - ✅ **性能跟踪**: 响应时间、缓存命中率、AKShare调用
 - ✅ **用户行为**: IP地址、User-Agent、访问模式
+- ✅ **测试保障**: 36个监控测试确保系统质量
 
 ## 核心端点
 

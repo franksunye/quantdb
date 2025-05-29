@@ -1,6 +1,6 @@
 # QuantDB 开发指南
 
-**版本**: v0.6.0-sqlite | **架构**: 简化架构 | **环境**: SQLite开发版本
+**版本**: v0.7.5-monitoring-tests | **架构**: 简化架构 + 监控测试保障 | **环境**: SQLite开发版本
 
 ## 快速设置
 
@@ -29,6 +29,7 @@ python scripts/test_runner.py --unit --api
 python scripts/test_runner.py --unit      # 单元测试
 python scripts/test_runner.py --api       # API测试
 python scripts/test_runner.py --integration # 集成测试
+python scripts/test_runner.py --monitoring  # 监控系统测试
 
 # 运行所有测试
 python scripts/test_runner.py --all
@@ -47,7 +48,7 @@ python scripts/test_runner.py --file tests/unit/test_stock_data_service.py
 python scripts/test_runner.py --unit --verbose
 ```
 
-**当前测试状态**: 80/80 核心功能测试通过 (100%)
+**当前测试状态**: 116/116 全功能测试通过 (100%) - 包含36个监控系统测试
 
 ## 项目结构
 
@@ -83,6 +84,9 @@ python scripts/test_runner.py --unit --api
 ```bash
 # 运行相关测试
 python scripts/test_runner.py --file tests/unit/test_your_module.py
+
+# 运行监控系统测试
+python scripts/test_runner.py --monitoring --verbose
 
 # 运行完整测试套件
 python scripts/test_runner.py --all --verbose
