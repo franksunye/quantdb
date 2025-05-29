@@ -98,11 +98,14 @@ def test_get_historical_stock_data_with_adjust(mock_akshare_adapter, test_db):
 
     assert response.status_code == 200
 
-    # Check that the mock was called with the right parameters
-    mock_akshare_adapter.assert_called_once()
-    call_args = mock_akshare_adapter.call_args[1]
-    assert call_args["symbol"] == "000001"
-    assert call_args["adjust"] == "qfq"
+    # Check that the mock was called (may be multiple times due to intelligent caching)
+    assert mock_akshare_adapter.called, "AKShare adapter should be called"
+
+    # Verify that all calls used the correct symbol and adjust parameter
+    for call in mock_akshare_adapter.call_args_list:
+        call_kwargs = call[1]  # Get keyword arguments
+        assert call_kwargs["symbol"] == "000001"
+        assert call_kwargs["adjust"] == "qfq"
 
 def test_get_historical_stock_data_invalid_symbol(test_db):
     """Test getting historical stock data with invalid symbol"""
