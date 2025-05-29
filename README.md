@@ -102,6 +102,16 @@ curl http://localhost:8000/api/v1/cache/status
 curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 ```
 
+### 监控工具
+
+```bash
+# 查看水池蓄水状态
+python tools/monitoring/demo_monitoring.py
+
+# 完整演示水池蓄水过程 (包含性能对比)
+python tools/monitoring/demo_water_pool_complete.py
+```
+
 ## 项目结构
 
 ```
@@ -161,6 +171,12 @@ curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 ├── scripts/                       # 项目管理脚本
 │   └── test_runner.py             # 统一测试运行器
 │
+├── tools/                         # 开发和运维工具
+│   ├── README.md                  # 工具集说明
+│   └── monitoring/                # 监控工具
+│       ├── demo_monitoring.py     # 水池状态监控
+│       └── demo_water_pool_complete.py  # 完整演示
+│
 ├── tests/                         # 测试目录
 │   ├── __init__.py
 │   ├── conftest.py                # 测试配置
@@ -192,7 +208,8 @@ curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 - **💾 智能缓存**：自动缓存股票历史数据，避免重复获取
 - **🔄 AKShare集成**：与AKShare保持数据格式一致
 - **🗄️ SQLite存储**：轻量级数据库存储，适合开发和小规模部署
-- **🧪 全面测试**：单元测试、集成测试、API测试全覆盖
+- **🏊‍♂️ 水池监控**：实时监控数据蓄水情况，可视化缓存效果
+- **🧪 全面测试**：单元测试、集成测试、API测试、E2E测试全覆盖
 - **📝 完整文档**：API文档、架构文档、开发指南齐全
 
 ## 文档

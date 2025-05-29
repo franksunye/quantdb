@@ -118,6 +118,7 @@ async def health_check_v2():
 from src.api.routes import assets, cache, historical_data
 from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
+# from src.api.endpoints.monitoring import router as monitoring_router  # 暂时注释
 # from src.mcp.schemas import MCPRequest, MCPResponse  # MCP功能已归档
 
 # Include routers with consistent prefixes
@@ -144,6 +145,12 @@ app.include_router(
     prefix=f"{API_PREFIX}/historical",
     tags=["historical"]
 )
+
+# app.include_router(
+#     monitoring_router,
+#     prefix=f"{API_PREFIX}/monitoring",
+#     tags=["monitoring"]
+# )
 
 # Include version router (available in both v1 and v2)
 app.include_router(
