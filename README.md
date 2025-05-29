@@ -102,14 +102,14 @@ curl http://localhost:8000/api/v1/cache/status
 curl -X DELETE "http://localhost:8000/api/v1/cache/clear/symbol/000001"
 ```
 
-### 监控工具
+### 系统监控
 
 ```bash
-# 查看水池蓄水状态
-python tools/monitoring/demo_monitoring.py
+# 监控蓄水池状态
+python tools/monitoring/water_pool_monitor.py
 
-# 完整演示水池蓄水过程 (包含性能对比)
-python tools/monitoring/demo_water_pool_complete.py
+# 系统性能监控 (包含基准测试)
+python tools/monitoring/system_performance_monitor.py
 ```
 
 ## 项目结构
@@ -173,9 +173,9 @@ python tools/monitoring/demo_water_pool_complete.py
 │
 ├── tools/                         # 开发和运维工具
 │   ├── README.md                  # 工具集说明
-│   └── monitoring/                # 监控工具
-│       ├── demo_monitoring.py     # 水池状态监控
-│       └── demo_water_pool_complete.py  # 完整演示
+│   └── monitoring/                # 系统监控工具
+│       ├── water_pool_monitor.py  # 蓄水池状态监控
+│       └── system_performance_monitor.py  # 系统性能监控
 │
 ├── tests/                         # 测试目录
 │   ├── __init__.py

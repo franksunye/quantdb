@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """
-监控功能演示
+水池状态监控工具
 
-展示"水池蓄水情况"监控功能
+实时监控QuantDB"蓄水池"的核心指标：
+- 数据库缓存状态
+- 数据覆盖情况
+- 缓存效果分析
+- 系统核心价值验证
+
+用途：运维监控、性能评估、系统健康检查
 """
 
 import sys
@@ -19,11 +25,11 @@ from src.api.models import DailyStockData
 from sqlalchemy import func
 import json
 
-def demo_water_pool_monitoring():
-    """演示水池监控功能"""
+def monitor_water_pool_status():
+    """监控水池状态 - 系统核心价值指标"""
 
     print("=" * 60)
-    print("🏊‍♂️ QuantDB 水池蓄水情况监控演示")
+    print("🏊‍♂️ QuantDB 蓄水池状态监控")
     print("=" * 60)
 
     # 获取数据库会话
@@ -96,4 +102,4 @@ def demo_water_pool_monitoring():
     print("\n" + "=" * 60)
 
 if __name__ == "__main__":
-    demo_water_pool_monitoring()
+    monitor_water_pool_status()

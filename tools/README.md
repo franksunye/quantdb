@@ -7,66 +7,64 @@
 ```
 tools/
 ├── README.md                    # 工具集说明
-├── monitoring/                  # 监控工具
-│   ├── demo_monitoring.py       # 水池状态监控演示
-│   └── demo_water_pool_complete.py  # 完整水池蓄水演示
+├── monitoring/                  # 系统监控工具
+│   ├── water_pool_monitor.py    # 蓄水池状态监控
+│   └── system_performance_monitor.py  # 系统性能监控
 └── scripts/                     # 其他脚本工具 (未来扩展)
 ```
 
 ## 🎯 工具分类
 
-### 📊 监控工具 (`monitoring/`)
+### 📊 系统监控工具 (`monitoring/`)
 
-#### `demo_monitoring.py`
-**用途**: 快速查看当前"水池蓄水"状态
+#### `water_pool_monitor.py`
+**用途**: 监控QuantDB蓄水池核心状态
 ```bash
-cd tools/monitoring
-python demo_monitoring.py
+python tools/monitoring/water_pool_monitor.py
 ```
 
-**功能**:
-- 显示数据库基础统计
-- 数据覆盖情况分析
-- 缓存效果说明
-- 使用建议
+**监控指标**:
+- 数据库缓存状态 (股票数量、记录数)
+- 数据覆盖情况 (时间跨度、数据分布)
+- 系统健康度评估
+- 核心价值指标验证
 
-#### `demo_water_pool_complete.py`
-**用途**: 完整演示水池蓄水过程
+#### `system_performance_monitor.py`
+**用途**: 系统性能全面监控和基准测试
 ```bash
-cd tools/monitoring
-python demo_water_pool_complete.py
+python tools/monitoring/system_performance_monitor.py
 ```
 
-**功能**:
-- 自动启动API服务器
-- 演示从空水池到有数据的完整过程
-- 验证缓存效果和智能扩展
-- 性能对比分析
+**监控功能**:
+- 端到端性能基准测试
+- 缓存命中率和性能提升验证
+- AKShare调用减少效果监控
+- 智能数据获取策略验证
 
 ## 🚀 使用场景
 
 ### 开发阶段
 - 验证缓存机制是否正常工作
-- 了解数据积累情况
-- 性能基准测试
+- 监控数据积累和覆盖情况
+- 性能基准测试和优化
 
 ### 运维阶段
-- 定期检查系统状态
-- 监控数据覆盖情况
-- 分析用户使用模式
+- 定期检查系统健康状态
+- 监控核心价值指标
+- 性能趋势分析和告警
 
-### 演示阶段
+### 价值验证
 - 向用户展示系统核心价值
-- 验证性能提升效果
-- 说明智能缓存策略
+- 量化缓存效果和成本节省
+- 验证智能数据获取策略
 
 ## 📝 工具开发规范
 
 ### 命名规范
-- 演示工具: `demo_*.py`
+- 监控工具: `*_monitor.py`
 - 运维工具: `ops_*.py`
-- 测试工具: `test_*.py`
 - 分析工具: `analyze_*.py`
+- 管理工具: `manage_*.py`
 
 ### 代码规范
 - 每个工具都应该有清晰的文档说明

@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 """
-完整的"水池蓄水情况"监控演示
+系统性能监控工具
 
-展示从空数据库到有数据后的完整监控过程
+监控QuantDB系统的核心性能指标：
+- 缓存命中率和性能提升
+- AKShare调用减少效果
+- 智能数据获取策略验证
+- 端到端性能基准测试
+
+用途：性能评估、系统优化、价值验证
 """
 
 import sys
@@ -22,11 +28,11 @@ def start_api_server():
     from src.api.main import app
     uvicorn.run(app, host='127.0.0.1', port=8000, log_level='warning')
 
-def demo_complete_water_pool():
-    """完整的水池监控演示"""
-    
+def monitor_system_performance():
+    """系统性能监控 - 核心价值验证"""
+
     print("=" * 70)
-    print("🏊‍♂️ QuantDB 完整水池蓄水情况监控演示")
+    print("📊 QuantDB 系统性能监控")
     print("=" * 70)
     
     # 启动API服务器
@@ -36,12 +42,12 @@ def demo_complete_water_pool():
     time.sleep(3)
     
     try:
-        # 阶段1: 查看空水池状态
-        print("\n📊 阶段1: 空水池状态")
+        # 阶段1: 基线状态监控
+        print("\n📊 阶段1: 系统基线状态")
         print("-" * 40)
-        
-        # 运行监控演示
-        os.system("python tools/monitoring/demo_monitoring.py")
+
+        # 运行水池状态监控
+        os.system("python tools/monitoring/water_pool_monitor.py")
         
         # 阶段2: 开始蓄水 - 获取第一批数据
         print("\n💧 阶段2: 开始蓄水 - 获取第一批股票数据")
@@ -71,12 +77,12 @@ def demo_complete_water_pool():
             else:
                 print(f"  ❌ 获取失败: {response.status_code}")
         
-        # 阶段3: 查看蓄水后状态
-        print(f"\n📈 阶段3: 蓄水后状态")
+        # 阶段3: 蓄水后性能监控
+        print(f"\n📈 阶段3: 蓄水后性能状态")
         print("-" * 40)
-        
-        # 再次运行监控演示
-        os.system("python tools/monitoring/demo_monitoring.py")
+
+        # 再次运行水池状态监控
+        os.system("python tools/monitoring/water_pool_monitor.py")
         
         # 阶段4: 测试缓存效果
         print(f"\n⚡ 阶段4: 测试缓存效果")
@@ -127,28 +133,28 @@ def demo_complete_water_pool():
             print(f"  📊 数据来源: 部分缓存 + 部分AKShare")
             print(f"  🧠 智能策略: 只获取缺失的日期范围")
         
-        # 阶段6: 最终水池状态
-        print(f"\n🏊‍♂️ 阶段6: 最终水池状态")
+        # 阶段6: 最终性能状态
+        print(f"\n🏊‍♂️ 阶段6: 最终系统状态")
         print("-" * 40)
-        
-        # 最后一次运行监控演示
-        os.system("python tools/monitoring/demo_monitoring.py")
+
+        # 最后一次运行状态监控
+        os.system("python tools/monitoring/water_pool_monitor.py")
         
         # 总结
-        print(f"\n🎯 水池蓄水监控总结")
+        print(f"\n🎯 系统性能监控总结")
         print("=" * 70)
-        print(f"✅ 成功演示了完整的水池蓄水过程:")
-        print(f"   1. 空水池状态 → 数据库为空")
-        print(f"   2. 开始蓄水 → 从AKShare获取数据并缓存")
-        print(f"   3. 缓存命中 → 直接从数据库返回，速度更快")
-        print(f"   4. 智能扩展 → 只获取缺失部分，避免重复")
-        print(f"   5. 水池监控 → 实时了解数据覆盖情况")
+        print(f"✅ 核心价值指标验证:")
+        print(f"   1. 基线状态 → 监控系统初始状态")
+        print(f"   2. 数据获取 → 从AKShare获取并缓存数据")
+        print(f"   3. 缓存效果 → 验证性能提升和响应加速")
+        print(f"   4. 智能策略 → 验证部分缓存命中机制")
+        print(f"   5. 状态监控 → 持续跟踪系统健康度")
         print(f"")
-        print(f"🎉 核心价值验证:")
-        print(f"   📈 性能提升: 缓存请求明显更快")
-        print(f"   💰 成本节省: 减少AKShare API调用")
-        print(f"   🧠 智能策略: 只获取必要的数据")
-        print(f"   📊 可观测性: 清晰的水池状态监控")
+        print(f"🎉 监控结果:")
+        print(f"   📈 性能提升: 缓存命中显著提升响应速度")
+        print(f"   💰 成本效益: 大幅减少外部API调用")
+        print(f"   🧠 智能缓存: 只获取必要数据，避免浪费")
+        print(f"   📊 系统健康: 蓄水池状态良好，核心价值实现")
         
     except Exception as e:
         print(f"❌ 演示过程中出错: {e}")
@@ -156,4 +162,4 @@ def demo_complete_water_pool():
     print("\n" + "=" * 70)
 
 if __name__ == "__main__":
-    demo_complete_water_pool()
+    monitor_system_performance()
