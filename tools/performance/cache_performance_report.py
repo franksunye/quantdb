@@ -8,17 +8,24 @@ import os
 import glob
 from statistics import mean, median
 
-def generate_report():
+def generate_report(real_data=False):
     """生成缓存性能报告"""
     results_dir = "tests/performance/results"
-    
+
     if not os.path.exists(results_dir):
         print("❌ 没有找到性能测试结果目录")
         return
-    
-    result_files = glob.glob(f"{results_dir}/cache_performance_*.json")
+
+    # 根据参数选择不同的结果文件
+    if real_data:
+        result_files = glob.glob(f"{results_dir}/real_cache_performance_*.json")
+        report_type = "真实数据"
+    else:
+        result_files = glob.glob(f"{results_dir}/cache_performance_*.json")
+        report_type = "模拟数据"
+
     if not result_files:
-        print("❌ 没有找到性能测试结果文件")
+        print(f"❌ 没有找到{report_type}性能测试结果文件")
         return
     
     # 获取最新的结果文件
@@ -32,9 +39,35 @@ def generate_report():
         return
     
     print("="*80)
-    print("📊 QuantDB 缓存性能分析报告")
+    print(f"📊 QuantDB 缓存性能分析报告 ({report_type})")
     print("="*80)
     print(f"📁 数据来源: {os.path.basename(latest_file)}")
+
+    # 处理真实数据测试结果
+    if real_data and "comparison" in results:
+        print(f"\n🔥 真实 AKShare 数据性能对比:")
+        comparison_data = results["comparison"]
+
+        if comparison_data:
+            for data in comparison_data:
+                print(f"\n📈 {data['symbol']} ({data['date_range']}):")
+                print(f"   QuantDB 首次: {data['quantdb_fresh_ms']:.0f}ms")
+                print(f"   QuantDB 缓存: {data['quantdb_cached_ms']:.0f}ms")
+                print(f"   AKShare 直接: {data['akshare_direct_ms']:.0f}ms")
+                print(f"   🚀 缓存 vs AKShare: {data['cache_vs_akshare_improvement']:+.1f}%")
+
+            # 计算总体统计
+            cache_vs_akshare_improvements = [d["cache_vs_akshare_improvement"] for d in comparison_data]
+            avg_improvement = mean(cache_vs_akshare_improvements)
+
+            print(f"\n🎯 核心价值验证:")
+            print(f"   平均性能提升: {avg_improvement:+.1f}%")
+            if avg_improvement > 0:
+                print(f"   ✅ QuantDB 缓存显著优于 AKShare 直接调用")
+            else:
+                print(f"   ⚠️ 需要进一步优化缓存性能")
+
+        return
     
     # 分析首次数据获取
     fresh_data = results.get("fresh_data", [])
@@ -89,4 +122,6 @@ def generate_report():
     print("="*80)
 
 if __name__ == "__main__":
-    generate_report()
+    import sys
+    real_data = "--real-data" in sys.argv
+    generate_report(real_data)
