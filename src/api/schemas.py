@@ -17,6 +17,25 @@ class AssetBase(BaseModel):
     exchange: str
     currency: str
 
+    # 新增基本信息字段
+    industry: Optional[str] = None
+    concept: Optional[str] = None
+    listing_date: Optional[date] = None
+
+    # 新增市场数据字段
+    total_shares: Optional[int] = None
+    circulating_shares: Optional[int] = None
+    market_cap: Optional[int] = None
+
+    # 新增财务指标字段
+    pe_ratio: Optional[float] = None
+    pb_ratio: Optional[float] = None
+    roe: Optional[float] = None
+
+    # 元数据
+    last_updated: Optional[datetime] = None
+    data_source: Optional[str] = None
+
 class AssetCreate(AssetBase):
     """Schema for creating an Asset"""
     isin: str

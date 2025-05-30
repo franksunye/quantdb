@@ -18,6 +18,7 @@ from src.api.schemas import HistoricalDataResponse, HistoricalDataPoint
 from src.cache.akshare_adapter import AKShareAdapter
 from src.services.stock_data_service import StockDataService
 from src.services.database_cache import DatabaseCache
+from src.services.asset_info_service import AssetInfoService
 from src.services.monitoring_middleware import monitor_stock_request
 from src.logger_unified import get_logger
 
@@ -32,6 +33,10 @@ def get_stock_data_service(
 ):
     """Get stock data service instance."""
     return StockDataService(db, akshare_adapter)
+
+def get_asset_info_service(db: Session = Depends(get_db)):
+    """Get asset info service instance."""
+    return AssetInfoService(db)
 
 # Setup logger
 logger = get_logger(__name__)
@@ -51,7 +56,8 @@ async def get_historical_stock_data(
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query("", description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment"),
     db: Session = Depends(get_db),
-    stock_data_service: StockDataService = Depends(get_stock_data_service)
+    stock_data_service: StockDataService = Depends(get_stock_data_service),
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
 ):
     """
     Get historical stock data for a specific symbol
@@ -66,8 +72,8 @@ async def get_historical_stock_data(
         if not symbol.isdigit() or len(symbol) != 6:
             raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
 
-        # Check if asset exists in database
-        asset = db.query(Asset).filter(Asset.symbol == symbol).first()
+        # Get or create asset with enhanced information
+        asset = asset_info_service.get_or_create_asset(symbol)
 
         # Set default dates if not provided
         if end_date is None:

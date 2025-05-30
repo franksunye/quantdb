@@ -9,10 +9,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from src.api.database import get_db
 from src.api.models import Asset
 from src.api.schemas import Asset as AssetSchema
+from src.services.asset_info_service import AssetInfoService
 from src.logger_unified import get_logger
 
 # Setup logger
 logger = get_logger(__name__)
+
+# Create dependencies
+def get_asset_info_service(db: Session = Depends(get_db)):
+    """Get asset info service instance."""
+    return AssetInfoService(db)
 
 # Create router
 router = APIRouter(
@@ -77,20 +83,43 @@ async def get_asset(asset_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @router.get("/symbol/{symbol}", response_model=AssetSchema)
-async def get_asset_by_symbol(symbol: str, db: Session = Depends(get_db)):
+async def get_asset_by_symbol(
+    symbol: str,
+    db: Session = Depends(get_db),
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+):
     """
-    Get a specific asset by symbol
+    Get a specific asset by symbol with enhanced information
     """
     try:
-        asset = db.query(Asset).filter(Asset.symbol == symbol).first()
+        # Use asset info service to get or create asset with enhanced info
+        asset = asset_info_service.get_or_create_asset(symbol)
+        return asset
+    except SQLAlchemyError as e:
+        logger.error(f"Database error when getting asset with symbol {symbol}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+    except Exception as e:
+        logger.error(f"Unexpected error when getting asset with symbol {symbol}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@router.put("/symbol/{symbol}/refresh", response_model=AssetSchema)
+async def refresh_asset_info(
+    symbol: str,
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+):
+    """
+    Refresh asset information from AKShare
+    """
+    try:
+        asset = asset_info_service.update_asset_info(symbol)
         if asset is None:
             raise HTTPException(status_code=404, detail="Asset not found")
         return asset
     except HTTPException:
         raise
     except SQLAlchemyError as e:
-        logger.error(f"Database error when getting asset with symbol {symbol}: {e}")
+        logger.error(f"Database error when refreshing asset {symbol}: {e}")
         raise HTTPException(status_code=500, detail="Database error")
     except Exception as e:
-        logger.error(f"Unexpected error when getting asset with symbol {symbol}: {e}")
+        logger.error(f"Unexpected error when refreshing asset {symbol}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
