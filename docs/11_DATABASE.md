@@ -1,6 +1,6 @@
 # QuantDB 数据库文档
 
-**数据库**: SQLite | **版本**: v0.7.6-performance-optimized | **状态**: 高性能缓存
+**数据库**: SQLite | **版本**: v0.8.0-asset-enhanced | **状态**: 高性能缓存 + 增强资产档案
 
 ## 数据库概述
 
@@ -10,8 +10,8 @@ QuantDB 使用 SQLite 作为主要数据存储，同时作为智能缓存层。�
 
 ### 业务数据表
 
-### Assets (资产表)
-存储股票、指数等金融资产的基本信息。
+### Assets (资产表) - 增强版
+存储股票、指数等金融资产的完整信息，包括财务指标和市场数据。
 
 ```sql
 CREATE TABLE assets (
@@ -22,6 +22,26 @@ CREATE TABLE assets (
     asset_type VARCHAR(20) DEFAULT 'stock',
     exchange VARCHAR(20),
     currency VARCHAR(10) DEFAULT 'CNY',
+
+    -- 🆕 基本信息字段
+    industry VARCHAR(100),              -- 行业分类
+    concept VARCHAR(200),               -- 概念分类
+    listing_date DATE,                  -- 上市日期
+
+    -- 🆕 市场数据字段
+    total_shares BIGINT,                -- 总股本
+    circulating_shares BIGINT,          -- 流通股
+    market_cap BIGINT,                  -- 总市值
+
+    -- 🆕 财务指标字段
+    pe_ratio REAL,                      -- 市盈率
+    pb_ratio REAL,                      -- 市净率
+    roe REAL,                           -- 净资产收益率
+
+    -- 🆕 元数据字段
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,  -- 最后更新时间
+    data_source VARCHAR(20) DEFAULT 'akshare',        -- 数据来源
+
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -29,7 +49,22 @@ CREATE TABLE assets (
 -- 索引
 CREATE INDEX idx_assets_symbol ON assets(symbol);
 CREATE INDEX idx_assets_type ON assets(asset_type);
+CREATE INDEX idx_assets_industry ON assets(industry);
+CREATE INDEX idx_assets_last_updated ON assets(last_updated);
 ```
+
+**新增字段说明**:
+- `industry`: 行业分类（如"银行"、"科技"）
+- `concept`: 概念分类（如"银行股"、"科技股"）
+- `listing_date`: 上市日期
+- `total_shares`: 总股本（股数）
+- `circulating_shares`: 流通股（股数）
+- `market_cap`: 总市值（元）
+- `pe_ratio`: 市盈率（倍）
+- `pb_ratio`: 市净率（倍）
+- `roe`: 净资产收益率（%）
+- `last_updated`: 最后更新时间
+- `data_source`: 数据来源（akshare/fallback）
 
 ### Prices (价格表)
 存储历史价格数据，支持日线、周线、月线数据。

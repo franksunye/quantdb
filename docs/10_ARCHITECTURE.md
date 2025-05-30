@@ -1,16 +1,17 @@
 # QuantDB 系统架构
 
-**版本**: v0.7.6-performance-optimized | **状态**: 高性能智能缓存架构 | **测试**: 116/116 通过
+**版本**: v0.8.0-asset-enhanced | **状态**: 高性能智能缓存 + 增强资产档案 | **测试**: 186/186 通过
 
 ## 架构概述
 
-QuantDB 采用简化架构设计，专注于高性能股票数据缓存服务，集成智能交易日历和实时监控系统。
+QuantDB 采用简化架构设计，专注于高性能股票数据缓存服务，集成智能交易日历、实时监控系统和增强资产档案。
 
 ### 设计原则
 - **简化优先**: 避免过度设计，选择简单可靠的解决方案
 - **数据库作为缓存**: 使用 SQLite 作为主要数据存储和缓存
 - **统一数据源**: 通过 AKShare 适配器获取股票数据
 - **API优先**: 以 RESTful API 为核心的服务架构
+- **🔥 数据质量第一**: 真实公司名称和财务指标，专业金融数据展示
 - **🆕 实时监控**: 每个请求自动记录，核心价值可量化验证
 
 ## 核心组件
@@ -48,6 +49,7 @@ QuantDB 采用简化架构设计，专注于高性能股票数据缓存服务，
 
 ### 2. 服务层 (Services)
 - **StockDataService**: 股票数据获取、存储、查询
+- **🔥 AssetInfoService**: 资产信息管理，从AKShare获取真实公司名称和财务指标
 - **DatabaseCache**: 数据库缓存管理
 - **🆕 MonitoringService**: 监控数据收集和分析
 
@@ -81,15 +83,28 @@ QuantDB 采用简化架构设计，专注于高性能股票数据缓存服务，
 
 ### 核心表结构
 
-**Assets (资产表)**
+**Assets (资产表) - 增强版**
 ```sql
 CREATE TABLE assets (
     asset_id INTEGER PRIMARY KEY,
     symbol VARCHAR(10) UNIQUE NOT NULL,
-    name VARCHAR(100),
+    name VARCHAR(100),                  -- 真实公司名称
     asset_type VARCHAR(20),
     exchange VARCHAR(20),
-    currency VARCHAR(10)
+    currency VARCHAR(10),
+
+    -- 🆕 增强字段
+    industry VARCHAR(100),              -- 行业分类
+    concept VARCHAR(200),               -- 概念分类
+    listing_date DATE,                  -- 上市日期
+    total_shares BIGINT,                -- 总股本
+    circulating_shares BIGINT,          -- 流通股
+    market_cap BIGINT,                  -- 总市值
+    pe_ratio REAL,                      -- 市盈率
+    pb_ratio REAL,                      -- 市净率
+    roe REAL,                           -- 净资产收益率
+    last_updated DATETIME,              -- 最后更新时间
+    data_source VARCHAR(20)             -- 数据来源
 );
 ```
 

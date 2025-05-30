@@ -1,15 +1,18 @@
 # QuantDB API 文档
 
-**版本**: v0.7.6-performance-optimized | **性能**: 98.1% 提升 | **响应时间**: ~18ms
+**版本**: v0.8.0-asset-enhanced | **性能**: 98.1% 提升 | **数据质量**: 真实公司名称 | **响应时间**: ~18ms
 
-## 🚀 性能亮点 (v0.7.6)
+## 🚀 核心亮点 (v0.8.0)
 
-🎯 **智能缓存优化**: 基于官方交易日历，性能比 AKShare 提升 98.1%
+🔥 **资产档案增强**: 真实公司名称和财务指标，专业金融数据展示
 
+- ✅ **真实公司名称**: "浦发银行"替代"Stock 600000"，用户体验显著提升
+- ✅ **财务指标集成**: PE、PB、ROE等关键指标，来自AKShare实时数据
+- ✅ **市场数据完善**: 总股本、流通股、市值等完整信息
+- ✅ **智能资产服务**: AssetInfoService专业资产信息管理
 - ✅ **极致性能**: 缓存响应时间 ~18ms，比 AKShare 快 98.1%
 - ✅ **智能缓存**: 基于真实交易日历，避免无效 API 调用
 - ✅ **数据准确**: 100% 准确的交易日识别，确保数据完整性
-- ✅ **自动优化**: 智能识别缓存命中，显著提升用户体验
 
 ## 快速开始
 
@@ -63,16 +66,56 @@ python tools/monitoring/system_performance_monitor.py
 
 ## 核心端点
 
-### 资产管理
+### 资产管理 (增强版)
 
 ```bash
 # 获取资产列表
 GET /api/v1/assets
 
-# 获取特定资产
+# 获取特定资产 (包含财务指标)
 GET /api/v1/assets/{asset_id}
 GET /api/v1/assets/symbol/{symbol}
+
+# 刷新资产信息 (从AKShare更新)
+PUT /api/v1/assets/symbol/{symbol}/refresh
 ```
+
+**资产信息响应示例**:
+```json
+{
+  "asset_id": 1,
+  "symbol": "600000",
+  "name": "浦发银行",
+  "isin": "CN600000",
+  "asset_type": "stock",
+  "exchange": "SHSE",
+  "currency": "CNY",
+  "industry": "银行",
+  "concept": "银行股",
+  "listing_date": "1999-11-10",
+  "total_shares": 29352000000,
+  "circulating_shares": 29352000000,
+  "market_cap": 350000000000,
+  "pe_ratio": 5.15,
+  "pb_ratio": 0.55,
+  "roe": 10.8,
+  "last_updated": "2025-01-30T10:30:00",
+  "data_source": "akshare"
+}
+```
+
+**新增字段说明**:
+- `industry`: 行业分类
+- `concept`: 概念分类
+- `listing_date`: 上市日期
+- `total_shares`: 总股本
+- `circulating_shares`: 流通股
+- `market_cap`: 总市值
+- `pe_ratio`: 市盈率
+- `pb_ratio`: 市净率
+- `roe`: 净资产收益率
+- `last_updated`: 最后更新时间
+- `data_source`: 数据来源
 
 ### 股票历史数据 (统一API)
 
@@ -94,11 +137,11 @@ GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 - ⚡ **智能缓存**: 自动缓存和更新数据
 - 💾 **持久化**: 数据存储在SQLite数据库中
 
-**响应示例**:
+**响应示例** (现在显示真实公司名称):
 ```json
 {
-  "symbol": "000001",
-  "name": "平安银行",
+  "symbol": "600000",
+  "name": "浦发银行",
   "start_date": "20230101",
   "end_date": "20230131",
   "adjust": "",
@@ -178,22 +221,26 @@ DELETE /api/v1/cache/clear/symbol/{symbol}
 ## 使用示例
 
 ```bash
-# 完整工作流程 - 获取股票历史数据
-curl "http://localhost:8000/api/v1/historical/stock/000001?start_date=20230101&end_date=20230131"
+# 获取资产信息 (包含财务指标)
+curl "http://localhost:8000/api/v1/assets/symbol/600000"
+
+# 刷新资产信息
+curl -X PUT "http://localhost:8000/api/v1/assets/symbol/600000/refresh"
+
+# 获取股票历史数据 (显示真实公司名称)
+curl "http://localhost:8000/api/v1/historical/stock/600000?start_date=20230101&end_date=20230131"
 
 # 获取最近10天数据
-curl "http://localhost:8000/api/v1/historical/stock/000001?limit=10"
+curl "http://localhost:8000/api/v1/historical/stock/600000?limit=10"
 
 # 获取前复权数据
-curl "http://localhost:8000/api/v1/historical/stock/000001?adjust=qfq&limit=20"
-
-
+curl "http://localhost:8000/api/v1/historical/stock/600000?adjust=qfq&limit=20"
 
 # 检查缓存状态
 curl http://localhost:8000/api/v1/cache/status
 
 # 清除特定股票缓存
-curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/000001
+curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/600000
 ```
 
 ## 迁移指南

@@ -1,11 +1,13 @@
 # QuantDB
 
-![Version](https://img.shields.io/badge/version-0.7.7--production--ready-blue)
+![Version](https://img.shields.io/badge/version-0.8.0--asset--enhanced-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-186/186-success)
 ![Performance](https://img.shields.io/badge/Cache-98.1%25_faster-brightgreen)
+![Data Quality](https://img.shields.io/badge/Data_Quality-Enhanced-success)
+![Asset Info](https://img.shields.io/badge/Asset_Info-Real_Names-brightgreen)
 ![Logging](https://img.shields.io/badge/Logging-Unified-purple)
 ![Structure](https://img.shields.io/badge/Structure-Simplified-orange)
 
@@ -15,6 +17,8 @@
 
 - **🚀 极致性能**: 智能缓存比 AKShare 直接调用快 **98.1%**，响应时间 ~18ms
 - **📊 数据准确**: 基于官方交易日历，确保股票数据的完整性和准确性
+- **🏢 真实资产信息**: 显示真实公司名称（如"浦发银行"）而非技术代码（如"Stock 600000"）
+- **💰 财务指标集成**: PE、PB、ROE等关键财务指标，来自AKShare实时数据
 - **⚡ 智能缓存**: 自动识别交易日，避免无效 API 调用，显著提升效率
 - **🔄 实时监控**: 完整的性能监控和数据覆盖跟踪
 - **📝 统一日志**: 完全统一的日志系统，消除双重日志不一致性
@@ -61,8 +65,11 @@ uvicorn src.api.main:app --reload
 # 健康检查
 curl http://localhost:8000/api/v1/health
 
-# 获取股票数据（自动缓存）
-curl "http://localhost:8000/api/v1/historical/stock/000001?start_date=20240101&end_date=20240131"
+# 获取股票数据（自动缓存，显示真实公司名称）
+curl "http://localhost:8000/api/v1/historical/stock/600000?start_date=20240101&end_date=20240131"
+
+# 获取资产信息（包含财务指标）
+curl "http://localhost:8000/api/v1/assets/symbol/600000"
 
 # 查看缓存状态
 curl http://localhost:8000/api/v1/cache/status
@@ -85,11 +92,12 @@ quantdb/
 ├── src/                           # 核心源码
 │   ├── api/                       # FastAPI 应用
 │   │   ├── main.py                # API 入口
-│   │   ├── models.py              # 数据模型
+│   │   ├── models.py              # 数据模型（增强Asset模型）🆕
 │   │   └── routes/                # API 路由
 │   ├── services/                  # 业务服务
 │   │   ├── stock_data_service.py  # 股票数据服务
-│   │   ├── trading_calendar.py    # 交易日历服务 🆕
+│   │   ├── asset_info_service.py  # 资产信息服务 🆕
+│   │   ├── trading_calendar.py    # 交易日历服务
 │   │   └── database_cache.py      # 数据库缓存
 │   └── cache/                     # 缓存适配器
 │       └── akshare_adapter.py     # AKShare 适配器
@@ -128,33 +136,48 @@ quantdb/
 
 ## 🎯 项目状态
 
-**当前版本**: v0.7.7-production-ready
-**MVP 评分**: 10/10 (完美实现核心价值)
+**当前版本**: v0.8.0-asset-enhanced
+**MVP 评分**: 10/10 (完美实现核心价值 + 资产档案增强)
 **测试覆盖**: 186/186 通过 (100%)
+**数据质量**: ⭐⭐⭐⭐⭐ (5/5) - 真实公司名称和财务指标
 **生产就绪**: ⭐⭐⭐⭐⭐ (5/5)
 
-### ✅ 最新成就 (v0.7.7)
+### ✅ 最新成就 (v0.8.0)
 
-- **🎯 智能缓存优化**: 基于官方交易日历，性能提升 98.1%
-- **📊 数据准确性**: 100% 准确的交易日识别
-- **⚡ 极致性能**: 缓存响应时间优化到 ~18ms
-- **📝 日志系统统一**: 完全统一的日志系统，消除双重日志不一致性
-- **🧹 敏捷开发清理**: 项目结构简化，文件数量减少47%
-- **🧪 完整测试**: 186个测试100%通过，包含性能测试和价值场景验证
-- **📚 文档完善**: 核心文档齐全，符合敏捷开发原则
+**🔥 资产档案增强 (2025-01-30)**:
+- **🏢 真实公司名称**: "浦发银行"替代"Stock 600000"，用户体验显著提升
+- **💰 财务指标集成**: PE、PB、ROE等关键指标，来自AKShare实时数据
+- **📊 市场数据完善**: 总股本、流通股、市值等完整信息
+- **🔧 服务层增强**: AssetInfoService专业资产信息管理
+- **🗄️ 数据库扩展**: Asset模型新增11个字段，自动迁移脚本
+- **⚡ 智能缓存**: 资产信息缓存，避免重复API调用
+
+**🎯 核心技术成就**:
+- **智能缓存优化**: 基于官方交易日历，性能提升 98.1%
+- **数据准确性**: 100% 准确的交易日识别
+- **极致性能**: 缓存响应时间优化到 ~18ms
+- **日志系统统一**: 完全统一的日志系统，消除双重日志不一致性
+- **敏捷开发清理**: 项目结构简化，文件数量减少47%
+- **完整测试**: 186个测试100%通过，包含性能测试和价值场景验证
 
 ### 🔮 下一步计划
 
-**第一阶段 - 基础设施建设 (优先)**:
+**当前阶段 - 资产档案增强第二阶段**:
+- **行业分类完善**: 详细的行业分类信息
+- **概念分类数据**: 股票概念分类
+- **定期更新机制**: 自动更新资产信息
+- **搜索和分类API**: 按行业、概念搜索资产
+
+**第二阶段 - 基础设施建设**:
 - **容器化部署**: Docker + docker-compose
 - **安全认证系统**: API Key + JWT
 - **生产配置管理**: 环境分离
 - **监控告警系统**: 健康检查
 
-**第二阶段 - 功能扩展**:
+**第三阶段 - 功能扩展**:
 - **实时行情数据**: 支持实时股价查询
 - **多周期数据**: 分钟线、周线、月线数据
-- **财务数据**: 基础财务报表 API
+- **财务数据扩展**: 完整财务报表 API
 
 ## 📄 许可证
 
