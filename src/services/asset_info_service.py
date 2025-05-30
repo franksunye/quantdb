@@ -222,27 +222,27 @@ class AssetInfoService:
             Dictionary with asset information
         """
         logger.info(f"Fetching basic info for symbol: {symbol}")
-        
+
         asset_info = {}
-        
+
         try:
             # Get individual stock info
             individual_info = ak.stock_individual_info_em(symbol=symbol)
             if not individual_info.empty:
                 info_dict = dict(zip(individual_info['item'], individual_info['value']))
-                
+
                 # Extract relevant information
                 asset_info['name'] = info_dict.get('股票简称', f'Stock {symbol}')
                 asset_info['listing_date'] = self._parse_date(info_dict.get('上市时间'))
                 asset_info['total_shares'] = self._parse_number(info_dict.get('总股本'))
                 asset_info['circulating_shares'] = self._parse_number(info_dict.get('流通股'))
                 asset_info['market_cap'] = self._parse_number(info_dict.get('总市值'))
-                
+
                 logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
-            
+
         except Exception as e:
             logger.warning(f"Error fetching individual info for {symbol}: {e}")
-        
+
         try:
             # Get real-time data for financial ratios
             realtime_data = ak.stock_zh_a_spot_em()
@@ -252,17 +252,103 @@ class AssetInfoService:
                     row = stock_data.iloc[0]
                     asset_info['pe_ratio'] = self._safe_float(row.get('市盈率-动态'))
                     asset_info['pb_ratio'] = self._safe_float(row.get('市净率'))
-                    
+
                     logger.info(f"Successfully fetched realtime data for {symbol}")
-            
+
         except Exception as e:
             logger.warning(f"Error fetching realtime data for {symbol}: {e}")
-        
+
+        # Get industry and concept classification
+        try:
+            industry_concept = self._fetch_industry_concept(symbol)
+            asset_info.update(industry_concept)
+        except Exception as e:
+            logger.warning(f"Error fetching industry/concept for {symbol}: {e}")
+
         # Set default values if not found
         if 'name' not in asset_info:
             asset_info['name'] = self._get_default_name(symbol)
-        
+
         return asset_info
+
+    def _fetch_industry_concept(self, symbol: str) -> Dict[str, Any]:
+        """
+        Fetch industry and concept classification for a stock.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Dictionary with industry and concept information
+        """
+        logger.info(f"Fetching industry/concept for symbol: {symbol}")
+
+        result = {}
+
+        try:
+            # Get industry classification
+            industry_data = ak.stock_board_industry_name_em()
+            if not industry_data.empty:
+                # Find the stock in industry data
+                for _, row in industry_data.iterrows():
+                    if symbol in str(row.get('代码', '')):
+                        result['industry'] = row.get('板块名称', '')
+                        logger.info(f"Found industry for {symbol}: {result['industry']}")
+                        break
+
+                # If not found in detailed data, use fallback mapping
+                if 'industry' not in result:
+                    result['industry'] = self._get_default_industry(symbol)
+
+        except Exception as e:
+            logger.warning(f"Error fetching industry data for {symbol}: {e}")
+            result['industry'] = self._get_default_industry(symbol)
+
+        try:
+            # Get concept classification
+            concept_data = ak.stock_board_concept_name_em()
+            if not concept_data.empty:
+                # Find the stock in concept data
+                concepts = []
+                for _, row in concept_data.iterrows():
+                    if symbol in str(row.get('代码', '')):
+                        concept_name = row.get('板块名称', '')
+                        if concept_name:
+                            concepts.append(concept_name)
+
+                if concepts:
+                    result['concept'] = ', '.join(concepts[:3])  # Limit to 3 concepts
+                    logger.info(f"Found concepts for {symbol}: {result['concept']}")
+                else:
+                    result['concept'] = self._get_default_concept(symbol)
+
+        except Exception as e:
+            logger.warning(f"Error fetching concept data for {symbol}: {e}")
+            result['concept'] = self._get_default_concept(symbol)
+
+        return result
+
+    def _get_default_industry(self, symbol: str) -> str:
+        """Get default industry for known symbols."""
+        industry_mapping = {
+            '600000': '银行',
+            '000001': '银行',
+            '600519': '食品饮料',
+            '000002': '房地产',
+            '600036': '银行'
+        }
+        return industry_mapping.get(symbol, '其他')
+
+    def _get_default_concept(self, symbol: str) -> str:
+        """Get default concept for known symbols."""
+        concept_mapping = {
+            '600000': '银行股, 上海本地股',
+            '000001': '银行股, 深圳本地股',
+            '600519': '白酒概念, 消费股',
+            '000002': '房地产, 深圳本地股',
+            '600036': '银行股, 招商局概念'
+        }
+        return concept_mapping.get(symbol, '其他概念')
 
     def _get_default_name(self, symbol: str) -> str:
         """Get default name for known symbols."""
