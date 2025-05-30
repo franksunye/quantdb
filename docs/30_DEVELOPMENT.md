@@ -163,7 +163,7 @@ curl http://localhost:8000/api/v1/version
 
 # 4. 测试股票数据API
 curl "http://localhost:8000/api/v1/assets"
-curl "http://localhost:8000/api/v1/historical-data/600000?start_date=2023-01-03&end_date=2023-01-05"
+curl "http://localhost:8000/api/v1/historical/stock/600000?start_date=20230103&end_date=20230105"
 ```
 
 ### 数据库手工测试
@@ -200,22 +200,30 @@ python scripts/test_runner.py --performance --verbose
 python -c "
 import time
 from src.services.stock_data_service import StockDataService
+from src.api.database import SessionLocal
+from src.cache.akshare_adapter import AKShareAdapter
 
-service = StockDataService()
+# 创建依赖
+db = SessionLocal()
+akshare_adapter = AKShareAdapter()
+service = StockDataService(db=db, akshare_adapter=akshare_adapter)
 
-# 第一次调用 (从AKShare获取)
-start = time.time()
-data1 = service.get_stock_data('600000', '20230103', '20230105')
-time1 = time.time() - start
+try:
+    # 第一次调用 (从AKShare获取)
+    start = time.time()
+    data1 = service.get_stock_data('600000', '20230103', '20230105')
+    time1 = time.time() - start
 
-# 第二次调用 (从缓存获取)
-start = time.time()
-data2 = service.get_stock_data('600000', '20230103', '20230105')
-time2 = time.time() - start
+    # 第二次调用 (从缓存获取)
+    start = time.time()
+    data2 = service.get_stock_data('600000', '20230103', '20230105')
+    time2 = time.time() - start
 
-print(f'第一次调用: {time1:.3f}s ({len(data1)}条记录)')
-print(f'第二次调用: {time2:.3f}s ({len(data2)}条记录)')
-print(f'性能提升: {(time1/time2):.1f}x')
+    print(f'第一次调用: {time1:.3f}s ({len(data1)}条记录)')
+    print(f'第二次调用: {time2:.3f}s ({len(data2)}条记录)')
+    print(f'性能提升: {(time1/time2):.1f}x')
+finally:
+    db.close()
 "
 ```
 
@@ -228,14 +236,20 @@ python tools/monitoring/water_pool_monitor.py
 # 2. 查看监控数据
 python -c "
 from src.services.monitoring_service import MonitoringService
-monitor = MonitoringService()
-stats = monitor.get_data_coverage_stats()
-print('数据覆盖统计:', stats)
+from src.api.database import SessionLocal
+
+db = SessionLocal()
+monitor = MonitoringService(db=db)
+try:
+    coverage = monitor.get_detailed_coverage()
+    print('数据覆盖统计:', len(coverage), '个股票')
+finally:
+    db.close()
 "
 
 # 3. 测试监控中间件
 python -c "
-from src.api.monitoring_middleware import MonitoringMiddleware
+from src.services.monitoring_middleware import MonitoringMiddleware
 middleware = MonitoringMiddleware()
 print('监控中间件已加载')
 "
@@ -288,7 +302,19 @@ lsof -i :8000  # Linux/Mac
 pip install -r requirements.txt
 ```
 
-### 4. 环境配置问题
+### 4. Unicode编码错误 (Windows系统)
+```bash
+# 问题: UnicodeEncodeError: 'gbk' codec can't encode character
+# 原因: Windows系统默认GBK编码，无法处理emoji字符
+# 解决方案: 已在代码中修复，使用UTF-8编码和移除emoji字符
+
+# 如果仍有问题，可以设置环境变量:
+set PYTHONIOENCODING=utf-8  # Windows CMD
+$env:PYTHONIOENCODING = "utf-8"  # Windows PowerShell
+export PYTHONIOENCODING=utf-8  # Linux/Mac
+```
+
+### 5. 环境配置问题
 ```bash
 # 运行完整诊断
 python scripts/diagnose_environment.py
