@@ -155,7 +155,7 @@ python -m src.api.main
 uvicorn src.api.main:app --reload --port 8000
 
 # 2. 访问API文档
-# 浏览器打开: http://localhost:8000/docs
+# 浏览器打开: http://localhost:8000/api/v1/docs
 
 # 3. 测试基础端点
 curl http://localhost:8000/api/v1/health
