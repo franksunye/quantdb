@@ -1,6 +1,6 @@
 # QuantDB 开发指南
 
-**版本**: v0.7.7-production-ready | **架构**: 智能缓存 + 统一日志 + 交易日历 | **环境**: SQLite
+**版本**: v0.8.0-asset-enhanced | **架构**: 智能缓存 + 统一日志 + 交易日历 + 增强资产档案 | **环境**: SQLite
 
 ## 快速设置
 
@@ -55,10 +55,17 @@ python scripts/test_runner.py --unit --verbose
 
 ```
 quantdb/
-├── src/                    # 源代码 (简化架构)
+├── src/                    # 源代码 (简化架构 + 资产档案增强)
 │   ├── api/               # FastAPI应用和路由
 │   ├── cache/             # AKShare适配器
 │   ├── services/          # 业务逻辑服务
+│   │   ├── stock_data_service.py      # 股票数据服务
+│   │   ├── asset_info_service.py      # 资产信息服务 🆕
+│   │   ├── trading_calendar.py        # 交易日历服务
+│   │   └── monitoring_service.py      # 监控服务
+│   ├── scripts/           # 数据库迁移和更新脚本
+│   │   ├── migrate_asset_model.py     # 资产模型迁移 🆕
+│   │   └── update_asset_completeness.py # 资产完整性更新 🆕
 │   ├── mcp/               # MCP协议 (未来功能)
 │   └── config.py          # 配置管理
 ├── scripts/               # 项目管理脚本
@@ -161,9 +168,15 @@ uvicorn src.api.main:app --reload --port 8000
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/version
 
-# 4. 测试股票数据API
+# 4. 测试资产档案API (增强版)
 curl "http://localhost:8000/api/v1/assets"
+curl "http://localhost:8000/api/v1/assets/symbol/600000"  # 获取浦发银行完整信息
+
+# 5. 测试股票数据API (显示真实公司名称)
 curl "http://localhost:8000/api/v1/historical/stock/600000?start_date=20230103&end_date=20230105"
+
+# 6. 测试资产信息刷新
+curl -X PUT "http://localhost:8000/api/v1/assets/symbol/600000/refresh"
 ```
 
 ### 数据库手工测试
@@ -178,16 +191,101 @@ with engine.connect() as conn:
     print(f'Assets count: {result.fetchone()[0]}')
 "
 
-# 2. 查看数据库内容
+# 2. 查看资产档案数据 (增强版)
 python -c "
 from src.api.database import SessionLocal
 from src.api.models import Asset, DailyStockData
 session = SessionLocal()
 assets = session.query(Asset).limit(5).all()
 for asset in assets:
-    print(f'{asset.symbol}: {asset.name}')
+    print(f'{asset.symbol}: {asset.name} | 行业: {asset.industry} | PE: {asset.pe_ratio} | PB: {asset.pb_ratio}')
 session.close()
 "
+
+# 3. 测试资产信息服务
+python -c "
+from src.api.database import SessionLocal
+from src.services.asset_info_service import AssetInfoService
+session = SessionLocal()
+service = AssetInfoService(session)
+try:
+    asset = service.get_or_create_asset('600000')
+    print(f'资产: {asset.symbol} - {asset.name}')
+    print(f'行业: {asset.industry}')
+    print(f'概念: {asset.concept}')
+    print(f'PE: {asset.pe_ratio}, PB: {asset.pb_ratio}')
+    print(f'数据源: {asset.data_source}')
+    print(f'更新时间: {asset.last_updated}')
+finally:
+    session.close()
+"
+```
+
+### 资产档案增强手工测试
+
+```bash
+# 1. 测试资产数据完整性
+python -c "
+from src.api.database import SessionLocal
+from src.api.models import Asset
+session = SessionLocal()
+try:
+    assets = session.query(Asset).all()
+    print(f'总资产数量: {len(assets)}')
+
+    complete_count = 0
+    for asset in assets:
+        missing_fields = []
+        if not asset.name or asset.name.startswith('Stock '):
+            missing_fields.append('name')
+        if not asset.industry:
+            missing_fields.append('industry')
+        if not asset.concept:
+            missing_fields.append('concept')
+        if not asset.pe_ratio:
+            missing_fields.append('pe_ratio')
+        if not asset.pb_ratio:
+            missing_fields.append('pb_ratio')
+
+        if missing_fields:
+            print(f'❌ {asset.symbol}: 缺失 {missing_fields}')
+        else:
+            print(f'✅ {asset.symbol}: {asset.name} - 数据完整')
+            complete_count += 1
+
+    completeness_rate = (complete_count / len(assets) * 100) if assets else 0
+    print(f'数据完整性: {completeness_rate:.1f}% ({complete_count}/{len(assets)})')
+finally:
+    session.close()
+"
+
+# 2. 测试资产信息更新机制
+python -c "
+from src.api.database import SessionLocal
+from src.services.asset_info_service import AssetInfoService
+session = SessionLocal()
+service = AssetInfoService(session)
+try:
+    # 测试按需更新
+    print('测试按需更新机制...')
+    asset = service.get_or_create_asset('600000')
+    print(f'资产: {asset.name}')
+    print(f'是否过期: {service._is_asset_data_stale(asset)}')
+
+    # 测试强制更新
+    print('\\n测试强制更新...')
+    updated_asset = service.update_asset_info('600000')
+    if updated_asset:
+        print(f'更新成功: {updated_asset.name}')
+        print(f'更新时间: {updated_asset.last_updated}')
+    else:
+        print('更新失败')
+finally:
+    session.close()
+"
+
+# 3. 运行资产完整性更新脚本
+python src/scripts/update_asset_completeness.py
 ```
 
 ### 缓存性能手工测试
