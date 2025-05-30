@@ -103,11 +103,12 @@ class EnhancedLogger:
         # Create formatter
         self.formatter = logging.Formatter(self.format_string)
         
-        # Add file handler with rotation
+        # Add file handler with rotation and UTF-8 encoding
         file_handler = RotatingFileHandler(
             log_file,
             maxBytes=max_bytes,
-            backupCount=backup_count
+            backupCount=backup_count,
+            encoding='utf-8'
         )
         file_handler.setLevel(self.level)
         file_handler.setFormatter(self.formatter)

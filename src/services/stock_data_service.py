@@ -125,7 +125,7 @@ class StockDataService:
                     else:
                         logger.info(f"Date range {group_start} to {group_end} may be a holiday or have no trading data.")
         else:
-            logger.info(f"✅ All requested trading day data for {symbol} already exists in database - CACHE HIT!")
+            logger.info(f"All requested trading day data for {symbol} already exists in database - CACHE HIT!")
 
         # Convert dictionary to DataFrame
         if existing_data:

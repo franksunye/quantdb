@@ -213,7 +213,7 @@ if __name__ == "__main__":
     print("\n2024年春节期间测试:")
     for date in test_dates:
         result = calendar.is_trading_day(date)
-        print(f"{date}: {'✅ 交易日' if result else '❌ 非交易日'}")
+        print(f"{date}: {'交易日' if result else '非交易日'}")
     
     # 测试获取交易日列表
     trading_days = calendar.get_trading_days('20240208', '20240220')
