@@ -50,11 +50,15 @@ QuantDB 采用简化架构设计，专注于高性能股票数据缓存服务，
 ### 2. 服务层 (Services)
 - **StockDataService**: 股票数据获取、存储、查询
 - **🔥 AssetInfoService**: 资产信息管理，从AKShare获取真实公司名称和财务指标
-- **DatabaseCache**: 数据库缓存管理
+- **DatabaseCache**: 数据库缓存管理，智能缓存策略
+- **TradingCalendarService**: 交易日历服务，确保数据准确性
 - **🆕 MonitoringService**: 监控数据收集和分析
 
 ### 3. 数据层
 - **SQLite数据库**: 主要数据存储
+  - **assets**: 资产档案表（增强版，包含财务指标）
+  - **daily_stock_data**: 日线数据表
+  - **intraday_stock_data**: 分时数据表
 - **AKShare适配器**: 外部数据源接口
 - **🆕 监控数据表**: request_logs, data_coverage, system_metrics
 
@@ -108,19 +112,104 @@ CREATE TABLE assets (
 );
 ```
 
-**Prices (价格表)**
+**DailyStockData (日线数据表)**
 ```sql
-CREATE TABLE prices (
+CREATE TABLE daily_stock_data (
     id INTEGER PRIMARY KEY,
     asset_id INTEGER REFERENCES assets(asset_id),
-    date DATE NOT NULL,
-    open DECIMAL(10,4),
-    high DECIMAL(10,4),
-    low DECIMAL(10,4),
-    close DECIMAL(10,4),
-    volume BIGINT,
-    turnover DECIMAL(15,2),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    trade_date DATE NOT NULL,
+    open REAL,
+    high REAL,
+    low REAL,
+    close REAL,
+    volume INTEGER,
+    adjusted_close REAL,                    -- 复权价格
+    turnover REAL,                          -- 成交额
+    amplitude REAL,                         -- 振幅
+    pct_change REAL,                        -- 涨跌幅
+    change REAL,                            -- 涨跌额
+    turnover_rate REAL                      -- 换手率
+);
+```
+
+**IntradayStockData (分时数据表)**
+```sql
+CREATE TABLE intraday_stock_data (
+    id INTEGER PRIMARY KEY,
+    asset_id INTEGER REFERENCES assets(asset_id),
+    capture_time DATETIME,
+    trade_date DATE,
+    latest_price REAL,
+    pct_change REAL,
+    change REAL,
+    volume INTEGER,
+    turnover REAL,
+    amplitude REAL,
+    high REAL,
+    low REAL,
+    open REAL,
+    prev_close REAL,
+    volume_ratio REAL,
+    turnover_rate REAL,
+    pe_ratio_dynamic REAL,
+    pb_ratio REAL,
+    total_market_cap REAL,
+    circulating_market_cap REAL,
+    speed_of_increase REAL,
+    five_min_pct_change REAL,
+    sixty_day_pct_change REAL,
+    ytd_pct_change REAL,
+    is_final BOOLEAN
+);
+```
+
+**监控系统表**
+```sql
+-- 请求日志表
+CREATE TABLE request_logs (
+    id INTEGER PRIMARY KEY,
+    timestamp DATETIME,
+    symbol VARCHAR(10),
+    start_date VARCHAR(8),
+    end_date VARCHAR(8),
+    endpoint VARCHAR(100),
+    response_time_ms REAL,
+    status_code INTEGER,
+    record_count INTEGER,
+    cache_hit BOOLEAN,
+    akshare_called BOOLEAN,
+    cache_hit_ratio REAL,
+    user_agent VARCHAR(500),
+    ip_address VARCHAR(45)
+);
+
+-- 数据覆盖统计表
+CREATE TABLE data_coverage (
+    id INTEGER PRIMARY KEY,
+    symbol VARCHAR(10) UNIQUE,
+    earliest_date VARCHAR(8),
+    latest_date VARCHAR(8),
+    total_records INTEGER,
+    first_requested DATETIME,
+    last_accessed DATETIME,
+    access_count INTEGER,
+    last_updated DATETIME
+);
+
+-- 系统指标表
+CREATE TABLE system_metrics (
+    id INTEGER PRIMARY KEY,
+    timestamp DATETIME,
+    total_symbols INTEGER,
+    total_records INTEGER,
+    db_size_mb REAL,
+    avg_response_time_ms REAL,
+    cache_hit_rate REAL,
+    akshare_requests_today INTEGER,
+    requests_today INTEGER,
+    active_symbols_today INTEGER,
+    performance_improvement REAL,
+    cost_savings REAL
 );
 ```
 
