@@ -1,6 +1,6 @@
 # QuantDB 测试指南
 
-**测试状态**: 116/116 通过 (100%) | **性能**: 98.1% 提升验证 | **工具**: 统一测试运行器
+**测试状态**: 217/217 通过 (100%) | **性能**: 98.1% 提升验证 | **资产档案**: 增强测试完成 | **工具**: 统一测试运行器
 
 ## 快速测试
 
@@ -17,7 +17,7 @@ python scripts/test_runner.py --coverage
 
 ## 测试分类
 
-### 1. 单元测试 (77个)
+### 1. 单元测试 (96个)
 测试独立组件的功能逻辑。
 
 ```bash
@@ -25,39 +25,47 @@ python scripts/test_runner.py --coverage
 python scripts/test_runner.py --unit
 
 # 运行特定模块测试
-python scripts/test_runner.py --file tests/unit/test_stock_data_service.py
+python scripts/test_runner.py --file tests/unit/test_asset_info_service.py
 ```
 
 **覆盖模块**:
 - `test_akshare_adapter.py` - AKShare适配器 (15个测试)
 - `test_database_cache.py` - 数据库缓存 (13个测试)
 - `test_stock_data_service.py` - 股票数据服务 (11个测试)
+- `test_asset_info_service.py` - 资产信息服务 (19个测试) 🆕
 - `test_enhanced_logger.py` - 增强日志 (8个测试)
 - `test_error_handling.py` - 错误处理 (13个测试)
 - `test_monitoring_service.py` - 监控服务 (12个测试)
 - `test_monitoring_middleware.py` - 监控中间件 (8个测试)
 - `test_monitoring_tools.py` - 监控工具 (7个测试)
 
-### 2. API测试 (18个)
+### 2. API测试 (30个)
 测试HTTP API端点的功能。
 
 ```bash
 # 运行所有API测试
 python scripts/test_runner.py --api
+
+# 运行资产档案增强API测试
+python scripts/test_runner.py --file tests/api/test_assets_api.py
 ```
 
 **覆盖端点**:
-- `test_assets_api.py` - 资产API (4个测试)
+- `test_assets_api.py` - 资产API增强版 (12个测试) 🆕
 - `test_historical_data.py` - 历史数据API (6个测试)
 - `test_api.py` - 基础API (2个测试)
 - `test_version_api.py` - 版本API (6个测试)
+- `test_openapi.py` - OpenAPI文档 (4个测试)
 
-### 3. 集成测试
+### 3. 集成测试 (91个)
 测试组件间的协作。
 
 ```bash
 # 运行集成测试
 python scripts/test_runner.py --integration
+
+# 运行资产档案增强集成测试
+python scripts/test_runner.py --file tests/integration/test_asset_enhancement_integration.py
 ```
 
 **覆盖模块**:
@@ -65,6 +73,7 @@ python scripts/test_runner.py --integration
 - `test_error_handling_integration.py` - 错误处理集成
 - `test_logging_integration.py` - 日志集成
 - `test_monitoring_integration.py` - 监控系统集成
+- `test_asset_enhancement_integration.py` - 资产档案增强集成 (10个测试) 🆕
 
 ### 4. 端到端测试 (E2E)
 测试完整用户场景，真实HTTP请求，自动环境管理。
@@ -89,7 +98,51 @@ python tests/e2e/performance_analysis.py
 - 缓存命中: < 1秒 ✅
 - 缓存性能提升: > 30% ✅
 
-### 5. 监控系统测试
+### 5. 资产档案增强测试 🆕
+
+专门测试资产档案增强功能的完整性和正确性。
+
+```bash
+# 运行资产档案增强测试
+python scripts/test_runner.py --file tests/unit/test_asset_info_service.py
+python scripts/test_runner.py --file tests/api/test_assets_api.py
+python scripts/test_runner.py --file tests/integration/test_asset_enhancement_integration.py
+
+# 运行资产数据完整性验证
+python -c "
+from src.api.database import SessionLocal
+from src.api.models import Asset
+session = SessionLocal()
+assets = session.query(Asset).all()
+complete_count = sum(1 for a in assets if a.name and not a.name.startswith('Stock '))
+print(f'数据完整性: {complete_count/len(assets)*100:.1f}% ({complete_count}/{len(assets)})')
+session.close()
+"
+```
+
+**测试覆盖**:
+- 🏢 **AssetInfoService单元测试** (19个测试)
+  - 符号标准化、数据过期检查、默认值映射
+  - AKShare集成、容错机制、数据解析
+  - 资产创建、更新、缓存机制
+- 🌐 **资产API增强测试** (12个测试)
+  - 资产信息获取、刷新功能、错误处理
+  - 响应格式验证、数据完整性检查
+  - 真实公司名称验证、服务集成测试
+- 🔗 **资产增强集成测试** (10个测试)
+  - 端到端资产创建流程、数据库事务完整性
+  - 缓存行为验证、并发访问测试
+  - 行业概念数据集成、完整增强流程
+
+**验证指标**:
+- 📊 **数据完整性**: 100% 资产显示真实公司名称
+- 🏭 **行业分类**: 已知股票包含行业信息
+- 💡 **概念分类**: 已知股票包含概念信息
+- 📈 **财务指标**: PE、PB、ROE等关键指标
+- 🔄 **更新机制**: 1天缓存策略，自动刷新
+- 🛡️ **容错机制**: AKShare失败时的fallback处理
+
+### 6. 监控系统测试
 
 专门测试监控系统的功能和集成。
 
