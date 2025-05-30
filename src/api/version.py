@@ -23,7 +23,7 @@ class APIVersion(str, Enum):
     @classmethod
     def get_latest(cls) -> "APIVersion":
         """Get the latest API version."""
-        return APIVersion.V2
+        return APIVersion.V1  # Current production version
 
     @classmethod
     def get_all(cls) -> List["APIVersion"]:
@@ -51,20 +51,20 @@ class VersionInfo(BaseModel):
 # Version information for each API version
 VERSION_INFO: Dict[APIVersion, VersionInfo] = {
     APIVersion.V1: VersionInfo(
-        version="0.1.0",
+        version="0.7.7-production-ready",
         api_version="v1",
-        release_date="2025-05-01",
+        release_date="2025-01-29",
         deprecated=False,
         sunset_date="",
-        description="Initial API version with basic functionality."
+        description="Production-ready version with unified logging, intelligent cache, and comprehensive testing."
     ),
     APIVersion.V2: VersionInfo(
-        version="0.5.0",
+        version="0.8.0-future",
         api_version="v2",
-        release_date="2025-06-17",
+        release_date="TBD",
         deprecated=False,
         sunset_date="",
-        description="Improved API with simplified cache architecture and better performance."
+        description="Future API version with enhanced features (planned)."
     )
 }
 
