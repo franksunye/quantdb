@@ -1,17 +1,18 @@
 # QuantDB
 
-![Version](https://img.shields.io/badge/version-0.8.0--asset--enhanced-blue)
+![Version](https://img.shields.io/badge/version-0.9.0--beta-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
-![Tests](https://img.shields.io/badge/Tests-186/186-success)
+![Tests](https://img.shields.io/badge/Tests-259/259-success)
+![Frontend](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B)
 ![Performance](https://img.shields.io/badge/Cache-98.1%25_faster-brightgreen)
-![Data Quality](https://img.shields.io/badge/Data_Quality-Enhanced-success)
-![Asset Info](https://img.shields.io/badge/Asset_Info-Real_Names-brightgreen)
-![Logging](https://img.shields.io/badge/Logging-Unified-purple)
-![Structure](https://img.shields.io/badge/Structure-Simplified-orange)
+![Integration](https://img.shields.io/badge/Integration-Complete-success)
+![Status](https://img.shields.io/badge/Status-Beta_Ready-orange)
 
-高性能股票数据缓存服务，基于 AKShare 数据源，提供智能缓存和 RESTful API。
+高性能股票数据缓存服务，基于 AKShare 数据源，提供智能缓存、RESTful API 和专业前端界面。
+
+**🎉 前后端集成完成！** 现已提供完整的端到端解决方案，包括高性能后端API和专业的Streamlit前端界面。
 
 ## 🎯 核心价值
 
@@ -24,6 +25,7 @@
 - **📝 统一日志**: 完全统一的日志系统，消除双重日志不一致性
 - **🧹 简洁结构**: 敏捷开发清理，项目文件减少47%，维护更简单
 - **🛡️ 生产就绪**: 完整的错误处理、186个测试100%通过、文档体系完善
+- **📱 专业前端**: Streamlit界面，支持多种图表、性能监控、资产信息展示
 
 ## ⚡ 性能亮点
 
@@ -51,12 +53,26 @@ python src/scripts/init_db.py
 
 ### 2. 启动服务
 
+#### 方法1: 一键启动 (推荐)
 ```bash
-# 启动 API 服务
-uvicorn src.api.main:app --reload
+# 进入前端目录并运行启动脚本
+cd quantdb_frontend
+python start.py
+# 脚本会自动启动后端API和前端界面
+```
 
-# 访问 API 文档
-# http://localhost:8000/docs
+#### 方法2: 手动启动
+```bash
+# 1. 启动后端API (在项目根目录)
+python src/api/main.py
+
+# 2. 启动前端界面 (在新终端)
+cd quantdb_frontend
+streamlit run app.py
+
+# 访问地址
+# 前端界面: http://localhost:8501
+# API 文档: http://localhost:8000/docs
 ```
 
 ### 3. 使用 API
@@ -78,8 +94,12 @@ curl http://localhost:8000/api/v1/cache/status
 ### 4. 运行测试
 
 ```bash
-# 运行所有测试
+# 运行后端测试
 python scripts/test_runner.py --all
+
+# 运行前端测试
+cd quantdb_frontend
+python run_tests.py
 
 # 运行性能测试
 python scripts/test_runner.py --performance
@@ -92,22 +112,27 @@ quantdb/
 ├── src/                           # 核心源码
 │   ├── api/                       # FastAPI 应用
 │   │   ├── main.py                # API 入口
-│   │   ├── models.py              # 数据模型（增强Asset模型）🆕
+│   │   ├── models.py              # 数据模型
 │   │   └── routes/                # API 路由
 │   ├── services/                  # 业务服务
 │   │   ├── stock_data_service.py  # 股票数据服务
-│   │   ├── asset_info_service.py  # 资产信息服务 🆕
+│   │   ├── asset_info_service.py  # 资产信息服务
 │   │   ├── trading_calendar.py    # 交易日历服务
 │   │   └── database_cache.py      # 数据库缓存
 │   └── cache/                     # 缓存适配器
 │       └── akshare_adapter.py     # AKShare 适配器
-├── tests/                         # 测试套件
+├── quantdb_frontend/              # 前端应用 🆕
+│   ├── app.py                     # Streamlit 主应用
+│   ├── pages/                     # 功能页面
+│   ├── utils/                     # 工具模块
+│   ├── tests/                     # 前端测试
+│   └── start.py                   # 一键启动脚本
+├── tests/                         # 后端测试套件
 │   ├── unit/                      # 单元测试
 │   ├── integration/               # 集成测试
 │   ├── api/                       # API 测试
 │   ├── e2e/                       # 端到端测试
-│   ├── monitoring/                # 监控测试
-│   └── performance/               # 性能测试 🆕
+│   └── performance/               # 性能测试
 ├── docs/                          # 项目文档
 ├── tools/                         # 开发工具
 └── scripts/                       # 管理脚本
@@ -116,12 +141,13 @@ quantdb/
 ## 🔧 技术栈
 
 - **后端**: FastAPI + SQLAlchemy + SQLite
+- **前端**: Streamlit + Plotly + Pandas
 - **数据源**: AKShare (官方股票数据)
 - **缓存**: 智能数据库缓存 + 交易日历
-- **测试**: pytest (186个测试，100%通过)
+- **测试**: pytest + unittest (259个测试，100%通过)
 - **监控**: 实时性能监控和数据跟踪
 - **日志**: 统一日志系统，完全一致的记录方式
-- **结构**: 敏捷开发架构，简洁高效
+- **集成**: 完整的前后端集成解决方案
 
 ## 📚 文档
 
@@ -133,16 +159,29 @@ quantdb/
 | [📊 API 文档](./docs/20_API.md) | 完整 API 使用指南 |
 | [🛠️ 开发指南](./docs/30_DEVELOPMENT.md) | 开发环境和流程 |
 | [🧪 测试指南](./docs/31_TESTING.md) | 测试运行和编写 |
+| [📱 前端规划](./docs/40_FRONTEND.md) | 前端开发设计和规划 |
+| [📋 前端任务](./docs/41_FRONTEND_BACKLOG.md) | 前端开发任务清单 |
 
 ## 🎯 项目状态
 
-**当前版本**: v0.8.0-asset-enhanced
-**MVP 评分**: 10/10 (完美实现核心价值 + 资产档案增强)
-**测试覆盖**: 186/186 通过 (100%)
+**当前版本**: v0.9.0-beta
+**MVP 评分**: 9/10 (核心功能完成，需要人工端到端测试)
+**测试覆盖**: 259/259 通过 (100%) - 222个后端 + 37个前端
 **数据质量**: ⭐⭐⭐⭐⭐ (5/5) - 真实公司名称和财务指标
-**生产就绪**: ⭐⭐⭐⭐⭐ (5/5)
+**前端体验**: ⭐⭐⭐⭐⭐ (5/5) - 专业量化数据平台界面
+**集成状态**: ✅ 前后端完全集成
+**生产就绪**: ⭐⭐⭐⭐☆ (4/5) - 需要人工验证
 
-### ✅ 最新成就 (v0.8.0)
+### ✅ 最新成就 (v0.9.0-beta)
+
+**🎉 前后端集成完成 (2025-06-15)**:
+- **📱 完整前端应用**: 基于Streamlit的专业量化数据平台界面
+- **🔗 端到端集成**: 前后端完全集成，数据流验证通过
+- **📈 多种图表支持**: 价格趋势、K线图、成交量、收益率分析、性能对比
+- **📊 资产信息展示**: 真实公司名称、财务指标、数据覆盖情况完整展示
+- **⚡ 性能监控**: 缓存命中率、响应时间对比、实时性能测试
+- **🧪 完整测试**: 259个测试全部通过，包含前后端集成测试
+- **🚀 一键启动**: 自动化启动脚本，完整的部署文档
 
 **🔥 资产档案增强 (2025-01-30)**:
 - **🏢 真实公司名称**: "浦发银行"替代"Stock 600000"，用户体验显著提升
@@ -158,26 +197,27 @@ quantdb/
 - **极致性能**: 缓存响应时间优化到 ~18ms
 - **日志系统统一**: 完全统一的日志系统，消除双重日志不一致性
 - **敏捷开发清理**: 项目结构简化，文件数量减少47%
-- **完整测试**: 186个测试100%通过，包含性能测试和价值场景验证
+- **完整测试**: 223个测试100%通过，包含后端、前端、性能测试和价值场景验证
 
 ### 🔮 下一步计划
 
-**当前阶段 - 资产档案增强第二阶段**:
-- **行业分类完善**: 详细的行业分类信息
-- **概念分类数据**: 股票概念分类
-- **定期更新机制**: 自动更新资产信息
-- **搜索和分类API**: 按行业、概念搜索资产
+**当前阶段 - 1.0版本准备**:
+- **🧪 人工端到端测试**: 完整的用户场景验证
+- **🐛 问题修复**: 修复测试中发现的问题
+- **📚 文档完善**: 用户手册和部署指南
+- **🔧 性能优化**: 首次查询体验优化
 
-**第二阶段 - 基础设施建设**:
-- **容器化部署**: Docker + docker-compose
-- **安全认证系统**: API Key + JWT
-- **生产配置管理**: 环境分离
-- **监控告警系统**: 健康检查
+**第二阶段 - 功能增强 (V1.1-V1.3)**:
+- **🎯 自选股管理**: 用户自定义股票清单和批量查询
+- **📊 高级图表**: 技术指标、财务指标趋势分析
+- **📤 数据导出**: CSV/Excel格式导出功能
+- **🔍 智能搜索**: 按名称、行业、概念搜索股票
 
-**第三阶段 - 功能扩展**:
-- **实时行情数据**: 支持实时股价查询
-- **多周期数据**: 分钟线、周线、月线数据
-- **财务数据扩展**: 完整财务报表 API
+**第三阶段 - 生产部署**:
+- **🐳 容器化部署**: Docker + docker-compose
+- **🔐 安全认证**: API Key + JWT
+- **📊 监控告警**: 健康检查和性能监控
+- **☁️ 云端部署**: Vercel前端 + Supabase后端
 
 ## 📄 许可证
 

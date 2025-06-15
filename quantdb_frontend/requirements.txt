@@ -1,0 +1,28 @@
+# QuantDB Frontend Dependencies
+
+# Core Streamlit framework
+streamlit>=1.28.0
+
+# Data processing and analysis
+pandas>=2.0.0
+numpy>=1.24.0
+
+# HTTP client for API calls
+requests>=2.31.0
+
+# Interactive charts and visualization
+plotly>=5.15.0
+
+# Date and time utilities
+python-dateutil>=2.8.0
+
+# Enhanced data export capabilities
+openpyxl>=3.1.0  # For Excel export (required for data export page)
+xlsxwriter>=3.1.0  # Alternative Excel writer
+
+# Optional: Additional chart types
+matplotlib>=3.7.0  # For additional chart options
+seaborn>=0.12.0    # For statistical visualizations
+
+# Development and debugging
+streamlit-option-menu>=0.3.6  # For enhanced navigation (optional)
