@@ -123,12 +123,8 @@ async def get_historical_stock_data(
                 )
                 data_points.append(data_point)
 
-            # 检查缓存状态 (简化版本)
-            cache_info = {
-                "cache_hit": len(data_points) > 0,  # 简化：有数据就认为有缓存
-                "akshare_called": True,  # 简化：假设调用了AKShare
-                "cache_hit_ratio": 0.5   # 简化：假设50%缓存命中
-            }
+            # 获取真实的缓存状态信息
+            cache_info = _get_cache_info(symbol, start_date, end_date, df, stock_data_service)
 
             # Create response
             response = {
@@ -157,6 +153,68 @@ async def get_historical_stock_data(
     except Exception as e:
         logger.error(f"Unexpected error in get_historical_stock_data: {e}")
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
+
+
+def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_service) -> dict:
+    """
+    获取真实的缓存状态信息
+
+    Args:
+        symbol: 股票代码
+        start_date: 开始日期
+        end_date: 结束日期
+        df: 返回的数据DataFrame
+        stock_data_service: 股票数据服务实例
+
+    Returns:
+        包含缓存信息的字典
+    """
+    try:
+        from src.services.trading_calendar import get_trading_calendar
+
+        # 获取交易日历
+        trading_days = get_trading_calendar(start_date, end_date)
+        total_trading_days = len(trading_days)
+
+        # 检查数据库中已有的数据
+        db_cache = stock_data_service.db_cache
+        existing_data = db_cache.get(symbol, trading_days)
+        cached_days = len(existing_data)
+
+        # 计算缓存命中率
+        cache_hit_ratio = cached_days / total_trading_days if total_trading_days > 0 else 0.0
+
+        # 判断是否调用了AKShare
+        akshare_called = cached_days < total_trading_days
+
+        # 判断是否为缓存命中（如果所有请求的数据都在缓存中）
+        cache_hit = cached_days == total_trading_days and total_trading_days > 0
+
+        logger.info(f"Cache info for {symbol}: hit={cache_hit}, ratio={cache_hit_ratio:.2f}, "
+                   f"cached_days={cached_days}, total_days={total_trading_days}, akshare_called={akshare_called}")
+
+        return {
+            "cache_hit": cache_hit,
+            "akshare_called": akshare_called,
+            "cache_hit_ratio": cache_hit_ratio,
+            "cached_days": cached_days,
+            "total_trading_days": total_trading_days,
+            "response_time_ms": 0  # 这个会在middleware中设置
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting cache info: {e}")
+        # 返回默认值
+        return {
+            "cache_hit": False,
+            "akshare_called": True,
+            "cache_hit_ratio": 0.0,
+            "cached_days": 0,
+            "total_trading_days": 0,
+            "response_time_ms": 0
+        }
+
+
 
 def get_database_cache(db: Session = Depends(get_db)):
     """Get database cache instance."""

@@ -115,6 +115,11 @@ class DatabaseCache:
                 logger.error(f"Failed to get or create asset for {symbol}")
                 return False
 
+            logger.info(f"Using asset {asset.asset_id} ({asset.name}) for {symbol}")
+
+            saved_count = 0
+            skipped_count = 0
+
             # Process each data point
             for date_str, item in data.items():
                 # Convert date string to date object if it's not already
@@ -134,6 +139,7 @@ class DatabaseCache:
                 if existing_data:
                     # Skip if data already exists
                     logger.debug(f"Data already exists for {symbol} on {date_str}, skipping")
+                    skipped_count += 1
                     continue
 
                 # Create new data record
@@ -154,10 +160,13 @@ class DatabaseCache:
                 )
 
                 self.db.add(stock_data)
+                saved_count += 1
+                logger.debug(f"Added new data record for {symbol} on {date_str}")
 
             # Commit changes
             self.db.commit()
-            logger.info(f"Successfully saved data to database for {symbol}")
+            logger.info(f"Successfully saved {saved_count} new records to database for {symbol} "
+                       f"(skipped {skipped_count} existing records)")
             return True
 
         except Exception as e:
@@ -288,7 +297,7 @@ class DatabaseCache:
 
     def _get_or_create_asset(self, symbol: str) -> Optional[Asset]:
         """
-        Get or create an asset.
+        Get or create an asset using AssetInfoService for complete information.
 
         Args:
             symbol: Stock symbol
@@ -301,24 +310,60 @@ class DatabaseCache:
             asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
 
             if asset:
+                logger.debug(f"Found existing asset for {symbol}")
                 return asset
 
-            # Create new asset
+            # Create new asset using AssetInfoService for complete information
+            logger.info(f"Creating new asset for {symbol} using AssetInfoService")
+
+            from src.services.asset_info_service import AssetInfoService
+            asset_service = AssetInfoService(self.db)
+            asset = asset_service.get_or_create_asset(symbol)
+
+            if asset:
+                logger.info(f"Successfully created asset for {symbol}: {asset.name}")
+                return asset
+            else:
+                logger.error(f"AssetInfoService failed to create asset for {symbol}")
+                # Fallback to simple asset creation
+                return self._create_simple_asset(symbol)
+
+        except Exception as e:
+            logger.error(f"Error getting or creating asset: {e}")
+            # Fallback to simple asset creation
+            return self._create_simple_asset(symbol)
+
+    def _create_simple_asset(self, symbol: str) -> Optional[Asset]:
+        """
+        Create a simple asset as fallback.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Asset object or None if failed
+        """
+        try:
+            logger.warning(f"Creating simple fallback asset for {symbol}")
+
             asset = Asset(
                 symbol=symbol,
                 name=f"Stock {symbol}",
                 isin=f"CN{symbol}",
                 asset_type="stock",
-                exchange="CN",
-                currency="CNY"
+                exchange="SHSE" if symbol.startswith('6') else "SZSE",
+                currency="CNY",
+                data_source="fallback"
             )
 
             self.db.add(asset)
             self.db.commit()
+            self.db.refresh(asset)
 
+            logger.info(f"Created simple asset for {symbol}")
             return asset
 
         except Exception as e:
             self.db.rollback()
-            logger.error(f"Error getting or creating asset: {e}")
+            logger.error(f"Error creating simple asset: {e}")
             return None
