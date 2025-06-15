@@ -17,6 +17,7 @@ if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
 from utils.api_client import get_api_client, handle_api_error, format_date_for_api, QuantDBAPIError
+from utils.stock_validator import validate_stock_code, analyze_query_failure, get_alternative_suggestions
 from utils.charts import (
     create_price_chart,
     create_volume_chart,
@@ -98,6 +99,20 @@ def main():
         # 查询按钮
         query_button = st.button("🔍 查询数据", type="primary", use_container_width=True)
     
+    # 处理建议股票的查询
+    if st.session_state.get('suggested_symbol'):
+        suggested_symbol = st.session_state.pop('suggested_symbol')
+        suggested_name = st.session_state.pop('suggested_name', '')
+
+        st.info(f"🔄 正在为您查询建议的股票：{suggested_name}({suggested_symbol})")
+
+        # 自动设置参数并查询
+        symbol = suggested_symbol
+        start_date = date.today() - timedelta(days=30)  # 使用30天范围
+        end_date = date.today()
+        adjust = ""
+        query_button = True
+
     # 主内容区域
     if query_button or st.session_state.get('auto_query', False):
         
@@ -142,6 +157,81 @@ def main():
                     
                     if df.empty:
                         st.warning("未找到指定时间范围内的数据")
+
+                        # 使用股票验证工具进行详细分析
+                        try:
+                            start_date_str = format_date_for_api(start_date)
+                            end_date_str = format_date_for_api(end_date)
+                            failure_analysis = analyze_query_failure(symbol, start_date_str, end_date_str)
+
+                            with st.expander("🔍 详细错误分析和解决方案"):
+                                # 股票验证结果
+                                stock_validation = failure_analysis["stock_validation"]
+
+                                if stock_validation["is_problematic"]:
+                                    st.error(f"⚠️ 检测到问题股票: {stock_validation['name']}")
+                                elif not stock_validation["is_active"]:
+                                    st.warning(f"📊 股票 {symbol} 可能不够活跃")
+
+                                st.markdown("**🔍 可能的原因：**")
+                                for reason in failure_analysis["possible_reasons"]:
+                                    st.write(f"• {reason}")
+
+                                st.markdown("**💡 建议的解决方案：**")
+                                for recommendation in failure_analysis["recommendations"]:
+                                    st.write(f"• {recommendation}")
+
+                                # 显示替代股票建议
+                                if failure_analysis["suggested_stocks"]:
+                                    st.markdown("**🚀 推荐的替代股票：**")
+                                    for suggestion in failure_analysis["suggested_stocks"][:3]:
+                                        st.write(f"• {suggestion['symbol']} - {suggestion['name']} ({suggestion['reason']})")
+
+                        except Exception as e:
+                            # 如果分析失败，显示基本的错误信息
+                            with st.expander("🔍 可能的原因和解决方案"):
+                                st.markdown("""
+                                **可能的原因：**
+                                1. 📅 **时间范围问题**：选择的日期范围内可能没有交易日（周末、节假日）
+                                2. 📈 **股票状态问题**：该股票可能已停牌、退市或长期停牌
+                                3. 🌐 **数据源问题**：AKShare暂时无法获取该股票的数据
+                                4. ⏰ **数据延迟**：最新数据可能还未更新
+
+                                **建议的解决方案：**
+                                - 🔄 **扩大时间范围**：尝试查询最近30天或更长时间
+                                - 📊 **更换股票代码**：尝试查询活跃股票如：600000(浦发银行)、000001(平安银行)
+                                - 📅 **检查交易日**：避免选择周末或节假日
+                                - 🔍 **验证股票代码**：确认股票代码是否正确且仍在交易
+                                """)
+
+                            # 提供快速替代选项
+                            st.markdown("**🚀 快速尝试活跃股票：**")
+                            col1, col2, col3 = st.columns(3)
+
+                            with col1:
+                                if st.button("浦发银行(600000)", key="suggest_600000"):
+                                    st.session_state.update({
+                                        'suggested_symbol': '600000',
+                                        'suggested_name': '浦发银行'
+                                    })
+                                    st.rerun()
+
+                            with col2:
+                                if st.button("平安银行(000001)", key="suggest_000001"):
+                                    st.session_state.update({
+                                        'suggested_symbol': '000001',
+                                        'suggested_name': '平安银行'
+                                    })
+                                    st.rerun()
+
+                            with col3:
+                                if st.button("贵州茅台(600519)", key="suggest_600519"):
+                                    st.session_state.update({
+                                        'suggested_symbol': '600519',
+                                        'suggested_name': '贵州茅台'
+                                    })
+                                    st.rerun()
+
                         return
                     
                     # 显示成功信息

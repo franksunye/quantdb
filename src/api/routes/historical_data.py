@@ -90,7 +90,11 @@ async def get_historical_stock_data(
             )
 
             if df.empty:
-                logger.warning(f"No historical data found for {symbol}")
+                logger.warning(f"No historical data found for {symbol} from {start_date} to {end_date}")
+
+                # 提供更详细的错误分析
+                error_analysis = _analyze_empty_data_reason(symbol, start_date, end_date)
+
                 return {
                     "symbol": symbol,
                     "name": asset.name if asset else f"Stock {symbol}",
@@ -100,8 +104,15 @@ async def get_historical_stock_data(
                     "data": [],
                     "metadata": {
                         "count": 0,
-                        "status": "success",
-                        "message": "No data found for the specified parameters"
+                        "status": "no_data",
+                        "message": "No data found for the specified parameters",
+                        "error_analysis": error_analysis,
+                        "suggestions": [
+                            "Try extending the date range to 30 days or more",
+                            "Verify the stock code is correct and still trading",
+                            "Check if the selected dates include trading days",
+                            "Try querying active stocks like 600000, 000001, or 600519"
+                        ]
                     }
                 }
 
@@ -214,6 +225,77 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
             "response_time_ms": 0
         }
 
+
+def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> dict:
+    """
+    分析为什么没有获取到数据的原因
+
+    Args:
+        symbol: 股票代码
+        start_date: 开始日期
+        end_date: 结束日期
+
+    Returns:
+        包含错误分析的字典
+    """
+    analysis = {
+        "possible_reasons": [],
+        "stock_status": "unknown",
+        "date_range_info": {},
+        "recommendations": []
+    }
+
+    try:
+        from datetime import datetime, timedelta
+        from src.services.trading_calendar import get_trading_calendar
+
+        # 分析日期范围
+        start_dt = datetime.strptime(start_date, '%Y%m%d')
+        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        date_diff = (end_dt - start_dt).days
+
+        analysis["date_range_info"] = {
+            "days_requested": date_diff,
+            "start_date": start_date,
+            "end_date": end_date
+        }
+
+        # 检查是否有交易日
+        try:
+            trading_days = get_trading_calendar(start_date, end_date)
+            analysis["date_range_info"]["trading_days"] = len(trading_days)
+
+            if len(trading_days) == 0:
+                analysis["possible_reasons"].append("所选日期范围内没有交易日")
+                analysis["recommendations"].append("选择包含工作日的日期范围")
+            elif len(trading_days) < 3:
+                analysis["possible_reasons"].append("交易日数量太少")
+                analysis["recommendations"].append("扩大日期范围以包含更多交易日")
+
+        except Exception as e:
+            logger.warning(f"Error checking trading calendar: {e}")
+            analysis["possible_reasons"].append("无法验证交易日历")
+
+        # 特殊股票代码分析
+        problematic_stocks = {
+            '600001': '邯郸钢铁 - 可能已停牌或退市',
+            '600002': '齐鲁石化 - 可能已停牌或退市',
+            '600003': '东北高速 - 可能已停牌或退市'
+        }
+
+        if symbol in problematic_stocks:
+            analysis["possible_reasons"].append(f"已知问题股票: {problematic_stocks[symbol]}")
+            analysis["recommendations"].append("尝试查询活跃股票如600000、000001、600519")
+
+        # 日期范围建议
+        if date_diff < 7:
+            analysis["recommendations"].append("建议查询至少30天的数据以获得更好的结果")
+
+    except Exception as e:
+        logger.error(f"Error analyzing empty data reason: {e}")
+        analysis["possible_reasons"].append("数据分析过程中出现错误")
+
+    return analysis
 
 
 def get_database_cache(db: Session = Depends(get_db)):
