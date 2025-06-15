@@ -246,9 +246,9 @@ def display_stock_detail(symbol):
     try:
         client = get_api_client()
         
-        # 获取最近30天数据
+        # 获取最近7天数据，提升性能
         end_date = date.today()
-        start_date = end_date - timedelta(days=30)
+        start_date = end_date - timedelta(days=7)
         
         start_date_str = format_date_for_api(start_date)
         end_date_str = format_date_for_api(end_date)
@@ -308,76 +308,63 @@ def display_stock_detail(symbol):
         st.error(f"获取股票详情失败: {str(e)}")
 
 def display_batch_query_results():
-    """显示批量查询结果"""
-    
+    """显示批量查询结果（性能优化版本）"""
+
     st.markdown("---")
     st.subheader("📊 批量查询结果")
-    
+
     if not st.session_state.watchlist:
         st.info("暂无自选股进行批量查询")
         return
-    
+
     try:
-        client = get_api_client()
-        
-        # 获取最近5天数据
-        end_date = date.today()
-        start_date = end_date - timedelta(days=5)
-        
-        start_date_str = format_date_for_api(start_date)
-        end_date_str = format_date_for_api(end_date)
-        
+        # 使用批量客户端进行高性能查询
+        from utils.batch_client import get_batch_client, create_st_batch_progress
+
+        batch_client = get_batch_client()
+        symbols = list(st.session_state.watchlist.keys())
+
+        st.info(f"🚀 使用高性能批量查询获取 {len(symbols)} 只股票数据...")
+
+        # 创建进度显示
+        progress_callback = create_st_batch_progress()
+
+        # 批量获取自选股汇总信息
+        with st.spinner("正在批量获取数据..."):
+            summary_result = batch_client.get_watchlist_summary(symbols)
+
+        # 处理结果
         batch_results = []
-        
-        progress_bar = st.progress(0)
-        status_text = st.empty()
-        
-        for idx, (symbol, info) in enumerate(st.session_state.watchlist.items()):
-            status_text.text(f"正在查询 {info['name']} ({symbol})...")
-            
-            try:
-                stock_data = client.get_stock_data(symbol, start_date_str, end_date_str)
-                
-                if stock_data and 'data' in stock_data and stock_data['data']:
-                    latest_data = stock_data['data'][-1]  # 最新数据
-                    prev_data = stock_data['data'][-2] if len(stock_data['data']) > 1 else latest_data
-                    
-                    # 计算涨跌幅
-                    price_change = 0
-                    if prev_data['close'] != 0:
-                        price_change = ((latest_data['close'] - prev_data['close']) / prev_data['close']) * 100
-                    
-                    batch_results.append({
-                        "股票代码": symbol,
-                        "股票名称": info['name'],
-                        "最新价格": latest_data['close'],
-                        "涨跌幅(%)": price_change,
-                        "成交量": latest_data.get('volume', 0),
-                        "更新时间": latest_data['date']
-                    })
-                else:
-                    batch_results.append({
-                        "股票代码": symbol,
-                        "股票名称": info['name'],
-                        "最新价格": "N/A",
-                        "涨跌幅(%)": "N/A",
-                        "成交量": "N/A",
-                        "更新时间": "N/A"
-                    })
-            
-            except Exception as e:
-                batch_results.append({
-                    "股票代码": symbol,
-                    "股票名称": info['name'],
-                    "最新价格": "错误",
-                    "涨跌幅(%)": "错误",
-                    "成交量": "错误",
-                    "更新时间": str(e)
-                })
-            
-            progress_bar.progress((idx + 1) / len(st.session_state.watchlist))
-        
-        status_text.text("查询完成！")
+        summary_data = summary_result.get("summary", {})
+
+        for symbol in symbols:
+            watchlist_info = st.session_state.watchlist[symbol]
+            summary_info = summary_data.get(symbol, {})
+
+            batch_results.append({
+                "股票代码": symbol,
+                "股票名称": summary_info.get("name", watchlist_info.get("name", f"Stock {symbol}")),
+                "行业": summary_info.get("industry", "其他"),
+                "最新价格": summary_info.get("latest_price", "N/A"),
+                "涨跌幅(%)": summary_info.get("price_change_pct", "N/A"),
+                "数据来源": summary_info.get("data_source", "unknown"),
+                "有价格数据": "✅" if summary_info.get("has_price_data") else "❌"
+            })
+
+        # 显示性能统计
+        metadata = summary_result.get("metadata", {})
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("总股票数", metadata.get("total_symbols", 0))
+        with col2:
+            st.metric("资产信息", metadata.get("assets_found", 0))
+        with col3:
+            st.metric("价格数据", metadata.get("price_data_found", 0))
+        with col4:
+            st.success("⚡ 高性能批量查询")
+
+        st.text("查询完成！")
         
         # 显示结果
         if batch_results:

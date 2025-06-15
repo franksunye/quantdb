@@ -37,6 +37,10 @@ data/processed/
 *.bak
 .DS_Store
 
+# Temporary test files
+test_*.py
+*_test_*.py
+
 # Keep empty directories with .gitkeep
 !data/raw/.gitkeep
 !data/processed/.gitkeep

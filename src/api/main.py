@@ -111,7 +111,7 @@ async def health_check_v2():
     }
 
 # Import and include routers
-from src.api.routes import assets, cache, historical_data
+from src.api.routes import assets, cache, historical_data, batch_assets
 from src.api.routes.version import router as version_router
 from src.api.cache_api import router as cache_api_router
 # from src.api.endpoints.monitoring import router as monitoring_router  # 暂时注释
@@ -140,6 +140,12 @@ app.include_router(
     historical_data.router,
     prefix=f"{API_PREFIX}/historical",
     tags=["historical"]
+)
+
+app.include_router(
+    batch_assets.router,
+    prefix=f"{API_PREFIX}",
+    tags=["batch"]
 )
 
 # app.include_router(

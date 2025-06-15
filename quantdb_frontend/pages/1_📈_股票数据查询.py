@@ -72,7 +72,7 @@ def main():
         # 日期选择器
         start_date = st.date_input(
             "开始日期",
-            value=st.session_state.get('start_date', date.today() - timedelta(days=30)),
+            value=st.session_state.get('start_date', date.today() - timedelta(days=7)),
             max_value=date.today(),
             key='start_date'
         )
@@ -108,7 +108,7 @@ def main():
 
         # 自动设置参数并查询
         symbol = suggested_symbol
-        start_date = date.today() - timedelta(days=30)  # 使用30天范围
+        start_date = date.today() - timedelta(days=7)  # 使用7天范围，提升性能
         end_date = date.today()
         adjust = ""
         query_button = True
@@ -424,7 +424,7 @@ def show_usage_guide():
         #### 💡 使用技巧
         
         - **股票代码格式**: 支持600000、000001等格式
-        - **日期范围**: 建议查询不超过1年的数据
+        - **日期范围**: 默认7天，可根据需要调整
         - **复权选择**: 分析价格趋势时建议使用前复权
         - **快速选择**: 使用"最近7天"、"最近30天"快速设置
         
@@ -470,15 +470,15 @@ def show_usage_guide():
         quick_name = st.session_state.get('quick_name', '')
 
         if quick_symbol:
-            st.info(f"🚀 正在为您查询 {quick_name}({quick_symbol}) 最近30天的数据...")
+            st.info(f"🚀 正在为您查询 {quick_name}({quick_symbol}) 最近7天的数据...")
 
             # 执行查询逻辑
             try:
                 client = get_api_client()
 
-                # 使用固定的30天范围
+                # 使用固定的7天范围，提升性能
                 end_date = date.today()
-                start_date = end_date - timedelta(days=30)
+                start_date = end_date - timedelta(days=7)
                 start_date_str = format_date_for_api(start_date)
                 end_date_str = format_date_for_api(end_date)
 

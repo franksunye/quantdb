@@ -47,6 +47,12 @@ class Asset(AssetBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+# Asset response with cache metadata
+class AssetWithMetadata(BaseModel):
+    """Schema for returning an Asset with cache metadata"""
+    asset: Asset
+    metadata: Dict[str, Any]
+
 # Daily stock data schemas
 class DailyStockDataBase(BaseModel):
     """Base schema for DailyStockData"""

@@ -73,7 +73,7 @@ async def get_historical_stock_data(
             raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
 
         # Get or create asset with enhanced information
-        asset = asset_info_service.get_or_create_asset(symbol)
+        asset, asset_metadata = asset_info_service.get_or_create_asset(symbol)
 
         # Set default dates if not provided
         if end_date is None:
@@ -184,7 +184,8 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
         from src.services.trading_calendar import get_trading_calendar
 
         # 获取交易日历
-        trading_days = get_trading_calendar(start_date, end_date)
+        trading_calendar = get_trading_calendar()
+        trading_days = trading_calendar.get_trading_days(start_date, end_date)
         total_trading_days = len(trading_days)
 
         # 检查数据库中已有的数据
@@ -262,7 +263,8 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
 
         # 检查是否有交易日
         try:
-            trading_days = get_trading_calendar(start_date, end_date)
+            trading_calendar = get_trading_calendar()
+            trading_days = trading_calendar.get_trading_days(start_date, end_date)
             analysis["date_range_info"]["trading_days"] = len(trading_days)
 
             if len(trading_days) == 0:

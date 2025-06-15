@@ -8,7 +8,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.api.database import get_db
 from src.api.models import Asset
-from src.api.schemas import Asset as AssetSchema
+from src.api.schemas import Asset as AssetSchema, AssetWithMetadata
 from src.services.asset_info_service import AssetInfoService
 from src.logger_unified import get_logger
 
@@ -82,19 +82,18 @@ async def get_asset(asset_id: int, db: Session = Depends(get_db)):
         logger.error(f"Unexpected error when getting asset {asset_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/symbol/{symbol}", response_model=AssetSchema)
+@router.get("/symbol/{symbol}", response_model=AssetWithMetadata)
 async def get_asset_by_symbol(
     symbol: str,
-    db: Session = Depends(get_db),
     asset_info_service: AssetInfoService = Depends(get_asset_info_service)
 ):
     """
-    Get a specific asset by symbol with enhanced information
+    Get a specific asset by symbol with enhanced information and cache metadata
     """
     try:
         # Use asset info service to get or create asset with enhanced info
-        asset = asset_info_service.get_or_create_asset(symbol)
-        return asset
+        asset, metadata = asset_info_service.get_or_create_asset(symbol)
+        return AssetWithMetadata(asset=asset, metadata=metadata)
     except SQLAlchemyError as e:
         logger.error(f"Database error when getting asset with symbol {symbol}: {e}")
         raise HTTPException(status_code=500, detail="Database error")
