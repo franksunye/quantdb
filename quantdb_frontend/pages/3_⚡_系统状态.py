@@ -101,19 +101,24 @@ def display_system_status():
                 )
             
             with col4:
-                timestamp = health_data.get('timestamp', '')
-                if timestamp:
-                    try:
-                        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                        time_str = dt.strftime('%H:%M:%S')
-                    except:
-                        time_str = timestamp[:8] if len(timestamp) > 8 else timestamp
-                else:
-                    time_str = 'N/A'
-                
+                # 修复：显示实际的API响应时间而不是时间戳
+                import time
+                start_time = time.time()
+                try:
+                    # 重新测试API响应时间
+                    client.get_health()
+                    api_response_time = (time.time() - start_time) * 1000
+                    response_str = f"{api_response_time:.1f}ms"
+                    response_delta = "极快" if api_response_time < 100 else "正常"
+                except:
+                    response_str = "N/A"
+                    response_delta = "无法测量"
+
                 st.metric(
-                    label="响应时间",
-                    value=time_str
+                    label="API响应时间",
+                    value=response_str,
+                    delta=response_delta,
+                    help="API健康检查的实际响应时间"
                 )
             
             # 获取更多系统信息
@@ -149,23 +154,27 @@ def display_detailed_status(client):
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            db_size = cache_status.get('database_size_mb', 0)
+            # 修复字段映射：检查实际的API返回结构
+            database_info = cache_status.get('database', {})
+            db_size = database_info.get('size_mb', 0)
             st.metric(
                 label="数据库大小",
                 value=f"{db_size:.2f} MB",
                 help="SQLite数据库文件大小"
             )
-        
+
         with col2:
-            total_records = cache_status.get('total_records', 0)
+            # 修复字段映射：使用正确的字段名
+            total_records = database_info.get('daily_data_count', 0)
             st.metric(
                 label="总记录数",
                 value=f"{total_records:,}",
                 help="数据库中的总记录数"
             )
-        
+
         with col3:
-            assets_count = cache_status.get('assets_count', 0)
+            # 修复字段映射：使用正确的字段名
+            assets_count = database_info.get('assets_count', 0)
             st.metric(
                 label="资产数量",
                 value=f"{assets_count:,}",

@@ -50,8 +50,8 @@ st.set_page_config(
 def main():
     """主页面"""
     
-    # 页面标题
-    st.title("📊 QuantDB - 量化数据平台")
+    # 页面标题 - 使用更合适的大小
+    st.header("📊 QuantDB - 量化数据平台")
     st.markdown("---")
     
     # 欢迎信息
@@ -132,45 +132,122 @@ def main():
     
     st.markdown("---")
     
-    # 系统状态概览
+    # 系统状态概览 - 集成真实API数据
     st.markdown("### 📊 系统状态概览")
-    
+
     try:
-        # 这里可以添加简单的系统状态检查
-        # 由于是主页面，我们只做基础展示
+        # 导入API客户端
+        from utils.api_client import get_api_client
+        import time
+
+        # 获取真实的系统状态
+        client = get_api_client()
+
+        # 测试API响应时间
+        start_time = time.time()
+        health_data = client.get_health()
+        api_response_time = (time.time() - start_time) * 1000  # 转换为毫秒
+
+        # 获取缓存状态
+        cache_status = client.get_cache_status()
+
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
+            # API状态基于健康检查结果
+            api_status = "运行中" if health_data.get('status') == 'ok' else "异常"
+            api_delta = "正常" if health_data.get('status') == 'ok' else "需要检查"
             st.metric(
                 label="API状态",
-                value="运行中",
-                delta="正常"
+                value=api_status,
+                delta=api_delta
             )
-        
+
         with col2:
+            # 真实的API响应时间
             st.metric(
                 label="响应时间",
-                value="~18ms",
-                delta="-98.1%"
+                value=f"{api_response_time:.1f}ms",
+                delta="极快" if api_response_time < 100 else "正常"
             )
-        
+
         with col3:
+            # 从缓存状态获取数据库信息
+            database_info = cache_status.get('database', {})
+            total_records = database_info.get('daily_data_count', 0)
+
+            # 简单的缓存效率估算（基于数据量）
+            if total_records > 1000:
+                cache_efficiency = "优秀"
+                cache_value = "95%+"
+            elif total_records > 100:
+                cache_efficiency = "良好"
+                cache_value = "80%+"
+            else:
+                cache_efficiency = "建设中"
+                cache_value = "N/A"
+
             st.metric(
-                label="缓存命中率",
-                value="100%",
-                delta="优秀"
+                label="缓存效率",
+                value=cache_value,
+                delta=cache_efficiency
             )
-        
+
         with col4:
+            # 数据质量基于资产数量和数据记录数
+            assets_count = database_info.get('assets_count', 0)
+
+            if assets_count >= 5 and total_records >= 100:
+                data_quality = "5/5"
+                quality_delta = "完美"
+            elif assets_count >= 3 and total_records >= 50:
+                data_quality = "4/5"
+                quality_delta = "优秀"
+            elif assets_count >= 1 and total_records >= 10:
+                data_quality = "3/5"
+                quality_delta = "良好"
+            else:
+                data_quality = "2/5"
+                quality_delta = "建设中"
+
             st.metric(
                 label="数据质量",
-                value="5/5",
-                delta="完美"
+                value=data_quality,
+                delta=quality_delta
             )
-    
+
+        # 显示详细信息
+        with st.expander("📋 详细系统信息"):
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.markdown("**API信息**")
+                st.write(f"- 版本: {health_data.get('version', 'N/A')}")
+                st.write(f"- API版本: {health_data.get('api_version', 'N/A')}")
+                st.write(f"- 响应时间: {api_response_time:.2f}ms")
+
+            with col2:
+                st.markdown("**数据库信息**")
+                st.write(f"- 资产数量: {assets_count:,}")
+                st.write(f"- 数据记录: {total_records:,}")
+                latest_date = database_info.get('latest_data_date', 'N/A')
+                st.write(f"- 最新数据: {latest_date}")
+
     except Exception as e:
         st.warning(f"无法获取系统状态: {str(e)}")
         st.info("请确保后端API服务正在运行 (http://localhost:8000)")
+
+        # 显示降级的状态信息
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric(label="API状态", value="未知", delta="请检查")
+        with col2:
+            st.metric(label="响应时间", value="N/A", delta="无法测量")
+        with col3:
+            st.metric(label="缓存效率", value="N/A", delta="无法获取")
+        with col4:
+            st.metric(label="数据质量", value="N/A", delta="无法评估")
     
     st.markdown("---")
     

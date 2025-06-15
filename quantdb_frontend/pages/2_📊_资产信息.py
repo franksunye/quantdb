@@ -193,57 +193,59 @@ def display_asset_info(asset_data: dict, symbol: str):
             help="总市值 = 股价 × 总股本"
         )
     
-    # 第二行财务指标
+    # 第二行财务指标 - 修复字段映射
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
-        total_share = asset_data.get('total_share')
-        if total_share:
-            if total_share >= 1e8:
-                share_display = f"{total_share/1e8:.2f}亿股"
-            elif total_share >= 1e4:
-                share_display = f"{total_share/1e4:.2f}万股"
+        # 修复字段名：total_share -> total_shares
+        total_shares = asset_data.get('total_shares')
+        if total_shares:
+            if total_shares >= 1e8:
+                share_display = f"{total_shares/1e8:.2f}亿股"
+            elif total_shares >= 1e4:
+                share_display = f"{total_shares/1e4:.2f}万股"
             else:
-                share_display = f"{total_share:.2f}股"
+                share_display = f"{total_shares:.2f}股"
         else:
             share_display = "N/A"
-        
+
         st.metric(
             label="总股本",
             value=share_display
         )
-    
+
     with col2:
-        float_share = asset_data.get('float_share')
-        if float_share:
-            if float_share >= 1e8:
-                float_display = f"{float_share/1e8:.2f}亿股"
-            elif float_share >= 1e4:
-                float_display = f"{float_share/1e4:.2f}万股"
+        # 修复字段名：float_share -> circulating_shares
+        circulating_shares = asset_data.get('circulating_shares')
+        if circulating_shares:
+            if circulating_shares >= 1e8:
+                float_display = f"{circulating_shares/1e8:.2f}亿股"
+            elif circulating_shares >= 1e4:
+                float_display = f"{circulating_shares/1e4:.2f}万股"
             else:
-                float_display = f"{float_share:.2f}股"
+                float_display = f"{circulating_shares:.2f}股"
         else:
             float_display = "N/A"
-        
+
         st.metric(
             label="流通股本",
             value=float_display
         )
-    
+
     with col3:
-        eps = asset_data.get('eps')
+        # EPS字段后端暂未提供，显示说明
         st.metric(
             label="每股收益 (EPS)",
-            value=f"¥{eps:.2f}" if eps else "N/A",
-            help="每股收益 = 净利润 / 总股本"
+            value="待完善",
+            help="每股收益数据正在完善中"
         )
-    
+
     with col4:
-        bps = asset_data.get('bps')
+        # BPS字段后端暂未提供，显示说明
         st.metric(
             label="每股净资产 (BPS)",
-            value=f"¥{bps:.2f}" if bps else "N/A",
-            help="每股净资产 = 净资产 / 总股本"
+            value="待完善",
+            help="每股净资产数据正在完善中"
         )
 
 def display_data_coverage(stock_data: dict, symbol: str):

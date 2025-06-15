@@ -346,40 +346,88 @@ def show_usage_guide():
         - **000002**: 万科A (地产龙头)
         """)
     
-    # 示例查询
+    # 示例查询 - 重构为避免session_state冲突
     st.markdown("### 🚀 快速开始")
-    
+    st.markdown("点击下方按钮快速查询热门股票，或使用左侧输入框自定义查询")
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
-        if st.button("查询浦发银行(600000)", use_container_width=True):
-            st.session_state.update({
-                'symbol': '600000',
-                'start_date': date.today() - timedelta(days=30),
-                'end_date': date.today(),
-                'auto_query': True
-            })
+        if st.button("查询浦发银行(600000)", use_container_width=True, key="quick_600000"):
+            # 使用不同的session_state key避免冲突
+            st.session_state['quick_symbol'] = '600000'
+            st.session_state['quick_name'] = '浦发银行'
+            st.session_state['quick_query_triggered'] = True
             st.rerun()
-    
+
     with col2:
-        if st.button("查询平安银行(000001)", use_container_width=True):
-            st.session_state.update({
-                'symbol': '000001', 
-                'start_date': date.today() - timedelta(days=30),
-                'end_date': date.today(),
-                'auto_query': True
-            })
+        if st.button("查询平安银行(000001)", use_container_width=True, key="quick_000001"):
+            st.session_state['quick_symbol'] = '000001'
+            st.session_state['quick_name'] = '平安银行'
+            st.session_state['quick_query_triggered'] = True
             st.rerun()
-    
+
     with col3:
-        if st.button("查询贵州茅台(600519)", use_container_width=True):
-            st.session_state.update({
-                'symbol': '600519',
-                'start_date': date.today() - timedelta(days=30), 
-                'end_date': date.today(),
-                'auto_query': True
-            })
+        if st.button("查询贵州茅台(600519)", use_container_width=True, key="quick_600519"):
+            st.session_state['quick_symbol'] = '600519'
+            st.session_state['quick_name'] = '贵州茅台'
+            st.session_state['quick_query_triggered'] = True
             st.rerun()
+
+    # 处理快速查询
+    if st.session_state.get('quick_query_triggered', False):
+        quick_symbol = st.session_state.get('quick_symbol', '')
+        quick_name = st.session_state.get('quick_name', '')
+
+        if quick_symbol:
+            st.info(f"🚀 正在为您查询 {quick_name}({quick_symbol}) 最近30天的数据...")
+
+            # 执行查询逻辑
+            try:
+                client = get_api_client()
+
+                # 使用固定的30天范围
+                end_date = date.today()
+                start_date = end_date - timedelta(days=30)
+                start_date_str = format_date_for_api(start_date)
+                end_date_str = format_date_for_api(end_date)
+
+                # 调用API
+                response = client.get_stock_data(quick_symbol, start_date_str, end_date_str, "")
+
+                if response and 'data' in response:
+                    data = response['data']
+                    metadata = response.get('metadata', {})
+
+                    # 转换为DataFrame
+                    df = pd.DataFrame(data)
+
+                    if not df.empty:
+                        # 显示成功信息
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.success(f"✅ 成功获取 {len(df)} 条记录")
+                        with col2:
+                            if metadata.get('cache_hit'):
+                                st.info("⚡ 数据来自缓存")
+                            else:
+                                st.info("🌐 数据来自AKShare")
+                        with col3:
+                            response_time = metadata.get('response_time_ms', 0)
+                            st.info(f"⏱️ 响应时间: {response_time:.1f}ms")
+
+                        # 显示数据
+                        display_stock_data(df, quick_symbol, metadata)
+                    else:
+                        st.warning("未找到指定时间范围内的数据")
+                else:
+                    st.error("API返回数据格式错误")
+
+            except Exception as e:
+                st.error(f"查询失败: {str(e)}")
+
+            # 清除快速查询标志
+            st.session_state['quick_query_triggered'] = False
 
 if __name__ == "__main__":
     main()
