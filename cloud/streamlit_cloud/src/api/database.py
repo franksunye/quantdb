@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 # Import type hints for adapters
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
-    from src.db.supabase_adapter import SupabaseAdapter
-    from src.db.sqlite_adapter import SQLiteAdapter
+    from db.supabase_adapter import SupabaseAdapter
+    from db.sqlite_adapter import SQLiteAdapter
 
-from src.config import DATABASE_URL, DB_TYPE
+from config import DATABASE_URL, DB_TYPE
 
 # Create SQLAlchemy engine
 engine = create_engine(
@@ -49,5 +49,5 @@ def get_db_adapter() -> Union['SupabaseAdapter', 'SQLiteAdapter']:
     Returns:
         Database adapter instance based on configuration
     """
-    from src.db.adapter_factory import create_db_adapter
+    from db.adapter_factory import create_db_adapter
     return create_db_adapter(DB_TYPE)

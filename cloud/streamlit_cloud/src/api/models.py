@@ -15,6 +15,7 @@ from src.api.database import Base
 class Asset(Base):
     """Asset model representing stocks, indices, etc."""
     __tablename__ = "assets"
+    __table_args__ = {'extend_existing': True}
 
     asset_id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String, nullable=False)
@@ -43,13 +44,14 @@ class Asset(Base):
     last_updated = Column(DateTime, default=func.now())
     data_source = Column(String, default="akshare")
 
-    # Relationships
-    daily_data = relationship("DailyStockData", back_populates="asset")
-    intraday_data = relationship("IntradayStockData", back_populates="asset")
+    # Relationships - commented out to avoid circular import issues in cloud version
+    # daily_data = relationship("DailyStockData", back_populates="asset", lazy="dynamic")
+    # intraday_data = relationship("IntradayStockData", back_populates="asset", lazy="dynamic")
 
 class DailyStockData(Base):
     """Daily stock data model - 统一的股票数据模型"""
     __tablename__ = "daily_stock_data"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     asset_id = Column(Integer, ForeignKey("assets.asset_id"))
@@ -66,12 +68,13 @@ class DailyStockData(Base):
     change = Column(Float)
     turnover_rate = Column(Float)
 
-    # Relationships
-    asset = relationship("Asset", back_populates="daily_data")
+    # Relationships - commented out to avoid circular import issues in cloud version
+    # asset = relationship("Asset", back_populates="daily_data")
 
 class IntradayStockData(Base):
     """Intraday stock data model"""
     __tablename__ = "intraday_stock_data"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     asset_id = Column(Integer, ForeignKey("assets.asset_id"))
@@ -99,13 +102,14 @@ class IntradayStockData(Base):
     ytd_pct_change = Column(Float)
     is_final = Column(Boolean)
 
-    # Relationships
-    asset = relationship("Asset", back_populates="intraday_data")
+    # Relationships - commented out to avoid circular import issues in cloud version
+    # asset = relationship("Asset", back_populates="intraday_data")
 
 # 监控相关模型
 class RequestLog(Base):
     """API请求日志"""
     __tablename__ = "request_logs"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
@@ -133,6 +137,7 @@ class RequestLog(Base):
 class DataCoverage(Base):
     """数据覆盖情况统计"""
     __tablename__ = "data_coverage"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String(10), unique=True, index=True)
@@ -153,6 +158,7 @@ class DataCoverage(Base):
 class SystemMetrics(Base):
     """系统指标快照"""
     __tablename__ = "system_metrics"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
