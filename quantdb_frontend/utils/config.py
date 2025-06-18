@@ -61,7 +61,7 @@ class Config:
     # 错误消息
     ERROR_MESSAGES = {
         "api_connection": "无法连接到后端API服务，请检查服务是否启动",
-        "invalid_symbol": "股票代码格式错误，请输入6位数字代码",
+        "invalid_symbol": "股票代码格式错误，请输入有效代码 (A股: 600000, 港股: 02171)",
         "invalid_date": "日期格式错误或日期范围无效",
         "no_data": "未找到指定时间范围内的数据",
         "server_error": "服务器内部错误，请稍后重试",
@@ -92,26 +92,37 @@ class Config:
     
     @classmethod
     def validate_symbol(cls, symbol: str) -> bool:
-        """验证股票代码格式"""
-        if not symbol:
+        """验证股票代码格式 - 支持A股和港股"""
+        if not symbol or not symbol.isdigit():
             return False
-        
-        # 移除可能的前缀和后缀
+
+        # 移除可能的前缀和后缀 (仅对A股)
         clean_symbol = symbol.upper().replace("SH", "").replace("SZ", "").replace(".SH", "").replace(".SZ", "")
-        
-        # 检查是否为6位数字
-        return clean_symbol.isdigit() and len(clean_symbol) == 6
+
+        # A股: 6位数字 (000001, 600000)
+        if clean_symbol.isdigit() and len(clean_symbol) == 6:
+            return True
+
+        # 港股: 5位数字 (02171, 00700)
+        if symbol.isdigit() and len(symbol) == 5:
+            return True
+
+        return False
     
     @classmethod
     def normalize_symbol(cls, symbol: str) -> str:
-        """标准化股票代码"""
+        """标准化股票代码 - 支持A股和港股"""
         if not symbol:
             return ""
 
-        # 移除前缀和后缀，转换为大写
+        # 检测是否为港股 (5位数字)
+        if symbol.isdigit() and len(symbol) == 5:
+            return symbol  # 港股代码保持原样
+
+        # A股处理: 移除前缀和后缀，转换为大写
         clean_symbol = symbol.upper().replace("SH", "").replace("SZ", "").replace(".SH", "").replace(".SZ", "").rstrip(".")
 
-        # 如果长度不足6位，前面补0
+        # 如果长度不足6位，前面补0 (仅对A股)
         if clean_symbol.isdigit():
             return clean_symbol.zfill(6)
 

@@ -51,8 +51,8 @@ def main():
     """主页面"""
     
     # 页面标题 - 使用更合适的大小
-    st.header("📊 QuantDB - 量化数据平台")
-    st.markdown("---")
+    # st.header("📊 QuantDB - 量化数据平台")
+    # st.markdown("---")
     
     # 欢迎信息
     col1, col2, col3 = st.columns([2, 1, 2])

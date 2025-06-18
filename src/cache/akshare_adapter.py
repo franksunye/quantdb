@@ -153,7 +153,8 @@ class AKShareAdapter:
                 end_date = self._validate_and_format_date(end_date)
                 return self._generate_mock_stock_data(symbol, start_date, end_date, adjust, period)
             else:
-                raise ValueError(f"Invalid symbol format: {symbol}. Symbol should be a 6-digit number.")
+                raise ValueError(f"Invalid symbol format: {symbol}. "
+                               f"Symbol should be 6 digits for A-shares or 5 digits for Hong Kong stocks.")
 
         # Set default dates if not provided
         if end_date is None:
@@ -195,37 +196,53 @@ class AKShareAdapter:
             logger.error(f"Start date {start_date} is after end date {end_date}")
             raise ValueError(f"Start date {start_date} cannot be after end date {end_date}")
 
-        # Save original symbol for fallback
-        original_symbol = symbol
-
-        # Standardize stock code - remove market prefix and suffix, keep only the numeric part
-        # Because stock_zh_a_hist function requires pure numeric code without prefix
-
-        # Remove possible suffix
-        if "." in symbol:
-            symbol = symbol.split(".")[0]
-
-        # Remove possible market prefix
-        if symbol.lower().startswith("sh") or symbol.lower().startswith("sz"):
-            symbol = symbol[2:]
-
-        logger.info(f"Standardized symbol for AKShare: {symbol}")
-
-        # Use stock_zh_a_hist function as recommended in official documentation
+        # Detect market type and get data accordingly
         try:
-            logger.info(f"Getting data using stock_zh_a_hist for {symbol} with period={period}, adjust={adjust}")
+            market = self._detect_market(symbol)
+            logger.info(f"Detected market: {market} for symbol: {symbol}")
 
-            df = self._safe_call(
-                ak.stock_zh_a_hist,
-                symbol=symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
-            )
+            # Standardize symbol for API call
+            clean_symbol = symbol
+
+            if market == 'A_STOCK':
+                # Remove possible suffix
+                if "." in clean_symbol:
+                    clean_symbol = clean_symbol.split(".")[0]
+
+                # Remove possible market prefix
+                if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                    clean_symbol = clean_symbol[2:]
+
+                logger.info(f"Getting A-share data using stock_zh_a_hist for {clean_symbol} with period={period}, adjust={adjust}")
+
+                df = self._safe_call(
+                    ak.stock_zh_a_hist,
+                    symbol=clean_symbol,
+                    period=period,
+                    start_date=start_date,
+                    end_date=end_date,
+                    adjust=adjust
+                )
+
+            elif market == 'HK_STOCK':
+                # For Hong Kong stocks, use stock_hk_hist
+                # Note: Hong Kong stock API might not support all adjust types
+                logger.info(f"Getting Hong Kong stock data using stock_hk_hist for {clean_symbol} with period={period}")
+
+                df = self._safe_call(
+                    ak.stock_hk_hist,
+                    symbol=clean_symbol,
+                    period=period,
+                    start_date=start_date,
+                    end_date=end_date
+                    # Note: HK stocks might not support adjust parameter
+                )
+
+            else:
+                raise ValueError(f"Unsupported market: {market}")
 
             if not df.empty:
-                logger.info(f"Successfully retrieved {len(df)} rows of data for {symbol} using stock_zh_a_hist")
+                logger.info(f"Successfully retrieved {len(df)} rows of data for {symbol} ({market})")
 
                 # Standardize column names
                 df = self._standardize_stock_data(df)
@@ -236,9 +253,10 @@ class AKShareAdapter:
                 else:
                     logger.warning(f"Data validation failed for {symbol}. Will try alternative methods.")
             else:
-                logger.warning(f"stock_zh_a_hist returned empty data for {symbol}")
+                logger.warning(f"API returned empty data for {symbol} ({market})")
+
         except Exception as e:
-            logger.error(f"Error getting data using stock_zh_a_hist for {symbol}: {e}")
+            logger.error(f"Error getting data for {symbol}: {e}")
 
         # Check if the date range is in the future
         today = datetime.now().strftime('%Y%m%d')
@@ -266,7 +284,7 @@ class AKShareAdapter:
 
     def _validate_symbol(self, symbol: str) -> bool:
         """
-        Validate stock symbol format.
+        Validate stock symbol format - supports both A-shares and Hong Kong stocks.
 
         Args:
             symbol: Stock symbol to validate.
@@ -274,7 +292,10 @@ class AKShareAdapter:
         Returns:
             True if valid, False otherwise.
         """
-        # Remove market prefix if present
+        if not symbol or not symbol.isdigit():
+            return False
+
+        # Remove market prefix if present (for A-shares)
         if symbol.lower().startswith("sh") or symbol.lower().startswith("sz"):
             symbol = symbol[2:]
 
@@ -282,8 +303,54 @@ class AKShareAdapter:
         if "." in symbol:
             symbol = symbol.split(".")[0]
 
-        # Check if symbol is a 6-digit number
-        return bool(re.match(r'^\d{6}$', symbol))
+        # A-shares: 6-digit number (000001, 600000)
+        if re.match(r'^\d{6}$', symbol):
+            return True
+
+        # Hong Kong stocks: 5-digit number (02171, 00700)
+        if re.match(r'^\d{5}$', symbol):
+            return True
+
+        return False
+
+    def _detect_market(self, symbol: str) -> str:
+        """
+        Detect which market the stock belongs to based on symbol format.
+
+        Args:
+            symbol: Stock symbol to analyze.
+
+        Returns:
+            Market identifier: 'A_STOCK' for A-shares, 'HK_STOCK' for Hong Kong stocks.
+
+        Raises:
+            ValueError: If symbol format is not supported.
+        """
+        # Clean symbol first
+        clean_symbol = symbol
+
+        # Remove market prefix if present (for A-shares)
+        if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+            clean_symbol = clean_symbol[2:]
+
+        # Remove suffix if present
+        if "." in clean_symbol:
+            clean_symbol = clean_symbol.split(".")[0]
+
+        if not clean_symbol.isdigit():
+            raise ValueError(f"Invalid symbol format: {symbol}. Symbol must be numeric.")
+
+        # A-shares: 6-digit number
+        if len(clean_symbol) == 6:
+            return 'A_STOCK'
+
+        # Hong Kong stocks: 5-digit number
+        elif len(clean_symbol) == 5:
+            return 'HK_STOCK'
+
+        else:
+            raise ValueError(f"Unsupported symbol format: {symbol}. "
+                           f"Expected 6 digits for A-shares or 5 digits for Hong Kong stocks.")
 
     def _validate_and_format_date(self, date_str: Optional[str]) -> str:
         """

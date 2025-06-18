@@ -130,17 +130,30 @@ class AssetInfoService:
         logger.info(f"Creating new asset for symbol: {symbol}")
         
         try:
+            # Detect market type
+            market = self._detect_market(symbol)
+
             # Get basic info from AKShare
             asset_info = self._fetch_asset_basic_info(symbol)
-            
+
+            # Set market-specific defaults
+            if market == 'HK_STOCK':
+                default_exchange = 'HKEX'
+                default_currency = 'HKD'
+                default_isin = f'HK{symbol}'
+            else:  # A_STOCK
+                default_exchange = 'SHSE' if symbol.startswith('6') else 'SZSE'
+                default_currency = 'CNY'
+                default_isin = f'CN{symbol}'
+
             # Create new asset
             asset = Asset(
                 symbol=symbol,
                 name=asset_info.get('name', f'Stock {symbol}'),
-                isin=asset_info.get('isin', f'CN{symbol}'),
+                isin=asset_info.get('isin', default_isin),
                 asset_type='stock',
-                exchange=asset_info.get('exchange', 'SHSE' if symbol.startswith('6') else 'SZSE'),
-                currency='CNY',
+                exchange=asset_info.get('exchange', default_exchange),
+                currency=default_currency,
                 industry=asset_info.get('industry'),
                 concept=asset_info.get('concept'),
                 listing_date=asset_info.get('listing_date'),
@@ -164,15 +177,28 @@ class AssetInfoService:
         except Exception as e:
             logger.error(f"Error creating asset {symbol}: {e}")
             self.db.rollback()
-            
+
+            # Detect market type for fallback
+            market = self._detect_market(symbol)
+
+            # Set market-specific fallback defaults
+            if market == 'HK_STOCK':
+                default_exchange = 'HKEX'
+                default_currency = 'HKD'
+                default_isin = f'HK{symbol}'
+            else:  # A_STOCK
+                default_exchange = 'SHSE' if symbol.startswith('6') else 'SZSE'
+                default_currency = 'CNY'
+                default_isin = f'CN{symbol}'
+
             # Create minimal asset as fallback
             asset = Asset(
                 symbol=symbol,
                 name=f'Stock {symbol}',
-                isin=f'CN{symbol}',
+                isin=default_isin,
                 asset_type='stock',
-                exchange='SHSE' if symbol.startswith('6') else 'SZSE',
-                currency='CNY',
+                exchange=default_exchange,
+                currency=default_currency,
                 last_updated=datetime.now(),
                 data_source='fallback'
             )
@@ -263,19 +289,32 @@ class AssetInfoService:
             return asset_info
 
         try:
-            # Get individual stock info (this is relatively fast)
-            individual_info = ak.stock_individual_info_em(symbol=symbol)
-            if not individual_info.empty:
-                info_dict = dict(zip(individual_info['item'], individual_info['value']))
+            # Detect market type
+            market = self._detect_market(symbol)
 
-                # Extract relevant information
-                asset_info['name'] = info_dict.get('股票简称', f'Stock {symbol}')
-                asset_info['listing_date'] = self._parse_date(info_dict.get('上市时间'))
-                asset_info['total_shares'] = self._parse_number(info_dict.get('总股本'))
-                asset_info['circulating_shares'] = self._parse_number(info_dict.get('流通股'))
-                asset_info['market_cap'] = self._parse_number(info_dict.get('总市值'))
+            if market == 'A_STOCK':
+                # Get individual stock info for A-shares (this is relatively fast)
+                individual_info = ak.stock_individual_info_em(symbol=symbol)
+                if not individual_info.empty:
+                    info_dict = dict(zip(individual_info['item'], individual_info['value']))
 
-                logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
+                    # Extract relevant information
+                    asset_info['name'] = info_dict.get('股票简称', f'Stock {symbol}')
+                    asset_info['listing_date'] = self._parse_date(info_dict.get('上市时间'))
+                    asset_info['total_shares'] = self._parse_number(info_dict.get('总股本'))
+                    asset_info['circulating_shares'] = self._parse_number(info_dict.get('流通股'))
+                    asset_info['market_cap'] = self._parse_number(info_dict.get('总市值'))
+
+                    logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
+
+            elif market == 'HK_STOCK':
+                # For Hong Kong stocks, use default naming for now
+                # AKShare may have limited HK stock info APIs
+                logger.info(f"Processing Hong Kong stock {symbol}")
+                asset_info['name'] = self._get_default_hk_name(symbol)
+                asset_info['exchange'] = 'HKEX'
+                asset_info['currency'] = 'HKD'
+                logger.info(f"Using default HK stock info for {symbol}: {asset_info['name']}")
 
         except Exception as e:
             logger.warning(f"Error fetching individual info for {symbol}: {e}")
@@ -294,7 +333,11 @@ class AssetInfoService:
 
         # Set default values if not found
         if 'name' not in asset_info:
-            asset_info['name'] = self._get_default_name(symbol)
+            market = self._detect_market(symbol)
+            if market == 'HK_STOCK':
+                asset_info['name'] = self._get_default_hk_name(symbol)
+            else:
+                asset_info['name'] = self._get_default_name(symbol)
 
         # Apply known defaults for financial ratios if available
         if symbol in self._get_known_financial_defaults():
@@ -466,6 +509,18 @@ class AssetInfoService:
         }
         return known_names.get(symbol, f'Stock {symbol}')
 
+    def _get_default_hk_name(self, symbol: str) -> str:
+        """Get default name for known Hong Kong stocks."""
+        hk_names = {
+            '02171': '科济药业-B',
+            '00700': '腾讯控股',
+            '00981': '中芯国际',
+            '01810': '小米集团',
+            '00388': '香港交易所',
+            '00005': '汇丰控股'
+        }
+        return hk_names.get(symbol, f'HK Stock {symbol}')
+
     def _get_known_stock_defaults(self) -> Dict[str, Dict[str, Any]]:
         """Get comprehensive default data for known stocks to avoid API calls."""
         return {
@@ -538,12 +593,28 @@ class AssetInfoService:
         }
 
     def _standardize_symbol(self, symbol: str) -> str:
-        """Standardize stock symbol format."""
+        """Standardize stock symbol format - support both A-shares and Hong Kong stocks."""
+        # Remove market prefix if present (for A-shares)
         if symbol.lower().startswith(('sh', 'sz')):
             symbol = symbol[2:]
         if '.' in symbol:
             symbol = symbol.split('.')[0]
+
+        # Hong Kong stocks: 5-digit number, keep as-is
+        if symbol.isdigit() and len(symbol) == 5:
+            return symbol
+
+        # A-shares: pad to 6 digits
         return symbol.zfill(6)
+
+    def _detect_market(self, symbol: str) -> str:
+        """Detect market type based on symbol format."""
+        if symbol.isdigit() and len(symbol) == 5:
+            return 'HK_STOCK'
+        elif symbol.isdigit() and len(symbol) == 6:
+            return 'A_STOCK'
+        else:
+            return 'UNKNOWN'
 
     def _is_asset_data_stale(self, asset: Asset) -> bool:
         """Check if asset data is stale (older than 1 day)."""

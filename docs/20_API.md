@@ -1,11 +1,14 @@
 # QuantDB API 文档
 
-**版本**: v0.8.0-asset-enhanced | **性能**: 98.1% 提升 | **数据质量**: 真实公司名称 | **响应时间**: ~18ms
+**版本**: v1.1.0-hk-support | **新功能**: 港股支持 | **性能**: 98.1% 提升 | **数据质量**: 真实公司名称 | **响应时间**: ~18ms
 
-## 🚀 核心亮点 (v0.8.0)
+## 🚀 核心亮点 (v1.1.0)
 
-🔥 **资产档案增强**: 真实公司名称和财务指标，专业金融数据展示
+🌏 **港股支持**: 扩展多市场覆盖，支持A股和港股统一查询
 
+- ✅ **多市场支持**: 同时支持A股(6位代码)和港股(5位代码)
+- ✅ **智能识别**: 自动识别股票代码所属市场，调用对应数据源
+- ✅ **统一体验**: 港股与A股完全一致的API接口和数据格式
 - ✅ **真实公司名称**: "浦发银行"替代"Stock 600000"，用户体验显著提升
 - ✅ **财务指标集成**: PE、PB、ROE等关键指标，来自AKShare实时数据
 - ✅ **市场数据完善**: 总股本、流通股、市值等完整信息
@@ -122,22 +125,24 @@ PUT /api/v1/assets/symbol/{symbol}/refresh
 - `last_updated`: 最后更新时间
 - `data_source`: 数据来源
 
-### 股票历史数据 (统一API)
+### 股票历史数据 (多市场统一API)
 
 ```bash
-# 获取股票历史数据 (与AKShare保持一致)
+# 获取股票历史数据 (支持A股和港股)
 GET /api/v1/historical/stock/{symbol}?start_date=20230101&end_date=20231231
 
 # 参数:
-# - symbol: 6位股票代码 (如 000001)
+# - symbol: 股票代码 (A股6位如000001，港股5位如02171)
 # - start_date: 开始日期 YYYYMMDD (可选)
 # - end_date: 结束日期 YYYYMMDD (可选)
-# - adjust: 复权方式 "", "qfq", "hfq" (可选)
+# - adjust: 复权方式 "", "qfq", "hfq" (可选，港股可能不支持)
 # - limit: 最大返回数量 (默认100)
 ```
 
 **特点**:
+- 🌏 **多市场支持**: 同时支持A股和港股数据查询
 - 🔄 **统一数据源**: 唯一的股票数据API端点
+- 🧠 **智能识别**: 自动识别股票代码所属市场
 - 📊 **AKShare兼容**: 与AKShare保持完全一致的数据格式
 - ⚡ **智能缓存**: 自动缓存和更新数据
 - 💾 **持久化**: 数据存储在SQLite数据库中
@@ -225,28 +230,73 @@ DELETE /api/v1/cache/clear/symbol/{symbol}
 
 ## 使用示例
 
+### A股查询示例
+
 ```bash
-# 获取资产信息 (包含财务指标)
+# 获取A股资产信息 (包含财务指标)
 curl "http://localhost:8000/api/v1/assets/symbol/600000"
 
-# 刷新资产信息
+# 刷新A股资产信息
 curl -X PUT "http://localhost:8000/api/v1/assets/symbol/600000/refresh"
 
-# 获取股票历史数据 (显示真实公司名称)
+# 获取A股历史数据 (显示真实公司名称)
 curl "http://localhost:8000/api/v1/historical/stock/600000?start_date=20230101&end_date=20230131"
 
-# 获取最近10天数据
+# 获取A股最近10天数据
 curl "http://localhost:8000/api/v1/historical/stock/600000?limit=10"
 
-# 获取前复权数据
+# 获取A股前复权数据
 curl "http://localhost:8000/api/v1/historical/stock/600000?adjust=qfq&limit=20"
+```
 
+### 港股查询示例
+
+```bash
+# 获取港股历史数据 - 科济药业-B
+curl "http://localhost:8000/api/v1/historical/stock/02171?start_date=20240101&end_date=20240131"
+
+# 获取港股历史数据 - 腾讯控股
+curl "http://localhost:8000/api/v1/historical/stock/00700?start_date=20240101&end_date=20240131"
+
+# 获取港股历史数据 - 中芯国际
+curl "http://localhost:8000/api/v1/historical/stock/00981?start_date=20240101&end_date=20240131"
+
+# 获取港股最近10天数据
+curl "http://localhost:8000/api/v1/historical/stock/02171?limit=10"
+```
+
+### 系统管理示例
+
+```bash
 # 检查缓存状态
 curl http://localhost:8000/api/v1/cache/status
 
-# 清除特定股票缓存
+# 清除特定A股缓存
 curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/600000
+
+# 清除特定港股缓存
+curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/02171
 ```
+
+## 港股支持
+
+QuantDB现已支持港股历史数据查询，使用与A股完全相同的API接口。
+
+### 港股代码格式
+- 5位数字代码 (如: 02171, 00700, 00981)
+- 系统自动识别港股市场并调用对应数据源
+
+### 支持的港股示例
+- **02171**: 科济药业-B (生物医药)
+- **00700**: 腾讯控股 (科技龙头)
+- **00981**: 中芯国际 (半导体)
+- **01810**: 小米集团 (智能硬件)
+
+### 港股与A股的区别
+- **代码格式**: 港股5位数字 vs A股6位数字
+- **复权支持**: 港股可能不支持所有复权类型
+- **数据源**: 港股使用 `ak.stock_hk_hist()` vs A股使用 `ak.stock_zh_a_hist()`
+- **API接口**: 完全相同，系统自动识别和路由
 
 ## 迁移指南
 

@@ -62,15 +62,15 @@ async def get_historical_stock_data(
     """
     Get historical stock data for a specific symbol
 
-    - **symbol**: Stock symbol (6-digit code)
+    - **symbol**: Stock symbol (6-digit for A-shares, 5-digit for Hong Kong stocks)
     - **start_date**: Optional start date in format YYYYMMDD
     - **end_date**: Optional end date in format YYYYMMDD
     - **adjust**: Price adjustment method ('' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment)
     """
     try:
-        # Validate symbol format
-        if not symbol.isdigit() or len(symbol) != 6:
-            raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
+        # Validate symbol format - support both A-shares and Hong Kong stocks
+        if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
+            raise HTTPException(status_code=400, detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks")
 
         # Get or create asset with enhanced information
         asset, asset_metadata = asset_info_service.get_or_create_asset(symbol)
