@@ -25,11 +25,30 @@ st.set_page_config(
     layout="wide"
 )
 
+# 初始化数据库
+@st.cache_resource
+def init_database():
+    """初始化数据库表"""
+    try:
+        from api.database import engine, Base
+        from api.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
+
+        # 创建所有表
+        Base.metadata.create_all(bind=engine)
+        return True
+    except Exception as e:
+        st.error(f"数据库初始化失败: {e}")
+        return False
+
 # 初始化服务
 @st.cache_resource
 def init_services():
     """初始化服务实例"""
     try:
+        # 首先初始化数据库
+        if not init_database():
+            return None
+
         from services.stock_data_service import StockDataService
         from cache.akshare_adapter import AKShareAdapter
         from api.database import get_db
@@ -174,7 +193,7 @@ def main():
                 
                 response_time = time.time() - start_time
                 
-                if not result or result.empty:
+                if result is None or (isinstance(result, pd.DataFrame) and result.empty):
                     st.error("❌ 获取数据失败，请检查股票代码或稍后重试")
                     return
                 
@@ -182,10 +201,10 @@ def main():
                 try:
                     from services.asset_info_service import AssetInfoService
                     from api.database import get_db
-                    
+
                     db_session = next(get_db())
                     asset_service = AssetInfoService(db_session)
-                    asset_info = asset_service.get_asset_info(symbol)
+                    asset_info, metadata = asset_service.get_or_create_asset(symbol)
                     company_name = asset_info.name if asset_info else f"股票{symbol}"
                 except:
                     company_name = f"股票{symbol}"

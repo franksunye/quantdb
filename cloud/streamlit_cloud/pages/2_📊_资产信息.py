@@ -23,11 +23,30 @@ st.set_page_config(
     layout="wide"
 )
 
+# 初始化数据库
+@st.cache_resource
+def init_database():
+    """初始化数据库表"""
+    try:
+        from api.database import engine, Base
+        from api.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
+
+        # 创建所有表
+        Base.metadata.create_all(bind=engine)
+        return True
+    except Exception as e:
+        st.error(f"数据库初始化失败: {e}")
+        return False
+
 # 初始化服务
 @st.cache_resource
 def init_services():
     """初始化服务实例"""
     try:
+        # 首先初始化数据库
+        if not init_database():
+            return None
+
         from services.asset_info_service import AssetInfoService
         from services.stock_data_service import StockDataService
         from cache.akshare_adapter import AKShareAdapter
