@@ -51,11 +51,57 @@ st.set_page_config(
     }
 )
 
+# 验证数据库
+@st.cache_resource
+def verify_database():
+    """验证数据库连接和表结构"""
+    try:
+        from api.database import engine, Base, SessionLocal
+        from api.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
+        from sqlalchemy import inspect
+
+        # 检查数据库连接
+        inspector = inspect(engine)
+        existing_tables = inspector.get_table_names()
+
+        expected_tables = ['assets', 'daily_stock_data', 'intraday_stock_data', 'request_logs', 'data_coverage', 'system_metrics']
+        missing_tables = [table for table in expected_tables if table not in existing_tables]
+
+        if missing_tables:
+            st.warning(f"缺少数据库表: {missing_tables}")
+            # 尝试创建缺失的表
+            Base.metadata.create_all(bind=engine)
+            st.info("已尝试创建缺失的表")
+
+        # 测试基本查询
+        db_session = SessionLocal()
+        try:
+            asset_count = db_session.query(Asset).count()
+            st.success(f"数据库验证成功，找到 {asset_count} 个资产")
+            return True
+        except Exception as query_error:
+            st.error(f"数据库查询测试失败: {query_error}")
+            # 尝试重新创建所有表
+            Base.metadata.drop_all(bind=engine)
+            Base.metadata.create_all(bind=engine)
+            st.info("已重新创建所有数据库表")
+            return False
+        finally:
+            db_session.close()
+
+    except Exception as e:
+        st.error(f"数据库验证失败: {e}")
+        return False
+
 # 初始化服务
 @st.cache_resource
 def init_services():
     """初始化服务实例"""
     try:
+        # 首先验证数据库
+        if not verify_database():
+            st.warning("数据库验证失败，但继续尝试初始化服务")
+
         # 导入现有服务
         from services.stock_data_service import StockDataService
         from services.asset_info_service import AssetInfoService
