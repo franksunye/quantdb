@@ -287,7 +287,7 @@ def main():
     # 刷新按钮
     st.markdown("---")
     if st.button("🔄 刷新系统状态"):
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     main()

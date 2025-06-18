@@ -259,7 +259,7 @@ def main():
                             updated_asset = asset_service.update_asset_info(symbol)
                             if updated_asset:
                                 st.success("✅ 资产信息已刷新")
-                                st.experimental_rerun()
+                                st.rerun()
                             else:
                                 st.error("❌ 刷新失败")
                         except Exception as e:
