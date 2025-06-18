@@ -83,13 +83,28 @@ def init_services():
 def get_system_status():
     """获取系统状态"""
     try:
+        # Debug information
+        from config import DATABASE_URL, DATABASE_PATH
+        import os
+        from pathlib import Path
+
+        # Check database file existence
+        db_exists = os.path.exists(DATABASE_PATH)
+        current_dir = Path(__file__).parent
+
         services = init_services()
         if not services:
             return {
                 'api_status': 'service_error',
                 'api_response_time': 0,
                 'asset_count': 0,
-                'cache_stats': {}
+                'cache_stats': {},
+                'debug_info': {
+                    'database_url': DATABASE_URL,
+                    'database_path': DATABASE_PATH,
+                    'db_exists': db_exists,
+                    'current_dir': str(current_dir)
+                }
             }
 
         # 测试API响应时间
@@ -99,8 +114,12 @@ def get_system_status():
         try:
             from api.models import Asset
             asset_count = services['db_session'].query(Asset).count()
-        except Exception:
+        except Exception as db_error:
             asset_count = 0
+            # Add debug info for database errors
+            st.error(f"数据库查询错误: {db_error}")
+            st.info(f"数据库路径: {DATABASE_PATH}")
+            st.info(f"数据库存在: {db_exists}")
 
         api_response_time = (time.time() - start_time) * 1000
 
@@ -114,7 +133,13 @@ def get_system_status():
             'api_status': 'running',
             'api_response_time': api_response_time,
             'asset_count': asset_count,
-            'cache_stats': cache_stats
+            'cache_stats': cache_stats,
+            'debug_info': {
+                'database_url': DATABASE_URL,
+                'database_path': DATABASE_PATH,
+                'db_exists': db_exists,
+                'current_dir': str(current_dir)
+            }
         }
     except Exception as e:
         st.error(f"获取系统状态失败: {e}")
@@ -122,7 +147,8 @@ def get_system_status():
             'api_status': 'error',
             'api_response_time': 0,
             'asset_count': 0,
-            'cache_stats': {}
+            'cache_stats': {},
+            'debug_info': {'error': str(e)}
         }
 
 def main():
@@ -196,6 +222,26 @@ def main():
                 value=cache_efficiency,
                 delta="SQLite持久化"
             )
+
+        # Debug information (only show if there are issues)
+        if asset_count == 0 and 'debug_info' in system_status:
+            with st.expander("🔍 调试信息 (资产数量为0时显示)", expanded=True):
+                debug_info = system_status['debug_info']
+                st.write("**数据库配置信息:**")
+                st.json(debug_info)
+
+                # Additional file check
+                import os
+                st.write("**文件系统检查:**")
+                current_files = []
+                try:
+                    for root, dirs, files in os.walk('.'):
+                        for file in files:
+                            if file.endswith('.db'):
+                                current_files.append(os.path.join(root, file))
+                    st.write(f"找到的数据库文件: {current_files}")
+                except Exception as e:
+                    st.write(f"文件检查错误: {e}")
     else:
         col1, col2, col3, col4 = st.columns(4)
         with col1:

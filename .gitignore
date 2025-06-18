@@ -24,6 +24,9 @@ ENV/
 *.sqlite3
 *.sqlite
 
+# Exception: Include cloud deployment database
+!cloud/streamlit_cloud/database/stock_data.db
+
 # Log files
 logs/
 *.log
@@ -47,7 +50,7 @@ test_*.py
 !logs/.gitkeep
 
 # Specific to this project
-database/stock_data.db
+database/stock_data.db  # Root database (development)
 .env
 
 # Coverage reports

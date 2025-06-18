@@ -14,8 +14,30 @@ DATABASE_PATH = os.path.join(BASE_DIR, 'database/stock_data.db')
 RAW_DATA_DIR = os.path.join(BASE_DIR, 'data/raw/')
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'data/processed/')
 
-# Database configuration
-DATABASE_URL = os.getenv('DATABASE_URL', f'sqlite:///{DATABASE_PATH}')
+# Database configuration with fallback paths for cloud deployment
+def get_database_url():
+    """Get database URL with multiple fallback paths"""
+    # Check environment variable first
+    env_url = os.getenv('DATABASE_URL')
+    if env_url:
+        return env_url
+
+    # Try multiple possible paths
+    possible_paths = [
+        DATABASE_PATH,  # Standard path
+        os.path.join(BASE_DIR, 'database', 'stock_data.db'),  # Alternative
+        'database/stock_data.db',  # Relative path
+        './database/stock_data.db',  # Current dir relative
+    ]
+
+    for path in possible_paths:
+        if os.path.exists(path):
+            return f'sqlite:///{path}'
+
+    # Fallback to standard path even if file doesn't exist
+    return f'sqlite:///{DATABASE_PATH}'
+
+DATABASE_URL = get_database_url()
 
 # Determine database type
 DB_TYPE = 'supabase' if DATABASE_URL.startswith('postgresql') else 'sqlite'
