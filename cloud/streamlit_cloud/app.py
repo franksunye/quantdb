@@ -60,15 +60,20 @@ def init_services():
         from services.stock_data_service import StockDataService
         from services.asset_info_service import AssetInfoService
         from services.database_cache import DatabaseCache
+        from cache.akshare_adapter import AKShareAdapter
         from api.database import get_db
-        
+
         # 创建数据库会话
         db_session = next(get_db())
-        
+
+        # 创建AKShare适配器
+        akshare_adapter = AKShareAdapter()
+
         return {
-            'stock_service': StockDataService(db_session),
+            'stock_service': StockDataService(db_session, akshare_adapter),
             'asset_service': AssetInfoService(db_session),
             'cache_service': DatabaseCache(db_session),
+            'akshare_adapter': akshare_adapter,
             'db_session': db_session
         }
     except Exception as e:

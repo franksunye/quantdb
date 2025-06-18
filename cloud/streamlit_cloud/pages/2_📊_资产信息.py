@@ -30,12 +30,14 @@ def init_services():
     try:
         from services.asset_info_service import AssetInfoService
         from services.stock_data_service import StockDataService
+        from cache.akshare_adapter import AKShareAdapter
         from api.database import get_db
-        
+
         db_session = next(get_db())
+        akshare_adapter = AKShareAdapter()
         return {
             'asset_service': AssetInfoService(db_session),
-            'stock_service': StockDataService(db_session)
+            'stock_service': StockDataService(db_session, akshare_adapter)
         }
     except Exception as e:
         st.error(f"服务初始化失败: {e}")
@@ -116,7 +118,7 @@ def main():
             
             try:
                 # 获取或创建资产信息
-                asset_info = asset_service.get_or_create_asset_info(symbol)
+                asset_info, metadata = asset_service.get_or_create_asset(symbol)
                 response_time = time.time() - start_time
                 
                 if not asset_info:
@@ -193,28 +195,36 @@ def main():
                 
                 try:
                     # 获取历史数据统计
-                    data_coverage = stock_service.get_data_coverage(symbol)
-                    
-                    if data_coverage:
+                    from api.models import DailyStockData
+                    from api.database import get_db
+
+                    db_session = next(get_db())
+                    data_records = db_session.query(DailyStockData).filter(
+                        DailyStockData.symbol == symbol
+                    ).all()
+
+                    if data_records:
                         col1, col2, col3, col4 = st.columns(4)
-                        
+
+                        dates = [record.trade_date for record in data_records]
+                        start_date = min(dates)
+                        end_date = max(dates)
+                        data_span = (end_date - start_date).days
+
                         with col1:
-                            st.metric("数据记录数", f"{data_coverage['total_records']:,}条")
-                        
+                            st.metric("数据记录数", f"{len(data_records):,}条")
+
                         with col2:
-                            start_date = data_coverage['start_date']
-                            st.metric("数据起始", start_date.strftime('%Y-%m-%d') if start_date else "N/A")
-                        
+                            st.metric("数据起始", start_date.strftime('%Y-%m-%d'))
+
                         with col3:
-                            end_date = data_coverage['end_date']
-                            st.metric("数据截止", end_date.strftime('%Y-%m-%d') if end_date else "N/A")
-                        
+                            st.metric("数据截止", end_date.strftime('%Y-%m-%d'))
+
                         with col4:
-                            data_span = data_coverage['data_span_days']
-                            st.metric("数据跨度", f"{data_span}天" if data_span else "N/A")
+                            st.metric("数据跨度", f"{data_span}天")
                     else:
                         st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
-                
+
                 except Exception as e:
                     st.warning(f"⚠️ 获取数据覆盖信息失败: {str(e)}")
                 
@@ -238,7 +248,7 @@ def main():
                     with st.spinner("正在刷新资产信息..."):
                         try:
                             # 强制刷新资产信息
-                            updated_asset = asset_service.refresh_asset_info(symbol)
+                            updated_asset = asset_service.update_asset_info(symbol)
                             if updated_asset:
                                 st.success("✅ 资产信息已刷新")
                                 st.experimental_rerun()

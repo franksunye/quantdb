@@ -31,10 +31,12 @@ def init_services():
     """初始化服务实例"""
     try:
         from services.stock_data_service import StockDataService
+        from cache.akshare_adapter import AKShareAdapter
         from api.database import get_db
-        
+
         db_session = next(get_db())
-        return StockDataService(db_session)
+        akshare_adapter = AKShareAdapter()
+        return StockDataService(db_session, akshare_adapter)
     except Exception as e:
         st.error(f"服务初始化失败: {e}")
         return None
@@ -164,10 +166,10 @@ def main():
             
             try:
                 # 调用现有服务
-                result = stock_service.get_historical_data(
+                result = stock_service.get_stock_data(
                     symbol=symbol,
-                    start_date=start_date.strftime('%Y-%m-%d'),
-                    end_date=end_date.strftime('%Y-%m-%d')
+                    start_date=start_date.strftime('%Y%m%d'),
+                    end_date=end_date.strftime('%Y%m%d')
                 )
                 
                 response_time = time.time() - start_time
