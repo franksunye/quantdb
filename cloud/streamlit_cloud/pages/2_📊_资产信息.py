@@ -196,33 +196,41 @@ def main():
                 try:
                     # 获取历史数据统计
                     from api.models import DailyStockData
-                    from api.database import get_db
+                    from api.database import engine, Base, get_db
+
+                    # 确保表存在
+                    Base.metadata.create_all(bind=engine)
 
                     db_session = next(get_db())
-                    data_records = db_session.query(DailyStockData).filter(
-                        DailyStockData.symbol == symbol
-                    ).all()
 
-                    if data_records:
-                        col1, col2, col3, col4 = st.columns(4)
+                    try:
+                        data_records = db_session.query(DailyStockData).filter(
+                            DailyStockData.symbol == symbol
+                        ).all()
 
-                        dates = [record.trade_date for record in data_records]
-                        start_date = min(dates)
-                        end_date = max(dates)
-                        data_span = (end_date - start_date).days
+                        if data_records:
+                            col1, col2, col3, col4 = st.columns(4)
 
-                        with col1:
-                            st.metric("数据记录数", f"{len(data_records):,}条")
+                            dates = [record.trade_date for record in data_records]
+                            start_date = min(dates)
+                            end_date = max(dates)
+                            data_span = (end_date - start_date).days
 
-                        with col2:
-                            st.metric("数据起始", start_date.strftime('%Y-%m-%d'))
+                            with col1:
+                                st.metric("数据记录数", f"{len(data_records):,}条")
 
-                        with col3:
-                            st.metric("数据截止", end_date.strftime('%Y-%m-%d'))
+                            with col2:
+                                st.metric("数据起始", start_date.strftime('%Y-%m-%d'))
 
-                        with col4:
-                            st.metric("数据跨度", f"{data_span}天")
-                    else:
+                            with col3:
+                                st.metric("数据截止", end_date.strftime('%Y-%m-%d'))
+
+                            with col4:
+                                st.metric("数据跨度", f"{data_span}天")
+                        else:
+                            st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
+
+                    except Exception as query_error:
                         st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
 
                 except Exception as e:

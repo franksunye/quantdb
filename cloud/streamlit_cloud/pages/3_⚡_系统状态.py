@@ -40,28 +40,44 @@ def init_services():
 def get_database_info():
     """获取数据库信息"""
     try:
+        # 首先确保数据库表存在
+        from api.database import engine, Base, get_db
         from api.models import Asset, DailyStockData
-        from api.database import get_db
-        
+
+        # 创建表（如果不存在）
+        Base.metadata.create_all(bind=engine)
+
         db_session = next(get_db())
-        
-        # 统计数据库信息
-        asset_count = db_session.query(Asset).count()
-        daily_data_count = db_session.query(DailyStockData).count()
-        
+
+        # 安全的数据库查询
+        try:
+            asset_count = db_session.query(Asset).count()
+        except Exception:
+            asset_count = 0
+
+        try:
+            daily_data_count = db_session.query(DailyStockData).count()
+        except Exception:
+            daily_data_count = 0
+
         # 获取最新数据日期
-        latest_data = db_session.query(DailyStockData.trade_date).order_by(
-            DailyStockData.trade_date.desc()
-        ).first()
-        
-        latest_date = latest_data[0] if latest_data else None
-        
+        try:
+            latest_data = db_session.query(DailyStockData.trade_date).order_by(
+                DailyStockData.trade_date.desc()
+            ).first()
+            latest_date = latest_data[0] if latest_data else None
+        except Exception:
+            latest_date = None
+
         # 获取数据库文件大小
         db_path = current_dir / "database" / "stock_data.db"
         db_size_mb = 0
         if db_path.exists():
-            db_size_mb = db_path.stat().st_size / (1024 * 1024)
-        
+            try:
+                db_size_mb = db_path.stat().st_size / (1024 * 1024)
+            except Exception:
+                db_size_mb = 0
+
         return {
             'asset_count': asset_count,
             'daily_data_count': daily_data_count,
@@ -75,31 +91,41 @@ def get_database_info():
 def test_system_performance():
     """测试系统性能"""
     try:
+        # 确保数据库表存在
+        from api.database import engine, Base, get_db
         from api.models import Asset
-        from api.database import get_db
-        
+
+        Base.metadata.create_all(bind=engine)
+
         db_session = next(get_db())
-        
+
         # 测试数据库查询性能
         start_time = time.time()
-        assets = db_session.query(Asset).limit(10).all()
+        try:
+            assets = db_session.query(Asset).limit(10).all()
+            assets_count = len(assets)
+        except Exception:
+            assets_count = 0
         db_query_time = (time.time() - start_time) * 1000
-        
+
         # 测试缓存服务
         cache_service = init_services()
         if cache_service:
             start_time = time.time()
-            cache_stats = cache_service.get_cache_stats()
+            try:
+                cache_stats = cache_service.get_cache_stats()
+            except Exception:
+                cache_stats = {}
             cache_query_time = (time.time() - start_time) * 1000
         else:
             cache_query_time = 0
             cache_stats = {}
-        
+
         return {
             'db_query_time': db_query_time,
             'cache_query_time': cache_query_time,
             'cache_stats': cache_stats,
-            'assets_sample': len(assets)
+            'assets_sample': assets_count
         }
     except Exception as e:
         st.error(f"性能测试失败: {e}")
