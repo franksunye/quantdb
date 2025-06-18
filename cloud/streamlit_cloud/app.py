@@ -51,30 +51,11 @@ st.set_page_config(
     }
 )
 
-# 初始化数据库
-@st.cache_resource
-def init_database():
-    """初始化数据库表"""
-    try:
-        from api.database import engine, Base
-        from api.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
-
-        # 创建所有表
-        Base.metadata.create_all(bind=engine)
-        return True
-    except Exception as e:
-        st.error(f"数据库初始化失败: {e}")
-        return False
-
 # 初始化服务
 @st.cache_resource
 def init_services():
     """初始化服务实例"""
     try:
-        # 首先初始化数据库
-        if not init_database():
-            return None
-
         # 导入现有服务
         from services.stock_data_service import StockDataService
         from services.asset_info_service import AssetInfoService
@@ -102,15 +83,6 @@ def init_services():
 def get_system_status():
     """获取系统状态"""
     try:
-        # 首先确保数据库已初始化
-        if not init_database():
-            return {
-                'api_status': 'database_error',
-                'api_response_time': 0,
-                'asset_count': 0,
-                'cache_stats': {}
-            }
-
         services = init_services()
         if not services:
             return {
@@ -123,18 +95,12 @@ def get_system_status():
         # 测试API响应时间
         start_time = time.time()
 
-        # 安全的数据库查询测试
+        # 数据库查询测试
         try:
             from api.models import Asset
             asset_count = services['db_session'].query(Asset).count()
-        except Exception as db_error:
-            # 如果查询失败，尝试重新创建表
-            try:
-                from api.database import engine, Base
-                Base.metadata.create_all(bind=engine)
-                asset_count = services['db_session'].query(Asset).count()
-            except Exception:
-                asset_count = 0
+        except Exception:
+            asset_count = 0
 
         api_response_time = (time.time() - start_time) * 1000
 

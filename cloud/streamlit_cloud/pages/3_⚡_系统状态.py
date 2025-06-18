@@ -40,16 +40,12 @@ def init_services():
 def get_database_info():
     """获取数据库信息"""
     try:
-        # 首先确保数据库表存在
-        from api.database import engine, Base, get_db
+        from api.database import get_db
         from api.models import Asset, DailyStockData
-
-        # 创建表（如果不存在）
-        Base.metadata.create_all(bind=engine)
 
         db_session = next(get_db())
 
-        # 安全的数据库查询
+        # 数据库查询
         try:
             asset_count = db_session.query(Asset).count()
         except Exception:
