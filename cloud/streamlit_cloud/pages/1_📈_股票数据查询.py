@@ -18,6 +18,21 @@ current_dir = Path(__file__).parent.parent
 src_dir = current_dir / "src"
 sys.path.insert(0, str(src_dir))
 
+# 导入工具组件
+try:
+    from utils.charts import (
+        create_price_chart,
+        create_candlestick_chart,
+        create_volume_chart,
+        create_metrics_dashboard,
+        calculate_basic_metrics
+    )
+    from utils.config import config
+    from utils.stock_validator import validate_stock_code as advanced_validate, get_stock_recommendations
+    ADVANCED_FEATURES = True
+except ImportError:
+    ADVANCED_FEATURES = False
+
 # 页面配置
 st.set_page_config(
     page_title="股票数据查询 - QuantDB",
@@ -42,16 +57,20 @@ def init_services():
         return None
 
 def validate_stock_code(code: str) -> bool:
-    """验证股票代码格式"""
+    """验证股票代码格式 - 增强版本"""
+    if ADVANCED_FEATURES:
+        return advanced_validate(code)
+
+    # 基础验证逻辑
     if not code:
         return False
-    
+
     code = code.strip()
-    
+
     # 检查是否为6位数字
     if len(code) != 6 or not code.isdigit():
         return False
-    
+
     # 检查是否为有效的A股代码
     if code.startswith(('000', '001', '002', '003', '300')):  # 深交所
         return True
@@ -59,52 +78,52 @@ def validate_stock_code(code: str) -> bool:
         return True
     elif code.startswith('688'):  # 科创板
         return True
-    
+
     return False
 
-def create_price_chart(df: pd.DataFrame, symbol: str, name: str = None):
-    """创建价格趋势图"""
+def create_price_chart_fallback(df: pd.DataFrame, symbol: str, name: str = None):
+    """创建价格趋势图 - 基础版本"""
     fig = px.line(
-        df, 
-        x='trade_date', 
-        y='close', 
+        df,
+        x='trade_date',
+        y='close',
         title=f'{name or symbol} - 收盘价趋势',
         labels={'close': '收盘价 (元)', 'trade_date': '日期'}
     )
-    
+
     fig.update_layout(
         hovermode='x unified',
         showlegend=False,
         height=400
     )
-    
+
     fig.update_traces(
         line=dict(width=2, color='#1f77b4'),
         hovertemplate='日期: %{x}<br>收盘价: ¥%{y:.2f}<extra></extra>'
     )
-    
+
     return fig
 
-def create_volume_chart(df: pd.DataFrame, symbol: str, name: str = None):
-    """创建成交量图表"""
+def create_volume_chart_fallback(df: pd.DataFrame, symbol: str, name: str = None):
+    """创建成交量图表 - 基础版本"""
     fig = px.bar(
-        df, 
-        x='trade_date', 
-        y='volume', 
+        df,
+        x='trade_date',
+        y='volume',
         title=f'{name or symbol} - 成交量',
         labels={'volume': '成交量', 'trade_date': '日期'}
     )
-    
+
     fig.update_layout(
         showlegend=False,
         height=300
     )
-    
+
     fig.update_traces(
         marker_color='lightblue',
         hovertemplate='日期: %{x}<br>成交量: %{y:,.0f}<extra></extra>'
     )
-    
+
     return fig
 
 def main():
@@ -228,15 +247,32 @@ def main():
                 
                 # 图表展示
                 if len(df) > 0:
-                    tab1, tab2, tab3 = st.tabs(["📈 价格趋势", "📊 成交量", "📋 数据表格"])
-                    
-                    with tab1:
-                        fig_price = create_price_chart(df, symbol, company_name)
-                        st.plotly_chart(fig_price, use_container_width=True)
-                    
-                    with tab2:
-                        fig_volume = create_volume_chart(df, symbol, company_name)
-                        st.plotly_chart(fig_volume, use_container_width=True)
+                    if ADVANCED_FEATURES:
+                        # 使用高级图表组件
+                        tab1, tab2, tab3, tab4 = st.tabs(["📈 价格趋势", "🕯️ K线图", "📊 成交量", "📋 数据表格"])
+
+                        with tab1:
+                            fig_price = create_price_chart(df, symbol, company_name)
+                            st.plotly_chart(fig_price, use_container_width=True)
+
+                        with tab2:
+                            fig_candlestick = create_candlestick_chart(df, symbol, company_name)
+                            st.plotly_chart(fig_candlestick, use_container_width=True)
+
+                        with tab3:
+                            fig_volume = create_volume_chart(df, symbol, company_name)
+                            st.plotly_chart(fig_volume, use_container_width=True)
+                    else:
+                        # 使用基础图表组件
+                        tab1, tab2, tab3 = st.tabs(["📈 价格趋势", "📊 成交量", "📋 数据表格"])
+
+                        with tab1:
+                            fig_price = create_price_chart_fallback(df, symbol, company_name)
+                            st.plotly_chart(fig_price, use_container_width=True)
+
+                        with tab2:
+                            fig_volume = create_volume_chart_fallback(df, symbol, company_name)
+                            st.plotly_chart(fig_volume, use_container_width=True)
                     
                     with tab3:
                         # 数据表格

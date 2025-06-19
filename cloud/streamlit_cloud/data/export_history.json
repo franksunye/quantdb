@@ -1,0 +1,9 @@
+[
+  {
+    "timestamp": "2025-06-19T10:19:51.296798",
+    "data_type": "测试数据",
+    "symbol_count": 2,
+    "record_count": 10,
+    "export_format": "CSV"
+  }
+]
