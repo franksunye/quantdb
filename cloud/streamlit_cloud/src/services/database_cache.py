@@ -14,8 +14,11 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
 
-from src.api.models import Asset, DailyStockData
-from src.logger_unified import logger
+from api.models import Asset, DailyStockData
+
+# Setup basic logging
+import logging
+logger = logging.getLogger(__name__)
 
 class DatabaseCache:
     """
@@ -316,7 +319,7 @@ class DatabaseCache:
             # Create new asset using AssetInfoService for complete information
             logger.info(f"Creating new asset for {symbol} using AssetInfoService")
 
-            from src.services.asset_info_service import AssetInfoService
+            from services.asset_info_service import AssetInfoService
             asset_service = AssetInfoService(self.db)
             asset = asset_service.get_or_create_asset(symbol)
 

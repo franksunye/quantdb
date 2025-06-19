@@ -195,7 +195,14 @@ def main():
                 
                 # 数据概览
                 df = result.copy()
-                df['trade_date'] = pd.to_datetime(df['trade_date'])
+                # 确保日期列存在并转换为datetime
+                if 'date' in df.columns:
+                    df['trade_date'] = pd.to_datetime(df['date'])
+                elif 'trade_date' in df.columns:
+                    df['trade_date'] = pd.to_datetime(df['trade_date'])
+                else:
+                    st.error("❌ 数据格式错误：缺少日期列")
+                    return
                 
                 col1, col2, col3, col4 = st.columns(4)
                 
@@ -267,8 +274,24 @@ def main():
                         st.write("**数据记录**:", f"{len(df)}条")
                 
             except Exception as e:
-                st.error(f"❌ 查询过程中出现错误: {str(e)}")
-                st.info("请检查网络连接或稍后重试")
+                error_msg = str(e)
+                st.error(f"❌ 查询过程中出现错误: {error_msg}")
+
+                # 提供更具体的错误提示
+                if "Invalid symbol format" in error_msg:
+                    st.info("💡 请输入正确的股票代码格式：\n- A股：6位数字（如：600000）\n- 港股：5位数字（如：00700）")
+                elif "trade_date" in error_msg:
+                    st.info("💡 数据格式问题，请联系技术支持")
+                elif "connection" in error_msg.lower() or "timeout" in error_msg.lower():
+                    st.info("💡 网络连接问题，请检查网络或稍后重试")
+                else:
+                    st.info("💡 请检查股票代码是否正确，或稍后重试")
+
+                # 调试信息（仅在开发环境显示）
+                with st.expander("🔍 详细错误信息（调试用）"):
+                    st.code(error_msg)
+                    import traceback
+                    st.code(traceback.format_exc())
 
 if __name__ == "__main__":
     main()

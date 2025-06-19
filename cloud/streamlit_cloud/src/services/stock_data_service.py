@@ -13,10 +13,13 @@ from typing import Dict, List, Optional, Tuple, Union, Any
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from src.api.models import Asset, DailyStockData
-from src.logger_unified import logger
-from src.services.database_cache import DatabaseCache
-from src.services.trading_calendar import get_trading_calendar
+from api.models import Asset, DailyStockData
+from services.database_cache import DatabaseCache
+from services.trading_calendar import get_trading_calendar
+
+# Setup basic logging
+import logging
+logger = logging.getLogger(__name__)
 
 class StockDataService:
     """
