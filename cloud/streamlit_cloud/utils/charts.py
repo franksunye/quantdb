@@ -461,3 +461,50 @@ def create_cache_hit_pie_chart(cache_hits: int, cache_misses: int) -> go.Figure:
     )
 
     return fig
+
+class StockChartBuilder:
+    """股票图表构建器 - 云端版本"""
+
+    @staticmethod
+    def create_price_trend_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+        """创建价格趋势图"""
+        return create_price_chart(df, f'{name or symbol} - 收盘价趋势')
+
+    @staticmethod
+    def create_volume_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+        """创建成交量图表"""
+        return create_volume_chart(df, f'{name or symbol} - 成交量')
+
+    @staticmethod
+    def create_candlestick_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+        """创建K线图"""
+        return create_candlestick_chart(df, f'{name or symbol} - K线图')
+
+    @staticmethod
+    def create_returns_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+        """创建收益率图表"""
+        return create_returns_distribution(df, f'{name or symbol} - 收益率分布')
+
+    @staticmethod
+    def create_performance_comparison_chart(cache_stats: Dict[str, Any]) -> go.Figure:
+        """创建性能对比图表"""
+        categories = ['缓存命中', 'AKShare调用']
+        values = [cache_stats.get('cache_hits', 0), cache_stats.get('akshare_calls', 0)]
+        colors = ['#2ca02c', '#ff7f0e']
+
+        fig = px.pie(
+            values=values,
+            names=categories,
+            title='查询来源分布',
+            color_discrete_sequence=colors
+        )
+
+        fig.update_traces(
+            textposition='inside',
+            textinfo='percent+label',
+            hovertemplate='%{label}<br>次数: %{value}<br>占比: %{percent}<extra></extra>'
+        )
+
+        fig.update_layout(height=300)
+
+        return fig

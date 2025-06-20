@@ -391,7 +391,7 @@ def display_stock_detail(symbol):
         st.error(f"获取股票详情失败: {str(e)}")
 
 def display_batch_query_results(services):
-    """显示批量查询结果"""
+    """显示批量查询结果（性能优化版本）"""
 
     st.markdown("---")
     st.subheader("📊 批量查询结果")
@@ -401,92 +401,190 @@ def display_batch_query_results(services):
         return
 
     try:
-        symbols = list(st.session_state.watchlist.keys())
-        st.info(f"🚀 正在查询 {len(symbols)} 只股票的最新数据...")
+        # 尝试使用高性能批量客户端
+        try:
+            from utils.batch_client import get_batch_client, create_st_batch_progress
 
-        # 批量获取数据
-        batch_results = []
-        progress_bar = st.progress(0)
+            batch_client = get_batch_client()
+            symbols = list(st.session_state.watchlist.keys())
 
-        for i, symbol in enumerate(symbols):
-            try:
-                # 获取资产信息
-                asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+            st.info(f"🚀 使用高性能批量查询获取 {len(symbols)} 只股票数据...")
 
-                # 获取最新价格数据（最近1天）
-                end_date = datetime.now().date()
-                start_date = end_date - timedelta(days=1)
+            # 创建进度显示
+            progress_callback = create_st_batch_progress()
 
-                stock_data = services['stock_service'].get_stock_data(
-                    symbol=symbol,
-                    start_date=start_date.strftime('%Y%m%d'),
-                    end_date=end_date.strftime('%Y%m%d')
-                )
+            # 批量获取自选股汇总信息
+            with st.spinner("正在批量获取数据..."):
+                summary_result = batch_client.get_watchlist_summary(symbols)
 
-                # 处理数据
-                latest_price = "N/A"
-                price_change = "N/A"
+            # 处理结果
+            batch_results = []
+            summary_data = summary_result.get("summary", {})
 
-                if stock_data is not None and not stock_data.empty:
-                    latest_price = f"¥{stock_data['close'].iloc[-1]:.2f}"
-                    if len(stock_data) > 1:
-                        first_price = stock_data['close'].iloc[0]
-                        last_price = stock_data['close'].iloc[-1]
-                        change_pct = ((last_price - first_price) / first_price * 100)
-                        price_change = f"{change_pct:.2f}%"
+            for symbol in symbols:
+                watchlist_info = st.session_state.watchlist[symbol]
+                summary_info = summary_data.get(symbol, {})
 
                 batch_results.append({
                     "股票代码": symbol,
-                    "股票名称": asset_info.name if asset_info else st.session_state.watchlist[symbol]['name'],
-                    "行业": asset_info.industry if asset_info else "N/A",
-                    "最新价格": latest_price,
-                    "涨跌幅": price_change,
-                    "数据来源": asset_info.data_source if asset_info else "N/A",
-                    "状态": "✅" if stock_data is not None and not stock_data.empty else "❌"
+                    "股票名称": summary_info.get("name", watchlist_info.get("name", f"Stock {symbol}")),
+                    "行业": summary_info.get("industry", "其他"),
+                    "最新价格": summary_info.get("latest_price", "N/A"),
+                    "涨跌幅(%)": summary_info.get("price_change_pct", "N/A"),
+                    "数据来源": summary_info.get("data_source", "unknown"),
+                    "有价格数据": "✅" if summary_info.get("has_price_data") else "❌"
                 })
 
-            except Exception as e:
-                batch_results.append({
-                    "股票代码": symbol,
-                    "股票名称": st.session_state.watchlist[symbol]['name'],
-                    "行业": "N/A",
-                    "最新价格": "错误",
-                    "涨跌幅": "N/A",
-                    "数据来源": "N/A",
-                    "状态": "❌"
-                })
-
-            # 更新进度
-            progress_bar.progress((i + 1) / len(symbols))
-
-        progress_bar.empty()
-
-        # 显示结果
-        if batch_results:
-            df = pd.DataFrame(batch_results)
-
-            # 统计信息
+            # 显示性能统计
+            metadata = summary_result.get("metadata", {})
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.metric("总股票数", len(batch_results))
+                st.metric("总股票数", metadata.get("total_symbols", 0))
             with col2:
-                success_count = len([r for r in batch_results if r['状态'] == '✅'])
-                st.metric("成功查询", success_count)
+                st.metric("资产信息", metadata.get("assets_found", 0))
             with col3:
-                error_count = len([r for r in batch_results if r['状态'] == '❌'])
-                st.metric("查询失败", error_count)
+                st.metric("价格数据", metadata.get("price_data_found", 0))
             with col4:
-                st.metric("查询完成", "100%")
+                st.success("⚡ 高性能批量查询")
 
-            st.dataframe(
-                df,
-                use_container_width=True,
-                hide_index=True
-            )
+            st.text("查询完成！")
+
+            # 显示结果
+            if batch_results:
+                df = pd.DataFrame(batch_results)
+
+                # 格式化显示
+                def format_price_change(val):
+                    if isinstance(val, (int, float)):
+                        if val > 0:
+                            return f"+{val:.2f}%"
+                        else:
+                            return f"{val:.2f}%"
+                    return str(val)
+
+                # 应用样式
+                styled_df = df.copy()
+                styled_df['涨跌幅(%)'] = styled_df['涨跌幅(%)'].apply(format_price_change)
+
+                st.dataframe(
+                    styled_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+
+                # 统计信息
+                valid_changes = [x for x in df['涨跌幅(%)'] if isinstance(x, (int, float))]
+                if valid_changes:
+                    col1, col2, col3 = st.columns(3)
+
+                    with col1:
+                        up_count = len([x for x in valid_changes if x > 0])
+                        st.metric("上涨股票", f"{up_count}只")
+
+                    with col2:
+                        down_count = len([x for x in valid_changes if x < 0])
+                        st.metric("下跌股票", f"{down_count}只")
+
+                    with col3:
+                        avg_change = sum(valid_changes) / len(valid_changes)
+                        st.metric("平均涨跌幅", f"{avg_change:.2f}%")
+
+        except ImportError:
+            # 回退到基础批量查询
+            st.warning("⚠️ 高性能批量查询不可用，使用基础查询模式")
+            display_basic_batch_query(services)
 
     except Exception as e:
         st.error(f"批量查询失败: {str(e)}")
+
+
+def display_basic_batch_query(services):
+    """基础批量查询（回退方案）"""
+
+    symbols = list(st.session_state.watchlist.keys())
+    st.info(f"🔄 正在查询 {len(symbols)} 只股票的最新数据...")
+
+    # 批量获取数据
+    batch_results = []
+    progress_bar = st.progress(0)
+
+    for i, symbol in enumerate(symbols):
+        try:
+            # 获取资产信息
+            asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+
+            # 获取最新价格数据（最近1天）
+            end_date = datetime.now().date()
+            start_date = end_date - timedelta(days=1)
+
+            stock_data = services['stock_service'].get_stock_data(
+                symbol=symbol,
+                start_date=start_date.strftime('%Y%m%d'),
+                end_date=end_date.strftime('%Y%m%d')
+            )
+
+            # 处理数据
+            latest_price = "N/A"
+            price_change = "N/A"
+
+            if stock_data is not None and not stock_data.empty:
+                latest_price = f"¥{stock_data['close'].iloc[-1]:.2f}"
+                if len(stock_data) > 1:
+                    first_price = stock_data['close'].iloc[0]
+                    last_price = stock_data['close'].iloc[-1]
+                    change_pct = ((last_price - first_price) / first_price * 100)
+                    price_change = f"{change_pct:.2f}%"
+
+            batch_results.append({
+                "股票代码": symbol,
+                "股票名称": asset_info.name if asset_info else st.session_state.watchlist[symbol]['name'],
+                "行业": asset_info.industry if asset_info else "N/A",
+                "最新价格": latest_price,
+                "涨跌幅": price_change,
+                "数据来源": asset_info.data_source if asset_info else "N/A",
+                "状态": "✅" if stock_data is not None and not stock_data.empty else "❌"
+            })
+
+        except Exception as e:
+            batch_results.append({
+                "股票代码": symbol,
+                "股票名称": st.session_state.watchlist[symbol]['name'],
+                "行业": "N/A",
+                "最新价格": "错误",
+                "涨跌幅": "N/A",
+                "数据来源": "N/A",
+                "状态": "❌"
+            })
+
+        # 更新进度
+        progress_bar.progress((i + 1) / len(symbols))
+
+    progress_bar.empty()
+
+    # 显示结果
+    if batch_results:
+        df = pd.DataFrame(batch_results)
+
+        # 统计信息
+        col1, col2, col3, col4 = st.columns(4)
+
+        with col1:
+            st.metric("总股票数", len(batch_results))
+        with col2:
+            success_count = len([r for r in batch_results if r['状态'] == '✅'])
+            st.metric("成功查询", success_count)
+        with col3:
+            error_count = len([r for r in batch_results if r['状态'] == '❌'])
+            st.metric("查询失败", error_count)
+        with col4:
+            st.metric("查询完成", "100%")
+
+        st.dataframe(
+            df,
+            use_container_width=True,
+            hide_index=True
+        )
 
 def export_watchlist():
     """导出自选股列表"""

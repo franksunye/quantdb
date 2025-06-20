@@ -1,19 +1,24 @@
 """
-QuantDB Cloud Edition 配置管理
+QuantDB Frontend 配置管理
 
-管理云端版本的配置参数和常量。
+管理前端应用的配置参数和常量。
 """
 
 import os
 from typing import Dict, Any
 
 class Config:
-    """云端版本配置类"""
+    """前端配置类"""
+    
+    # API配置
+    API_BASE_URL = os.getenv("QUANTDB_API_URL", "http://localhost:8000")
+    API_PREFIX = "/api/v1"
+    API_TIMEOUT = int(os.getenv("API_TIMEOUT", "300"))  # 秒 - 增加到5分钟以支持首次数据获取
     
     # 应用配置
-    APP_TITLE = "QuantDB Cloud - 量化数据平台"
-    APP_VERSION = "v1.1.0-cloud"
-    APP_DESCRIPTION = "高性能股票数据缓存服务 - 云端版"
+    APP_TITLE = "QuantDB - 量化数据平台"
+    APP_VERSION = "v1.0.0-mvp"
+    APP_DESCRIPTION = "高性能股票数据缓存服务前端"
     
     # 页面配置
     PAGE_ICON = "📊"
@@ -55,22 +60,25 @@ class Config:
     
     # 错误消息
     ERROR_MESSAGES = {
-        "service_connection": "无法连接到数据服务，请检查服务是否正常",
+        "api_connection": "无法连接到后端API服务，请检查服务是否启动",
         "invalid_symbol": "股票代码格式错误，请输入有效代码 (A股: 600000, 港股: 02171)",
         "invalid_date": "日期格式错误或日期范围无效",
         "no_data": "未找到指定时间范围内的数据",
         "server_error": "服务器内部错误，请稍后重试",
-        "timeout": "请求超时，请检查网络连接",
-        "database_error": "数据库连接错误，请联系技术支持"
+        "timeout": "请求超时，请检查网络连接"
     }
     
     # 成功消息
     SUCCESS_MESSAGES = {
         "data_loaded": "数据加载成功",
         "cache_hit": "数据来自缓存，响应速度极快",
-        "service_healthy": "数据服务运行正常",
-        "database_connected": "数据库连接正常"
+        "api_healthy": "API服务运行正常"
     }
+    
+    @classmethod
+    def get_api_url(cls, endpoint: str = "") -> str:
+        """获取完整的API URL"""
+        return f"{cls.API_BASE_URL}{cls.API_PREFIX}{endpoint}"
     
     @classmethod
     def get_color(cls, color_name: str) -> str:
@@ -85,18 +93,18 @@ class Config:
     @classmethod
     def validate_symbol(cls, symbol: str) -> bool:
         """验证股票代码格式 - 支持A股和港股"""
-        if not symbol:
+        if not symbol or not symbol.isdigit():
             return False
-
-        # 港股: 5位数字，通常以0开头 (02171, 00700)
-        if symbol.isdigit() and len(symbol) == 5 and symbol.startswith('0'):
-            return True
 
         # 移除可能的前缀和后缀 (仅对A股)
         clean_symbol = symbol.upper().replace("SH", "").replace("SZ", "").replace(".SH", "").replace(".SZ", "")
 
         # A股: 6位数字 (000001, 600000)
         if clean_symbol.isdigit() and len(clean_symbol) == 6:
+            return True
+
+        # 港股: 5位数字 (02171, 00700)
+        if symbol.isdigit() and len(symbol) == 5:
             return True
 
         return False
@@ -124,6 +132,8 @@ class Config:
 config = Config()
 
 # 导出常用配置
+API_BASE_URL = config.API_BASE_URL
+API_PREFIX = config.API_PREFIX
 COLORS = config.COLORS
 TEST_SYMBOLS = config.TEST_SYMBOLS
 ERROR_MESSAGES = config.ERROR_MESSAGES
