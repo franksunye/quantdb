@@ -1,14 +1,9 @@
 # QuantDB API 文档
 
-**版本**: v1.1.0-hk-support | **新功能**: 港股支持 | **性能**: 98.1% 提升 | **数据质量**: 真实公司名称 | **响应时间**: ~18ms
+**版本**: v1.0.0-cloud | **状态**: 生产就绪 | **性能**: 98.1% 提升 | **数据质量**: 真实公司名称 | **响应时间**: ~18ms
 
-## 🚀 核心亮点 (v1.1.0)
+## 🚀 核心亮点
 
-🌏 **港股支持**: 扩展多市场覆盖，支持A股和港股统一查询
-
-- ✅ **多市场支持**: 同时支持A股(6位代码)和港股(5位代码)
-- ✅ **智能识别**: 自动识别股票代码所属市场，调用对应数据源
-- ✅ **统一体验**: 港股与A股完全一致的API接口和数据格式
 - ✅ **真实公司名称**: "浦发银行"替代"Stock 600000"，用户体验显著提升
 - ✅ **财务指标集成**: PE、PB、ROE等关键指标，来自AKShare实时数据
 - ✅ **市场数据完善**: 总股本、流通股、市值等完整信息
@@ -16,6 +11,7 @@
 - ✅ **极致性能**: 缓存响应时间 ~18ms，比 AKShare 快 98.1%
 - ✅ **智能缓存**: 基于真实交易日历，避免无效 API 调用
 - ✅ **数据准确**: 100% 准确的交易日识别，确保数据完整性
+- ✅ **完整测试**: 259个测试100%通过，确保API稳定性
 
 ## 快速开始
 
@@ -249,54 +245,15 @@ curl "http://localhost:8000/api/v1/historical/stock/600000?limit=10"
 curl "http://localhost:8000/api/v1/historical/stock/600000?adjust=qfq&limit=20"
 ```
 
-### 港股查询示例
-
-```bash
-# 获取港股历史数据 - 科济药业-B
-curl "http://localhost:8000/api/v1/historical/stock/02171?start_date=20240101&end_date=20240131"
-
-# 获取港股历史数据 - 腾讯控股
-curl "http://localhost:8000/api/v1/historical/stock/00700?start_date=20240101&end_date=20240131"
-
-# 获取港股历史数据 - 中芯国际
-curl "http://localhost:8000/api/v1/historical/stock/00981?start_date=20240101&end_date=20240131"
-
-# 获取港股最近10天数据
-curl "http://localhost:8000/api/v1/historical/stock/02171?limit=10"
-```
-
 ### 系统管理示例
 
 ```bash
 # 检查缓存状态
 curl http://localhost:8000/api/v1/cache/status
 
-# 清除特定A股缓存
-curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/600000
-
-# 清除特定港股缓存
-curl -X DELETE http://localhost:8000/api/v1/cache/clear/symbol/02171
+# 清除缓存数据
+curl -X DELETE http://localhost:8000/api/v1/cache/clear
 ```
-
-## 港股支持
-
-QuantDB现已支持港股历史数据查询，使用与A股完全相同的API接口。
-
-### 港股代码格式
-- 5位数字代码 (如: 02171, 00700, 00981)
-- 系统自动识别港股市场并调用对应数据源
-
-### 支持的港股示例
-- **02171**: 科济药业-B (生物医药)
-- **00700**: 腾讯控股 (科技龙头)
-- **00981**: 中芯国际 (半导体)
-- **01810**: 小米集团 (智能硬件)
-
-### 港股与A股的区别
-- **代码格式**: 港股5位数字 vs A股6位数字
-- **复权支持**: 港股可能不支持所有复权类型
-- **数据源**: 港股使用 `ak.stock_hk_hist()` vs A股使用 `ak.stock_zh_a_hist()`
-- **API接口**: 完全相同，系统自动识别和路由
 
 ## 迁移指南
 
