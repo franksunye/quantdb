@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from api.main import app
-from api.version import APIVersion, get_all_versions, get_latest_version_info
+from api.routes.version import APIVersion, get_all_versions, get_latest_version_info
 from core.utils.logger import get_logger
 
 # 设置测试日志记录器

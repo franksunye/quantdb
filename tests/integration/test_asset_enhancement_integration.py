@@ -47,8 +47,8 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # Mock AKShare responses
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual, \
-             patch('src.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual, \
+             patch('core.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime:
             
             # Mock individual info response
             mock_individual.return_value = pd.DataFrame({
@@ -97,7 +97,7 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         self.db.commit()
         
         # Mock AKShare responses for update
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
             mock_individual.return_value = pd.DataFrame({
                 'item': ['股票简称', '上市时间'],
                 'value': ['新名称', '2020-01-01']
@@ -116,7 +116,7 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # Mock AKShare failure
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
             mock_individual.side_effect = Exception("AKShare API error")
             
             # Create asset (should use fallback)
@@ -157,7 +157,7 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # First call - should create asset
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
             mock_individual.return_value = pd.DataFrame({
                 'item': ['股票简称'],
                 'value': ['缓存测试']
@@ -180,7 +180,7 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # Mock AKShare to fail after partial data
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
             mock_individual.return_value = pd.DataFrame({
                 'item': ['股票简称'],
                 'value': ['事务测试']
@@ -204,7 +204,7 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service2 = AssetInfoService(self.db)
         
         # Both services try to create the same asset
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual:
             mock_individual.return_value = pd.DataFrame({
                 'item': ['股票简称'],
                 'value': ['并发测试']
@@ -221,8 +221,8 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # Mock industry and concept data
-        with patch('src.services.asset_info_service.ak.stock_board_industry_name_em') as mock_industry, \
-             patch('src.services.asset_info_service.ak.stock_board_concept_name_em') as mock_concept:
+        with patch('core.services.asset_info_service.ak.stock_board_industry_name_em') as mock_industry, \
+             patch('core.services.asset_info_service.ak.stock_board_concept_name_em') as mock_concept:
             
             # Mock industry data
             mock_industry.return_value = pd.DataFrame({
@@ -248,10 +248,10 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
         service = AssetInfoService(self.db)
         
         # Mock complete AKShare response
-        with patch('src.services.asset_info_service.ak.stock_individual_info_em') as mock_individual, \
-             patch('src.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime, \
-             patch('src.services.asset_info_service.ak.stock_board_industry_name_em') as mock_industry, \
-             patch('src.services.asset_info_service.ak.stock_board_concept_name_em') as mock_concept:
+        with patch('core.services.asset_info_service.ak.stock_individual_info_em') as mock_individual, \
+             patch('core.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime, \
+             patch('core.services.asset_info_service.ak.stock_board_industry_name_em') as mock_industry, \
+             patch('core.services.asset_info_service.ak.stock_board_concept_name_em') as mock_concept:
             
             # Mock all data sources
             mock_individual.return_value = pd.DataFrame({

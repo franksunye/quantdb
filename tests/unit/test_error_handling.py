@@ -186,7 +186,7 @@ class TestExceptionHandlers(unittest.TestCase):
         self.mock_request = MagicMock(spec=Request)
         self.mock_request.url.path = "/api/test"
 
-    @patch("src.api.errors.logger")
+    @patch("api.errors.logger")
     def test_quantdb_exception_handler(self, mock_logger):
         """Test quantdb_exception_handler."""
         # Create exception
@@ -208,7 +208,7 @@ class TestExceptionHandlers(unittest.TestCase):
         self.assertIn("request", sig.parameters)
         self.assertIn("exc", sig.parameters)
 
-    @patch("src.api.errors.logger")
+    @patch("api.errors.logger")
     def test_validation_exception_handler(self, mock_logger):
         """Test validation_exception_handler."""
         # Create validation error
