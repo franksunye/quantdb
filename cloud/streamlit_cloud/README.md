@@ -76,27 +76,49 @@ cloud/streamlit_cloud/
 ├── pages/                          # 页面文件
 │   ├── 1_📈_股票数据查询.py         # 股票数据查询
 │   ├── 2_📊_资产信息.py             # 资产信息展示
-│   └── 3_⚡_系统状态.py             # 系统状态监控
-├── src/                           # 业务逻辑层（复制自主项目）
-│   ├── services/                  # 业务服务
-│   ├── cache/                     # 缓存层
-│   ├── api/                       # 数据模型
-│   └── config.py                  # 配置文件
+│   ├── 3_⚡_系统状态.py             # 系统状态监控
+│   ├── 4_🎯_自选股管理.py           # 自选股管理
+│   ├── 5_⚡_性能监控.py             # 性能监控
+│   └── 6_📤_数据导出.py             # 数据导出
+├── utils/                          # 前端工具
+│   ├── api_client.py              # API客户端
+│   ├── charts.py                  # 图表工具
+│   └── config.py                  # 前端配置
 ├── database/                      # 数据库文件
 │   ├── stock_data.db             # SQLite数据库
 │   └── schema.sql                # 数据库结构
+├── data/                          # 数据文件
+│   ├── watchlist.json            # 自选股数据
+│   └── export_history.json       # 导出历史
 ├── requirements.txt               # 依赖文件
 ├── .streamlit/
 │   └── config.toml               # Streamlit配置
+├── test_migration.py              # 迁移测试脚本
 └── README.md                     # 使用说明
 ```
 
 ## 🎯 版本信息
 
-- **当前版本**: v1.1.0-cloud
-- **架构类型**: 单体应用
+- **当前版本**: v2.0.0-core-migration
+- **架构类型**: 基于QuantDB Core Services的云端应用
 - **缓存策略**: SQLite数据库持久化
 - **数据持久化**: 完全支持（非会话级别）
+
+## 🏗️ 架构升级
+
+此版本已完成向QuantDB核心服务架构的迁移：
+
+### ✅ 已完成的升级
+- **核心服务集成**: 使用统一的`core/`模块
+- **代码复用**: 与其他部署模式共享业务逻辑
+- **架构一致性**: 遵循项目架构演进规划
+- **功能保持**: 100%保留所有原有功能
+
+### 🔧 技术改进
+- **导入路径**: 从`src/`迁移到`core/`
+- **服务复用**: 使用`core.services`、`core.models`、`core.cache`
+- **配置统一**: 兼容多种部署路径的配置
+- **代码清理**: 移除重复代码，保持云端特定功能
 
 ## 🚀 部署到 Streamlit Cloud
 

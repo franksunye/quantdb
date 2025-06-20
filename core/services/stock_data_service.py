@@ -1,6 +1,6 @@
-# src/services/stock_data_service.py
+# core/services/stock_data_service.py
 """
-Stock data service for the QuantDB system.
+Stock data service for the QuantDB core system.
 
 This module provides a unified interface for retrieving stock data,
 with intelligent data fetching strategy and database caching.
@@ -13,13 +13,11 @@ from typing import Dict, List, Optional, Tuple, Union, Any
 import pandas as pd
 from sqlalchemy.orm import Session
 
-from api.models import Asset, DailyStockData
-from services.database_cache import DatabaseCache
-from services.trading_calendar import get_trading_calendar
-
-# Setup basic logging
-import logging
-logger = logging.getLogger(__name__)
+from ..models.asset import Asset
+from ..models.stock_data import DailyStockData
+from ..utils.logger import logger
+from .database_cache import DatabaseCache
+from .trading_calendar import get_trading_calendar
 
 class StockDataService:
     """
@@ -231,8 +229,6 @@ class StockDataService:
 
             logger.warning(f"Using fallback calendar: found {len(trading_days)} potential trading days")
             return trading_days
-
-
 
     def _group_consecutive_dates(self, dates: List[str]) -> List[Tuple[str, str]]:
         """

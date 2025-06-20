@@ -1,6 +1,6 @@
-# src/cache/akshare_adapter_simplified.py
+# core/cache/akshare_adapter.py
 """
-Simplified AKShare adapter for the QuantDB system.
+AKShare adapter for the QuantDB core cache layer.
 
 This module provides a unified interface for AKShare API calls,
 with error handling and retry logic, but without direct cache integration.
@@ -17,7 +17,7 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from src.logger_unified import logger
+from ..utils.logger import logger
 
 class AKShareAdapter:
     """
@@ -501,7 +501,7 @@ class AKShareAdapter:
 
     def _generate_mock_stock_data(self, symbol: str, start_date: str, end_date: str, adjust: str, period: str) -> pd.DataFrame:
         """
-        Generate mock stock data for testing.
+        Generate mock stock data for testing purposes.
 
         Args:
             symbol: Stock symbol.
@@ -513,83 +513,61 @@ class AKShareAdapter:
         Returns:
             DataFrame with mock stock data.
         """
-        logger.warning(f"Generating mock data for {symbol} from {start_date} to {end_date}")
+        logger.info(f"Generating mock data for {symbol} from {start_date} to {end_date}")
 
-        # Convert dates to datetime
-        start_date_obj = datetime.strptime(start_date, '%Y%m%d')
-        end_date_obj = datetime.strptime(end_date, '%Y%m%d')
+        # Create date range
+        start_dt = datetime.strptime(start_date, '%Y%m%d')
+        end_dt = datetime.strptime(end_date, '%Y%m%d')
 
-        # Generate date range based on period
-        if period == "daily":
-            # For daily data, use business days (B) but ensure we include the exact start and end dates
-            # This ensures we get exactly the number of days requested
-            date_range = list(pd.date_range(start=start_date_obj, end=end_date_obj, freq='D'))
+        # Generate business days only
+        dates = pd.bdate_range(start=start_dt, end=end_dt, freq='B')
 
-            # If testing with specific dates, ensure we have exactly the expected number of days
-            if start_date == "20230101" and end_date == "20230105":
-                # Ensure exactly 5 days for the test case
-                date_range = list(pd.date_range(start=start_date_obj, periods=5, freq='D'))
-        elif period == "weekly":
-            date_range = pd.date_range(start=start_date_obj, end=end_date_obj, freq='W-MON')
-        else:  # monthly
-            date_range = pd.date_range(start=start_date_obj, end=end_date_obj, freq='MS')
+        if len(dates) == 0:
+            return pd.DataFrame()
 
-        # Filter dates to be within the requested range
-        date_range = [d for d in date_range if start_date_obj <= d <= end_date_obj]
-
-        # Generate random data
+        # Generate mock price data
         import numpy as np
-        np.random.seed(int(symbol))  # Use symbol as seed for reproducibility
+        np.random.seed(hash(symbol) % 2**32)  # Consistent seed based on symbol
 
-        # Start with a base price
-        base_price = 100 + (int(symbol) % 900)  # Price between 100 and 1000
-        price_volatility = 0.02  # 2% daily volatility
+        base_price = 10.0 + (hash(symbol) % 100)  # Base price between 10-110
+        prices = []
+        current_price = base_price
 
-        # Generate price series
-        prices = [base_price]
-        for i in range(1, len(date_range)):
-            daily_return = np.random.normal(0, price_volatility)
-            new_price = prices[-1] * (1 + daily_return)
-            prices.append(new_price)
+        for i in range(len(dates)):
+            # Random walk with slight upward bias
+            change = np.random.normal(0.001, 0.02)  # 0.1% mean, 2% std
+            current_price *= (1 + change)
+            prices.append(current_price)
 
-        # Create DataFrame
+        # Create OHLC data
         data = []
-        for i, date in enumerate(date_range):
-            price = prices[i]
-            daily_volatility = price * price_volatility
+        for i, (date, close) in enumerate(zip(dates, prices)):
+            # Generate OHLC around close price
+            volatility = 0.02  # 2% intraday volatility
+            high = close * (1 + np.random.uniform(0, volatility))
+            low = close * (1 - np.random.uniform(0, volatility))
+            open_price = low + (high - low) * np.random.uniform(0.2, 0.8)
 
-            # Generate OHLC data
-            open_price = price * (1 + np.random.normal(0, 0.005))
-            high_price = max(open_price, price) * (1 + abs(np.random.normal(0, 0.01)))
-            low_price = min(open_price, price) * (1 - abs(np.random.normal(0, 0.01)))
-            close_price = price
+            # Ensure OHLC relationships are valid
+            high = max(high, open_price, close)
+            low = min(low, open_price, close)
 
-            # Generate volume
-            volume = int(np.random.gamma(2.0, 1000000) * (1 + int(symbol) % 10))
-
-            # Calculate other metrics
-            turnover = volume * close_price
-            amplitude = (high_price - low_price) / open_price * 100
-            pct_change = (close_price - prices[i-1]) / prices[i-1] * 100 if i > 0 else 0
-            change = close_price - prices[i-1] if i > 0 else 0
-            turnover_rate = volume / 10000000  # Simplified calculation
+            volume = int(np.random.uniform(1000000, 10000000))  # 1M-10M volume
 
             data.append({
                 'date': date,
                 'open': round(open_price, 2),
-                'high': round(high_price, 2),
-                'low': round(low_price, 2),
-                'close': round(close_price, 2),
+                'high': round(high, 2),
+                'low': round(low, 2),
+                'close': round(close, 2),
                 'volume': volume,
-                'turnover': round(turnover, 2),
-                'amplitude': round(amplitude, 2),
-                'pct_change': round(pct_change, 2),
-                'change': round(change, 2),
-                'turnover_rate': round(turnover_rate, 2)
+                'turnover': round(close * volume, 2),
+                'amplitude': round((high - low) / close * 100, 2),
+                'pct_change': round((close - open_price) / open_price * 100, 2) if open_price > 0 else 0,
+                'change': round(close - open_price, 2),
+                'turnover_rate': round(np.random.uniform(0.5, 5.0), 2)
             })
 
-        # Create DataFrame
         df = pd.DataFrame(data)
-
-        logger.warning(f"Generated {len(df)} rows of mock data for {symbol}")
+        logger.info(f"Generated {len(df)} rows of mock data for {symbol}")
         return df

@@ -10,23 +10,18 @@ import sys
 import os
 import time
 
-# 添加项目路径
+# 添加项目根目录到路径以访问core模块
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
+project_root = os.path.dirname(parent_dir)  # 回到QuantDB根目录
+if project_root not in sys.path:
+    sys.path.append(project_root)
 
 # 导入现有的后端服务（直接调用，不通过HTTP API）
 try:
-    # 添加src目录到路径
-    src_dir = os.path.join(parent_dir, 'src')
-    if src_dir not in sys.path:
-        sys.path.append(src_dir)
-
-    from services.stock_data_service import StockDataService
-    from services.asset_info_service import AssetInfoService
-    from cache.akshare_adapter import AKShareAdapter
-    from api.database import get_db
+    from core.services import StockDataService, AssetInfoService
+    from core.cache import AKShareAdapter
+    from core.database import get_db
     BACKEND_SERVICES_AVAILABLE = True
 except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
@@ -90,7 +85,7 @@ def init_services():
         asset_service = AssetInfoService(db_session)
 
         # 初始化查询服务
-        from services.query import QueryService
+        from core.services import QueryService
         query_service = QueryService(db_session)
 
         return stock_service, asset_service, query_service

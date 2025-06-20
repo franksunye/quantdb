@@ -12,10 +12,10 @@ from datetime import datetime, date, timedelta
 import sys
 from pathlib import Path
 
-# 添加src目录到Python路径
+# 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent.parent
-src_dir = current_dir / "src"
-sys.path.insert(0, str(src_dir))
+project_root = current_dir.parent  # 回到QuantDB根目录
+sys.path.insert(0, str(project_root))
 
 # 导入工具组件
 try:
@@ -74,10 +74,9 @@ def save_watchlist(watchlist):
 def init_services():
     """初始化服务实例"""
     try:
-        from services.stock_data_service import StockDataService
-        from services.asset_info_service import AssetInfoService
-        from cache.akshare_adapter import AKShareAdapter
-        from api.database import get_db
+        from core.services import StockDataService, AssetInfoService
+        from core.cache import AKShareAdapter
+        from core.database import get_db
 
         db_session = next(get_db())
         akshare_adapter = AKShareAdapter()

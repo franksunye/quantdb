@@ -1,6 +1,6 @@
-# src/services/database_cache.py
+# core/services/database_cache.py
 """
-Database cache interface for the QuantDB system.
+Database cache interface for the QuantDB core system.
 
 This module provides a unified interface for using the database as a persistent cache,
 optimized for stock historical data.
@@ -14,11 +14,10 @@ import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, func
 
-from api.models import Asset, DailyStockData
+from ..models.asset import Asset
+from ..models.stock_data import DailyStockData
+from ..utils.logger import logger
 
-# Setup basic logging
-import logging
-logger = logging.getLogger(__name__)
 
 class DatabaseCache:
     """
@@ -84,7 +83,7 @@ class DatabaseCache:
                     "low": result.low,
                     "close": result.close,
                     "volume": result.volume,
-                    "adjusted_close": result.adjusted_close,  # 新增字段
+                    "adjusted_close": result.adjusted_close,
                     "turnover": result.turnover,
                     "amplitude": result.amplitude,
                     "pct_change": result.pct_change,
@@ -154,7 +153,7 @@ class DatabaseCache:
                     low=item.get('low'),
                     close=item.get('close'),
                     volume=item.get('volume'),
-                    adjusted_close=item.get('adjusted_close'),  # 新增字段
+                    adjusted_close=item.get('adjusted_close'),
                     turnover=item.get('turnover'),
                     amplitude=item.get('amplitude'),
                     pct_change=item.get('pct_change'),
@@ -253,7 +252,6 @@ class DatabaseCache:
             max_date_str = max_date[0].strftime("%Y-%m-%d") if max_date else None
 
             # Get top assets by data points
-            # First, get count of data points for each asset
             asset_counts = self.db.query(
                 DailyStockData.asset_id,
                 func.count(DailyStockData.id).label('count')
@@ -261,7 +259,6 @@ class DatabaseCache:
                 DailyStockData.asset_id
             ).subquery()
 
-            # Then join with assets and order by count
             top_assets_query = self.db.query(
                 Asset.symbol,
                 Asset.name,
@@ -319,9 +316,9 @@ class DatabaseCache:
             # Create new asset using AssetInfoService for complete information
             logger.info(f"Creating new asset for {symbol} using AssetInfoService")
 
-            from services.asset_info_service import AssetInfoService
+            from .asset_info_service import AssetInfoService
             asset_service = AssetInfoService(self.db)
-            asset = asset_service.get_or_create_asset(symbol)
+            asset, _ = asset_service.get_or_create_asset(symbol)
 
             if asset:
                 logger.info(f"Successfully created asset for {symbol}: {asset.name}")

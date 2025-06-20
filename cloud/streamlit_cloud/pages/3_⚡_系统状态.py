@@ -11,10 +11,10 @@ import os
 from pathlib import Path
 import time
 
-# 添加src目录到Python路径
+# 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent.parent
-src_dir = current_dir / "src"
-sys.path.insert(0, str(src_dir))
+project_root = current_dir.parent  # 回到QuantDB根目录
+sys.path.insert(0, str(project_root))
 
 # 页面配置
 st.set_page_config(
@@ -28,8 +28,8 @@ st.set_page_config(
 def init_services():
     """初始化服务实例"""
     try:
-        from services.database_cache import DatabaseCache
-        from api.database import get_db
+        from core.services import DatabaseCache
+        from core.database import get_db
         
         db_session = next(get_db())
         return DatabaseCache(db_session)
@@ -40,8 +40,8 @@ def init_services():
 def get_database_info():
     """获取数据库信息"""
     try:
-        from api.database import get_db
-        from api.models import Asset, DailyStockData
+        from core.database import get_db
+        from core.models import Asset, DailyStockData
 
         db_session = next(get_db())
 
@@ -88,8 +88,8 @@ def test_system_performance():
     """测试系统性能"""
     try:
         # 确保数据库表存在
-        from api.database import engine, Base, get_db
-        from api.models import Asset
+        from core.database import engine, Base, get_db
+        from core.models import Asset
 
         Base.metadata.create_all(bind=engine)
 

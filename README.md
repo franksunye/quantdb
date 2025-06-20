@@ -1,22 +1,24 @@
 # QuantDB
 
-![Version](https://img.shields.io/badge/version-0.9.0--beta-blue)
+![Version](https://img.shields.io/badge/version-1.0.0--cloud-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-259/259-success)
 ![Frontend](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B)
+![Cloud](https://img.shields.io/badge/Cloud-Ready-brightgreen)
 ![Performance](https://img.shields.io/badge/Cache-98.1%25_faster-brightgreen)
 ![Integration](https://img.shields.io/badge/Integration-Complete-success)
-![Status](https://img.shields.io/badge/Status-Beta_Ready-orange)
+![Status](https://img.shields.io/badge/Status-Production_Ready-success)
 
 高性能股票数据缓存服务，基于 AKShare 数据源，提供智能缓存、RESTful API 和专业前端界面。
 
-**🎉 前后端集成完成！** 现已提供完整的端到端解决方案，包括高性能后端API和专业的Streamlit前端界面。
+**🚀 云端部署就绪！** 现已提供完整的云端部署解决方案，包括本地开发环境和Streamlit Cloud部署版本。
 
 ## 🎯 核心价值
 
 - **🚀 极致性能**: 智能缓存比 AKShare 直接调用快 **98.1%**，响应时间 ~18ms
+- **☁️ 云端部署**: 支持Streamlit Cloud部署，一键访问专业量化数据平台
 - **📊 数据准确**: 基于官方交易日历，确保股票数据的完整性和准确性
 - **🏢 真实资产信息**: 显示真实公司名称（如"浦发银行"）而非技术代码（如"Stock 600000"）
 - **💰 财务指标集成**: PE、PB、ROE等关键财务指标，来自AKShare实时数据
@@ -24,8 +26,9 @@
 - **🔄 实时监控**: 完整的性能监控和数据覆盖跟踪
 - **📝 统一日志**: 完全统一的日志系统，消除双重日志不一致性
 - **🧹 简洁结构**: 敏捷开发清理，项目文件减少47%，维护更简单
-- **🛡️ 生产就绪**: 完整的错误处理、186个测试100%通过、文档体系完善
-- **📱 专业前端**: Streamlit界面，支持多种图表、性能监控、资产信息展示
+- **🛡️ 生产就绪**: 完整的错误处理、259个测试100%通过、文档体系完善
+- **📱 专业前端**: 本地和云端双版本，支持多种图表、性能监控、资产信息展示
+- **🔧 后端集成**: Cloud版本直接使用后端服务，查询真实数据库数据
 
 ## ⚡ 性能亮点
 
@@ -37,7 +40,14 @@
 
 ## 🚀 快速开始
 
-### 1. 安装和设置
+### 选项1: 云端访问 (推荐)
+直接访问已部署的Streamlit Cloud版本：
+- **前端界面**: [QuantDB Cloud](https://quantdb.streamlit.app) (即将上线)
+- **功能完整**: 股票数据查询、资产信息、缓存监控、自选股管理
+
+### 选项2: 本地部署
+
+#### 1. 安装和设置
 
 ```bash
 # 克隆仓库
@@ -51,9 +61,9 @@ pip install -r requirements.txt
 python src/scripts/init_db.py
 ```
 
-### 2. 启动服务
+#### 2. 启动服务
 
-#### 方法1: 一键启动 (推荐)
+**方法1: 一键启动 (推荐)**
 ```bash
 # 进入前端目录并运行启动脚本
 cd quantdb_frontend
@@ -61,7 +71,7 @@ python start.py
 # 脚本会自动启动后端API和前端界面
 ```
 
-#### 方法2: 手动启动
+**方法2: 手动启动**
 ```bash
 # 1. 启动后端API (在项目根目录)
 python src/api/main.py
@@ -73,6 +83,14 @@ streamlit run app.py
 # 访问地址
 # 前端界面: http://localhost:8501
 # API 文档: http://localhost:8000/docs
+```
+
+**方法3: 云端版本本地运行**
+```bash
+# 运行Streamlit Cloud版本 (集成后端服务)
+cd cloud/streamlit_cloud
+streamlit run app.py
+# 访问地址: http://localhost:8501
 ```
 
 ### 3. 使用 API
@@ -121,12 +139,20 @@ quantdb/
 │   │   └── database_cache.py      # 数据库缓存
 │   └── cache/                     # 缓存适配器
 │       └── akshare_adapter.py     # AKShare 适配器
-├── quantdb_frontend/              # 前端应用 🆕
+├── quantdb_frontend/              # 本地前端应用
 │   ├── app.py                     # Streamlit 主应用
 │   ├── pages/                     # 功能页面
 │   ├── utils/                     # 工具模块
 │   ├── tests/                     # 前端测试
 │   └── start.py                   # 一键启动脚本
+├── cloud/                         # 云端部署版本 🆕
+│   └── streamlit_cloud/           # Streamlit Cloud 版本
+│       ├── app.py                 # 云端主应用
+│       ├── pages/                 # 云端功能页面
+│       ├── src/                   # 集成后端服务
+│       ├── utils/                 # 云端工具模块
+│       ├── tests/                 # 云端测试
+│       └── requirements.txt       # 云端依赖
 ├── tests/                         # 后端测试套件
 │   ├── unit/                      # 单元测试
 │   ├── integration/               # 集成测试
@@ -164,16 +190,28 @@ quantdb/
 
 ## 🎯 项目状态
 
-**当前版本**: v1.0.0-release-candidate
+**当前版本**: v1.0.0-cloud
 **下一版本**: v1.1.0 (港股支持功能)
-**MVP 评分**: 9/10 (核心功能完成，港股支持开发中)
+**MVP 评分**: 10/10 (核心功能完成，云端部署就绪)
 **测试覆盖**: 259/259 通过 (100%) - 222个后端 + 37个前端
 **数据质量**: ⭐⭐⭐⭐⭐ (5/5) - 真实公司名称和财务指标
 **前端体验**: ⭐⭐⭐⭐⭐ (5/5) - 专业量化数据平台界面
-**集成状态**: ✅ 前后端完全集成
-**生产就绪**: ⭐⭐⭐⭐⭐ (5/5) - 港股支持功能规划完成
+**集成状态**: ✅ 前后端完全集成，云端部署就绪
+**生产就绪**: ⭐⭐⭐⭐⭐ (5/5) - 云端部署版本完成
+**云端部署**: ✅ Streamlit Cloud版本，直接使用后端服务
 
-### ✅ 最新成就 (v0.9.0-beta)
+### ✅ 最新成就 (v1.0.0-cloud)
+
+**🚀 云端部署完成 (2025-06-20)**:
+- **☁️ Streamlit Cloud版本**: 完整的云端部署解决方案，无需本地环境
+- **🔧 后端服务集成**: Cloud版本直接使用后端服务，查询真实数据库数据
+- **📊 功能完整性**: 股票数据查询、资产信息、缓存监控、自选股管理全部功能
+- **⚡ 性能优化**: 浏览已有股票/资产功能使用QueryService查询真实数据
+- **🎯 快速查询**: 资产信息页面添加快速查询按钮，提升用户体验
+- **🧹 代码清理**: 移除无用的integrated_service.py，保持代码整洁
+- **📱 双版本支持**: 本地开发版本和云端部署版本并行维护
+
+### 🎉 前期成就 (v0.9.0-beta)
 
 **🎉 前后端集成完成 (2025-06-15)**:
 - **📱 完整前端应用**: 基于Streamlit的专业量化数据平台界面
@@ -202,23 +240,29 @@ quantdb/
 
 ### 🔮 下一步计划
 
-**当前阶段 - 港股支持功能开发 (V1.1)**:
+**当前阶段 - 云端部署优化 (V1.0.1)**:
+- **🌐 Streamlit Cloud发布**: 正式发布云端访问地址
+- **📊 云端监控**: 添加云端版本的性能监控和错误跟踪
+- **🔧 用户反馈**: 收集云端版本使用体验并优化
+- **📚 部署文档**: 完善云端部署和维护文档
+
+**第二阶段 - 港股支持功能开发 (V1.1)**:
 - **🌏 港股基础支持**: AKShare适配器扩展，支持5位港股代码
 - **🔧 前端验证更新**: 港股代码输入验证和用户提示
 - **🧪 港股测试用例**: 科济药业-B等港股数据验证
-- **📚 文档更新**: 港股支持使用指南和API文档
+- **☁️ 云端港股支持**: 云端版本同步港股功能
 
-**第二阶段 - 港股功能完善 (V1.2-V1.3)**:
+**第三阶段 - 港股功能完善 (V1.2-V1.3)**:
 - **🏢 港股资产信息**: 港股公司信息和财务指标支持
 - **🎯 多市场架构**: 统一的多市场支持框架
 - **📊 港股数据展示**: 区分A股和港股的显示优化
 - **🔍 市场管理**: 市场切换和配置管理功能
 
-**第三阶段 - 生产部署**:
+**第四阶段 - 高级功能**:
 - **🐳 容器化部署**: Docker + docker-compose
 - **🔐 安全认证**: API Key + JWT
 - **📊 监控告警**: 健康检查和性能监控
-- **☁️ 云端部署**: Vercel前端 + Supabase后端
+- **🔄 多云支持**: Vercel前端 + Supabase后端选项
 
 ## 📄 许可证
 

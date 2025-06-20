@@ -11,10 +11,10 @@ import os
 from pathlib import Path
 import time
 
-# 添加src目录到Python路径
+# 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent
-src_dir = current_dir / "src"
-sys.path.insert(0, str(src_dir))
+project_root = current_dir.parent.parent  # 回到QuantDB根目录
+sys.path.insert(0, str(project_root))
 
 # 页面配置
 st.set_page_config(
@@ -56,8 +56,8 @@ st.set_page_config(
 def verify_database():
     """验证数据库连接和表结构"""
     try:
-        from api.database import engine, Base, SessionLocal
-        from api.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
+        from core.database import engine, Base, SessionLocal
+        from core.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
         from sqlalchemy import inspect
 
         # 检查数据库连接
@@ -103,11 +103,9 @@ def init_services():
             st.warning("数据库验证失败，但继续尝试初始化服务")
 
         # 导入现有服务
-        from services.stock_data_service import StockDataService
-        from services.asset_info_service import AssetInfoService
-        from services.database_cache import DatabaseCache
-        from cache.akshare_adapter import AKShareAdapter
-        from api.database import get_db
+        from core.services import StockDataService, AssetInfoService, DatabaseCache
+        from core.cache import AKShareAdapter
+        from core.database import get_db
 
         # 创建数据库会话
         db_session = next(get_db())
@@ -130,7 +128,7 @@ def get_system_status():
     """获取系统状态"""
     try:
         # Debug information
-        from config import DATABASE_URL, DATABASE_PATH
+        from core.utils.config import DATABASE_URL, DATABASE_PATH
         import os
         from pathlib import Path
 
@@ -158,7 +156,7 @@ def get_system_status():
 
         # 数据库查询测试
         try:
-            from api.models import Asset
+            from core.models import Asset
             asset_count = services['db_session'].query(Asset).count()
         except Exception as db_error:
             asset_count = 0
