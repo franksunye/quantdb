@@ -8,9 +8,9 @@ import json
 from fastapi.testclient import TestClient
 from fastapi import HTTPException, status
 
-from src.api.main import app
-from src.config import API_PREFIX
-from src.api.errors import (
+from api.main import app
+from core.utils.config import API_PREFIX
+from api.errors import (
     ErrorCode,
     QuantDBException,
     DataNotFoundException,

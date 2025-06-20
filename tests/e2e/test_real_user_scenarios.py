@@ -24,7 +24,7 @@ import sys
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.logger_unified import get_logger
+from core.utils.logger import get_logger
 
 # Setup test logger
 logger = get_logger("real_user_scenarios_e2e")

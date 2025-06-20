@@ -73,7 +73,7 @@ WEBHOOK_URL=
         project_root = Path(__file__).parent.parent
         sys.path.insert(0, str(project_root))
         
-        from src.config import DATABASE_URL, DB_TYPE
+        from core.utils.config import DATABASE_URL, DB_TYPE
         print(f"✅ DATABASE_URL: {DATABASE_URL}")
         print(f"✅ DB_TYPE: {DB_TYPE}")
         
@@ -90,7 +90,7 @@ WEBHOOK_URL=
     # 6. Initialize database
     print("\nInitializing database...")
     try:
-        from src.scripts.init_db import init_db
+        # Migrated to core
         if init_db():
             print("✅ Database initialized successfully")
         else:

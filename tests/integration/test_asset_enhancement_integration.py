@@ -13,9 +13,9 @@ from unittest.mock import patch
 import pandas as pd
 from datetime import datetime, date
 
-from src.api.database import SessionLocal, engine
-from src.api.models import Base, Asset
-from src.services.asset_info_service import AssetInfoService
+from core.database import SessionLocal, engine
+from core.models import Base, Asset
+from core.services.asset_info_service import AssetInfoService
 
 
 class TestAssetEnhancementIntegration(unittest.TestCase):

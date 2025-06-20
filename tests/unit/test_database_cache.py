@@ -13,8 +13,8 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.database_cache import DatabaseCache
-from src.api.models import Asset, DailyStockData
+from core.services.database_cache import DatabaseCache
+from core.models import Asset, DailyStockData
 
 class TestDatabaseCache(unittest.TestCase):
     """Test cases for DatabaseCache."""

@@ -25,7 +25,7 @@ sys.path.insert(0, str(project_root))
 def start_api_server():
     """启动API服务器"""
     import uvicorn
-    from src.api.main import app
+    # Migrated to core
     uvicorn.run(app, host='127.0.0.1', port=8000, log_level='warning')
 
 def monitor_system_performance():

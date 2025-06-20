@@ -13,7 +13,7 @@ from fastapi import Request
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.monitoring_middleware import RequestMonitor, monitor_stock_request
+from core.services.monitoring_middleware import RequestMonitor, monitor_stock_request
 
 
 class TestRequestMonitor(unittest.TestCase):

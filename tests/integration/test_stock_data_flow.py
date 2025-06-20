@@ -16,10 +16,10 @@ import tempfile
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.stock_data_service import StockDataService
-from src.services.database_cache import DatabaseCache
-from src.cache.akshare_adapter import AKShareAdapter
-from src.api.models import Base, Asset, DailyStockData
+from core.services.stock_data_service import StockDataService
+from core.services.database_cache import DatabaseCache
+from core.cache.akshare_adapter import AKShareAdapter
+from core.models import Base, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

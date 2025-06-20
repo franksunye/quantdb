@@ -10,6 +10,8 @@ from .asset_info_service import AssetInfoService
 from .query_service import QueryService
 from .database_cache import DatabaseCache
 from .trading_calendar import TradingCalendar, get_trading_calendar, is_trading_day, get_trading_days
+from .monitoring_service import MonitoringService
+from .monitoring_middleware import RequestMonitor, monitor_stock_request
 
 __all__ = [
     "StockDataService",
@@ -19,5 +21,8 @@ __all__ = [
     "TradingCalendar",
     "get_trading_calendar",
     "is_trading_day",
-    "get_trading_days"
+    "get_trading_days",
+    "MonitoringService",
+    "RequestMonitor",
+    "monitor_stock_request"
 ]

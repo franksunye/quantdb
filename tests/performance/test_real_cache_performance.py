@@ -14,7 +14,7 @@ from fastapi.testclient import TestClient
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.api.main import app
+from api.main import app
 
 # 尝试导入 akshare，如果失败则跳过真实测试
 try:

@@ -12,8 +12,8 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.monitoring_service import MonitoringService
-from src.api.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
+from core.services.monitoring_service import MonitoringService
+from core.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
 
 
 class TestMonitoringService(unittest.TestCase):

@@ -13,7 +13,7 @@ import os
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.stock_data_service import StockDataService
+from core.services.stock_data_service import StockDataService
 
 class TestStockDataService(unittest.TestCase):
     """Test cases for StockDataService."""

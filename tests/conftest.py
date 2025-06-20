@@ -9,13 +9,13 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from fastapi.testclient import TestClient
 
-# Add the parent directory to the path so we can import from src
+# Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.api.main import app  # , mcp_interpreter  # MCP功能已归档
-from src.api.database import get_db, Base
-from src.api.models import Asset, DailyStockData
-from src.cache.akshare_adapter import AKShareAdapter
+from api.main import app  # , mcp_interpreter  # MCP功能已归档
+from core.database import get_db, Base
+from core.models import Asset, DailyStockData
+from core.cache.akshare_adapter import AKShareAdapter
 from datetime import date, timedelta
 
 # Use a file-based SQLite database for testing

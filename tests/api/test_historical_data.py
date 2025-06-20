@@ -7,8 +7,8 @@ import pandas as pd
 
 # Import from conftest.py
 from tests.conftest import client, test_db
-from src.cache.akshare_adapter import AKShareAdapter
-from src.api.models import DailyStockData, Asset
+from core.cache.akshare_adapter import AKShareAdapter
+from core.models import DailyStockData, Asset
 
 # Sample test data - using correct date format YYYYMMDD
 SAMPLE_STOCK_DATA = pd.DataFrame({

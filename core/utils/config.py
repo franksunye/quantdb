@@ -42,6 +42,9 @@ DB_TYPE = 'supabase' if DATABASE_URL.startswith('postgresql') else 'sqlite'
 # API configuration
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
 API_PORT = int(os.getenv("API_PORT", "8000"))
+API_PREFIX = os.getenv("API_PREFIX", "/api/v1")
+DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
 # Logging configuration
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

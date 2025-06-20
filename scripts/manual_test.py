@@ -51,7 +51,7 @@ class ManualTester:
         # Test 2: Check database configuration
         try:
             sys.path.insert(0, str(self.project_root))
-            from src.config import DATABASE_URL, DB_TYPE
+            from core.utils.config import DATABASE_URL, DB_TYPE
             
             if 'sqlite' in DATABASE_URL.lower():
                 self.print_test("Database configuration", True, f"SQLite: {DATABASE_URL}")
@@ -74,7 +74,7 @@ class ManualTester:
         self.print_header("Database Connection Tests")
         
         try:
-            from src.api.database import engine
+            from core.database import engine
             from sqlalchemy import text
             
             # Test connection
@@ -83,8 +83,8 @@ class ManualTester:
                 self.print_test("Database connection", True, f"Result: {result.fetchone()}")
             
             # Test table existence
-            from src.api.models import Asset, DailyStockData
-            from src.api.database import SessionLocal
+            from core.models import Asset, DailyStockData
+            from core.database import SessionLocal
             
             session = SessionLocal()
             try:
@@ -102,7 +102,7 @@ class ManualTester:
         self.print_header("Logging System Tests")
         
         try:
-            from src.logger_unified import get_logger
+            from core.utils.logger import get_logger
             
             # Test logger creation
             logger = get_logger('manual_test')
@@ -206,9 +206,9 @@ class ManualTester:
         self.print_header("Cache Performance Tests")
 
         try:
-            from src.services.stock_data_service import StockDataService
-            from src.api.database import SessionLocal
-            from src.cache.akshare_adapter import AKShareAdapter
+            from core.services.stock_data_service import StockDataService
+            from core.database import SessionLocal
+            from core.cache.akshare_adapter import AKShareAdapter
 
             # Create dependencies
             db = SessionLocal()
@@ -243,8 +243,8 @@ class ManualTester:
         self.print_header("Monitoring System Tests")
 
         try:
-            from src.services.monitoring_service import MonitoringService
-            from src.api.database import SessionLocal
+            from core.services.monitoring_service import MonitoringService
+            from core.database import SessionLocal
 
             # Create dependencies
             db = SessionLocal()
