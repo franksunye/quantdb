@@ -1,61 +1,80 @@
 # QuantDB 测试指南
 
-**测试状态**: 217/217 通过 (100%) | **性能**: 98.1% 提升验证 | **资产档案**: 增强测试完成 | **工具**: 统一测试运行器
+**架构版本**: 2.0.0 (Core/API分离) | **测试状态**: 重构后验证中 | **覆盖率目标**: Core 95%+ | API 90%+ | **架构**: 模块化测试
 
 ## 快速测试
 
 ```bash
-# 运行核心功能测试
-python scripts/test_runner.py --unit --api
+# 运行核心业务逻辑测试
+python -m pytest tests/unit/ -v
+
+# 运行API服务测试
+python -m pytest tests/api/ -v
 
 # 运行所有测试
-python scripts/test_runner.py --all
+python -m pytest tests/ -v
 
 # 带覆盖率报告
-python scripts/test_runner.py --coverage
+python -m pytest tests/ --cov=core --cov=api --cov-report=html
 ```
 
-## 测试分类
+## 测试架构 (重构后)
 
-### 1. 单元测试 (96个)
-测试独立组件的功能逻辑。
+### 🏗️ 新架构测试分层
+
+```
+tests/
+├── unit/           # 核心业务逻辑单元测试
+│   ├── core/       # Core模块测试
+│   └── api/        # API层单元测试
+├── integration/    # 集成测试
+├── api/           # API端点测试
+├── e2e/           # 端到端测试
+└── performance/   # 性能测试
+```
+
+### 1. Core模块单元测试
+测试核心业务逻辑组件，独立于API层。
 
 ```bash
-# 运行所有单元测试
-python scripts/test_runner.py --unit
+# 运行所有Core单元测试
+python -m pytest tests/unit/ -v -k "core or service or cache or model"
 
-# 运行特定模块测试
-python scripts/test_runner.py --file tests/unit/test_asset_info_service.py
+# 运行特定Core模块测试
+python -m pytest tests/unit/test_stock_data_service.py -v
 ```
 
-**覆盖模块**:
-- `test_akshare_adapter.py` - AKShare适配器 (15个测试)
-- `test_database_cache.py` - 数据库缓存 (13个测试)
-- `test_stock_data_service.py` - 股票数据服务 (11个测试)
-- `test_asset_info_service.py` - 资产信息服务 (19个测试) 🆕
-- `test_enhanced_logger.py` - 增强日志 (8个测试)
-- `test_error_handling.py` - 错误处理 (13个测试)
-- `test_monitoring_service.py` - 监控服务 (12个测试)
-- `test_monitoring_middleware.py` - 监控中间件 (8个测试)
-- `test_monitoring_tools.py` - 监控工具 (7个测试)
+**Core模块覆盖**:
+- `test_stock_data_service.py` - 股票数据服务 (Core业务逻辑)
+- `test_asset_info_service.py` - 资产信息服务 (Core业务逻辑)
+- `test_database_cache.py` - 数据库缓存 (Core缓存层)
+- `test_akshare_adapter.py` - AKShare适配器 (Core缓存层)
+- `test_trading_calendar.py` - 交易日历 (Core工具)
+- `test_monitoring_service.py` - 监控服务 (Core服务)
+- `test_monitoring_middleware.py` - 监控中间件 (Core服务)
 
-### 2. API测试 (30个)
-测试HTTP API端点的功能。
+### 2. API服务测试
+测试FastAPI应用和HTTP端点功能。
 
 ```bash
 # 运行所有API测试
-python scripts/test_runner.py --api
+python -m pytest tests/api/ -v
 
-# 运行资产档案增强API测试
-python scripts/test_runner.py --file tests/api/test_assets_api.py
+# 运行特定API端点测试
+python -m pytest tests/api/test_assets_api.py -v
 ```
 
-**覆盖端点**:
-- `test_assets_api.py` - 资产API增强版 (12个测试) 🆕
-- `test_historical_data.py` - 历史数据API (6个测试)
-- `test_api.py` - 基础API (2个测试)
-- `test_version_api.py` - 版本API (6个测试)
-- `test_openapi.py` - OpenAPI文档 (4个测试)
+**API端点覆盖**:
+- `test_assets_api.py` - 资产API端点测试
+- `test_historical_data.py` - 历史数据API测试
+- `test_version_api.py` - 版本API测试
+- `test_openapi.py` - OpenAPI文档测试
+
+**API层单元测试**:
+- 依赖注入测试
+- 中间件测试
+- 错误处理测试
+- 响应格式验证
 
 ### 3. 集成测试 (91个)
 测试组件间的协作。
@@ -167,102 +186,165 @@ python tools/monitoring/system_performance_monitor.py
 - 💰 AKShare调用减少和成本节省
 - 📊 系统健康度和运行状态
 
-## 测试运行器选项
+## 测试运行器选项 (v2.0)
+
+### 新架构测试运行器
+```bash
+# 使用新的测试运行器 v2.0
+python scripts/test_runner_v2.py --help
+```
 
 ### 基础选项
 ```bash
---unit          # 单元测试
---api           # API测试
+--core          # Core模块测试 (业务逻辑)
+--api           # API层测试 (FastAPI服务)
+--unit          # 所有单元测试
 --integration   # 集成测试
---monitoring    # 监控系统测试
 --all           # 所有测试
+--performance   # 性能测试
 ```
 
 ### 高级选项
 ```bash
 --coverage      # 生成覆盖率报告
---performance   # 性能测试
 --verbose       # 详细输出
 --file <path>   # 运行特定文件
+--list          # 列出可用测试
+--validate      # 验证测试结构
 ```
 
 ### 示例用法
 ```bash
-# 详细输出的单元测试
-python scripts/test_runner.py --unit --verbose
+# Core模块测试
+python scripts/test_runner_v2.py --core --verbose
+python scripts/test_runner_v2.py --core --coverage
 
-# 监控系统测试
-python scripts/test_runner.py --monitoring --verbose
+# API层测试
+python scripts/test_runner_v2.py --api --verbose
 
-# 特定文件的测试
-python scripts/test_runner.py --file tests/unit/test_monitoring_service.py
+# 集成测试
+python scripts/test_runner_v2.py --integration
 
-# 带覆盖率的完整测试
-python scripts/test_runner.py --all --coverage
+# 特定文件测试
+python scripts/test_runner_v2.py --file tests/unit/test_core_models.py
+
+# 完整测试套件
+python scripts/test_runner_v2.py --all --coverage
+
+# 列出所有可用测试
+python scripts/test_runner_v2.py --list
 ```
 
 ## 编写测试
 
-### 单元测试模板
+### Core模块单元测试模板
 ```python
 import unittest
 from unittest.mock import patch, MagicMock
-from src.services.your_service import YourService
+from core.services.your_service import YourService
 
 class TestYourService(unittest.TestCase):
     def setUp(self):
         self.service = YourService()
-    
+
     def test_your_method(self):
         # 准备测试数据
         test_input = "test_data"
         expected_output = "expected_result"
-        
+
         # 执行测试
         result = self.service.your_method(test_input)
-        
+
         # 验证结果
         self.assertEqual(result, expected_output)
-    
-    @patch('src.services.your_service.external_dependency')
+
+    @patch('core.services.your_service.external_dependency')
     def test_with_mock(self, mock_dependency):
         # 配置mock
         mock_dependency.return_value = "mocked_result"
-        
+
         # 执行测试
         result = self.service.method_with_dependency()
-        
+
         # 验证调用和结果
         mock_dependency.assert_called_once()
         self.assertEqual(result, "expected_result")
 ```
 
+### Core模型测试模板
+```python
+import unittest
+from datetime import date
+from decimal import Decimal
+from core.models import Asset, DailyStockData
+
+class TestAssetModel(unittest.TestCase):
+    def test_asset_creation(self):
+        asset = Asset(
+            symbol="600000",
+            name="测试公司",
+            asset_type="stock",
+            exchange="SHSE",
+            currency="CNY"
+        )
+
+        self.assertEqual(asset.symbol, "600000")
+        self.assertEqual(asset.name, "测试公司")
+        self.assertEqual(asset.asset_type, "stock")
+```
+
 ### API测试模板
 ```python
 from fastapi.testclient import TestClient
-from src.api.main import app
+from api.main import app
 
 client = TestClient(app)
 
 def test_api_endpoint():
     # 发送请求
-    response = client.get("/api/v1/your-endpoint")
-    
+    response = client.get("/api/v1/assets/symbol/600000")
+
     # 验证响应
     assert response.status_code == 200
     data = response.json()
-    assert "expected_field" in data
-    assert data["expected_field"] == "expected_value"
+    assert "symbol" in data
+    assert data["symbol"] == "600000"
 
 def test_api_error_handling():
     # 测试错误情况
-    response = client.get("/api/v1/invalid-endpoint")
-    
+    response = client.get("/api/v1/assets/symbol/INVALID")
+
     # 验证错误响应
-    assert response.status_code == 404
-    error_data = response.json()
-    assert "error" in error_data
-    assert error_data["error"]["code"] == "NOT_FOUND"
+    assert response.status_code in [400, 404, 422]
+
+@patch('core.services.asset_info_service.AssetInfoService.get_or_create_asset')
+def test_api_with_core_service_mock(mock_service):
+    # Mock core service
+    mock_service.return_value = Asset(symbol="600000", name="测试公司")
+
+    response = client.get("/api/v1/assets/symbol/600000")
+
+    # 验证core service被调用
+    mock_service.assert_called_once_with("600000")
+    assert response.status_code == 200
+```
+
+### API依赖注入测试模板
+```python
+import unittest
+from unittest.mock import patch, MagicMock
+from api.dependencies import get_stock_data_service, get_asset_info_service
+
+class TestAPIDependencies(unittest.TestCase):
+    @patch('api.dependencies.get_db')
+    def test_get_stock_data_service(self, mock_get_db):
+        mock_db = MagicMock()
+        mock_get_db.return_value = mock_db
+
+        service = get_stock_data_service(db=mock_db, adapter=MagicMock())
+
+        self.assertIsNotNone(service)
+        self.assertEqual(service.db, mock_db)
 ```
 
 ## 测试数据管理

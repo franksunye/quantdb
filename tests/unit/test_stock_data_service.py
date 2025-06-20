@@ -148,7 +148,7 @@ class TestStockDataService(unittest.TestCase):
         self.assertEqual(len(result), 3)
         self.assertEqual(result['value'].tolist(), [2, 3, 4])
 
-    @patch('src.services.stock_data_service.logger')
+    @patch('core.services.stock_data_service.logger')
     def test_get_stock_data_all_in_cache(self, logger_mock):
         """Test getting stock data when all data is in cache."""
         # Use dates that are definitely trading days (avoid holidays)
@@ -172,7 +172,7 @@ class TestStockDataService(unittest.TestCase):
         # Check for the new cache hit message
         logger_mock.info.assert_any_call("✅ All requested trading day data for 600000 already exists in database - CACHE HIT!")
 
-    @patch('src.services.stock_data_service.logger')
+    @patch('core.services.stock_data_service.logger')
     def test_get_stock_data_partial_cache(self, logger_mock):
         """Test getting stock data when some data is in cache."""
         # Use dates that are definitely trading days
@@ -202,7 +202,7 @@ class TestStockDataService(unittest.TestCase):
         # Check for the new missing trading days message
         logger_mock.info.assert_any_call("Found 1 missing trading days for 600000")
 
-    @patch('src.services.stock_data_service.logger')
+    @patch('core.services.stock_data_service.logger')
     def test_get_stock_data_empty_cache(self, logger_mock):
         """Test getting stock data when cache is empty."""
         # Setup mocks
@@ -230,7 +230,7 @@ class TestStockDataService(unittest.TestCase):
         # Check for the new missing trading days message
         logger_mock.info.assert_any_call("Found 2 missing trading days for 600000")
 
-    @patch('src.services.stock_data_service.logger')
+    @patch('core.services.stock_data_service.logger')
     def test_get_stock_data_akshare_empty(self, logger_mock):
         """Test getting stock data when AKShare returns empty data."""
         # Setup mocks

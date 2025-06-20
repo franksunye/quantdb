@@ -86,7 +86,7 @@ class TestAssetsAPI:
                 assert isinstance(data["pb_ratio"], (int, float))
                 assert data["pb_ratio"] > 0
 
-    @patch('src.services.asset_info_service.AssetInfoService.get_or_create_asset')
+    @patch('core.services.asset_info_service.AssetInfoService.get_or_create_asset')
     def test_get_asset_by_symbol_service_integration(self, mock_service):
         """Test asset API integration with AssetInfoService"""
         # Mock service response
@@ -144,7 +144,7 @@ class TestAssetsAPI:
             assert "symbol" in data
             assert data["symbol"] == "600000"
 
-    @patch('src.services.asset_info_service.AssetInfoService.update_asset_info')
+    @patch('core.services.asset_info_service.AssetInfoService.update_asset_info')
     def test_refresh_asset_info_service_integration(self, mock_update):
         """Test asset refresh API integration with AssetInfoService"""
         # Mock service response with all required fields
@@ -172,7 +172,7 @@ class TestAssetsAPI:
         assert data["symbol"] == "600000"
         assert data["name"] == "浦发银行"
 
-    @patch('src.services.asset_info_service.AssetInfoService.update_asset_info')
+    @patch('core.services.asset_info_service.AssetInfoService.update_asset_info')
     def test_refresh_asset_info_not_found(self, mock_update):
         """Test refreshing nonexistent asset"""
         # Mock service returning None
