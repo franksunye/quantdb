@@ -87,7 +87,7 @@ class TestMonitoringService(unittest.TestCase):
         self.assertEqual(added_log.user_agent, "")
         self.assertEqual(added_log.ip_address, "")
 
-    @patch('src.services.monitoring_service.func')
+    @patch('core.services.monitoring_service.func')
     def test_update_data_coverage_new_symbol(self, mock_func):
         """Test updating data coverage for a new symbol."""
         # Setup mocks
@@ -118,7 +118,7 @@ class TestMonitoringService(unittest.TestCase):
         self.assertEqual(added_coverage.latest_date, "20230105")
         self.assertEqual(added_coverage.total_records, 5)
 
-    @patch('src.services.monitoring_service.func')
+    @patch('core.services.monitoring_service.func')
     def test_update_data_coverage_existing_symbol(self, mock_func):
         """Test updating data coverage for an existing symbol."""
         # Setup mocks
@@ -149,7 +149,7 @@ class TestMonitoringService(unittest.TestCase):
         self.assertEqual(mock_existing_coverage.latest_date, "20230110")
         self.assertEqual(mock_existing_coverage.total_records, 10)
 
-    @patch('src.services.monitoring_service.func')
+    @patch('core.services.monitoring_service.func')
     def test_update_data_coverage_no_data(self, mock_func):
         """Test updating data coverage when no data exists."""
         # Setup mocks - no data found
@@ -166,8 +166,8 @@ class TestMonitoringService(unittest.TestCase):
         self.db_mock.add.assert_not_called()
         self.db_mock.commit.assert_not_called()
 
-    @patch('src.services.monitoring_service.func')
-    @patch('src.services.monitoring_service.datetime')
+    @patch('core.services.monitoring_service.func')
+    @patch('core.services.monitoring_service.datetime')
     def test_get_water_pool_status(self, mock_datetime, mock_func):
         """Test getting water pool status."""
         # Setup mocks
@@ -322,9 +322,9 @@ class TestMonitoringService(unittest.TestCase):
         self.assertEqual(coverage["first_requested"], "")
         self.assertEqual(coverage["last_accessed"], "")
 
-    @patch('src.services.monitoring_service.datetime')
-    @patch('src.services.monitoring_service.timedelta')
-    @patch('src.services.monitoring_service.func')
+    @patch('core.services.monitoring_service.datetime')
+    @patch('core.services.monitoring_service.timedelta')
+    @patch('core.services.monitoring_service.func')
     def test_get_performance_trends(self, mock_func, mock_timedelta, mock_datetime):
         """Test getting performance trends."""
         # Setup mocks

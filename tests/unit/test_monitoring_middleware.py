@@ -23,7 +23,7 @@ class TestRequestMonitor(unittest.TestCase):
         """Set up test fixtures."""
         self.db_mock = MagicMock()
 
-    @patch('src.services.monitoring_middleware.MonitoringService')
+    @patch('core.services.monitoring_middleware.MonitoringService')
     def test_log_stock_request_success(self, mock_monitoring_service_class):
         """Test successful stock request logging."""
         # Setup mocks
@@ -76,7 +76,7 @@ class TestRequestMonitor(unittest.TestCase):
             ip_address="192.168.1.100"
         )
 
-    @patch('src.services.monitoring_middleware.MonitoringService')
+    @patch('core.services.monitoring_middleware.MonitoringService')
     def test_log_stock_request_no_request(self, mock_monitoring_service_class):
         """Test stock request logging without request object."""
         # Setup mocks
@@ -115,7 +115,7 @@ class TestRequestMonitor(unittest.TestCase):
             ip_address=""
         )
 
-    @patch('src.services.monitoring_middleware.MonitoringService')
+    @patch('core.services.monitoring_middleware.MonitoringService')
     def test_log_stock_request_ip_extraction(self, mock_monitoring_service_class):
         """Test IP address extraction from different headers."""
         # Setup mocks
@@ -172,8 +172,8 @@ class TestRequestMonitor(unittest.TestCase):
         call_args = mock_monitoring_service.log_request.call_args[1]
         self.assertEqual(call_args["ip_address"], "127.0.0.1")
 
-    @patch('src.services.monitoring_middleware.MonitoringService')
-    @patch('src.services.monitoring_middleware.logger')
+    @patch('core.services.monitoring_middleware.MonitoringService')
+    @patch('core.services.monitoring_middleware.logger')
     def test_log_stock_request_exception(self, mock_logger, mock_monitoring_service_class):
         """Test exception handling in stock request logging."""
         # Setup mocks
@@ -210,8 +210,8 @@ class TestMonitorStockRequestDecorator(unittest.TestCase):
         self.db_session_mock = MagicMock()
         self.db_getter_mock.return_value = iter([self.db_session_mock])
 
-    @patch('src.services.monitoring_middleware.RequestMonitor')
-    @patch('src.services.monitoring_middleware.time')
+    @patch('core.services.monitoring_middleware.RequestMonitor')
+    @patch('core.services.monitoring_middleware.time')
     def test_decorator_success(self, mock_time, mock_request_monitor_class):
         """Test successful decorator execution."""
         # Setup mocks
@@ -262,8 +262,8 @@ class TestMonitorStockRequestDecorator(unittest.TestCase):
         self.assertFalse(call_args["akshare_called"])
         self.assertEqual(call_args["cache_hit_ratio"], 1.0)
 
-    @patch('src.services.monitoring_middleware.RequestMonitor')
-    @patch('src.services.monitoring_middleware.time')
+    @patch('core.services.monitoring_middleware.RequestMonitor')
+    @patch('core.services.monitoring_middleware.time')
     def test_decorator_no_metadata(self, mock_time, mock_request_monitor_class):
         """Test decorator with response that has no metadata."""
         # Setup mocks
@@ -292,8 +292,8 @@ class TestMonitorStockRequestDecorator(unittest.TestCase):
         self.assertFalse(call_args["akshare_called"])
         self.assertEqual(call_args["cache_hit_ratio"], 0.0)
 
-    @patch('src.services.monitoring_middleware.RequestMonitor')
-    @patch('src.services.monitoring_middleware.time')
+    @patch('core.services.monitoring_middleware.RequestMonitor')
+    @patch('core.services.monitoring_middleware.time')
     def test_decorator_exception(self, mock_time, mock_request_monitor_class):
         """Test decorator when function raises exception."""
         # Setup mocks

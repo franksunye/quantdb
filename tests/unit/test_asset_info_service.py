@@ -160,7 +160,7 @@ class TestAssetInfoService(unittest.TestCase):
             result = self.service._parse_date(input_val)
             self.assertIsNone(result)
 
-    @patch('src.services.asset_info_service.ak.stock_individual_info_em')
+    @patch('core.services.asset_info_service.ak.stock_individual_info_em')
     def test_fetch_asset_basic_info_success(self, mock_akshare):
         """Test successful asset info fetching from AKShare"""
         # Mock AKShare response
@@ -171,7 +171,7 @@ class TestAssetInfoService(unittest.TestCase):
         mock_akshare.return_value = mock_data
         
         # Mock realtime data
-        with patch('src.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime:
+        with patch('core.services.asset_info_service.ak.stock_zh_a_spot_em') as mock_realtime:
             mock_realtime_data = pd.DataFrame({
                 '代码': ['600000'],
                 '市盈率-动态': [5.15],
@@ -188,7 +188,7 @@ class TestAssetInfoService(unittest.TestCase):
             self.assertEqual(result['pe_ratio'], 5.15)
             self.assertEqual(result['pb_ratio'], 0.55)
 
-    @patch('src.services.asset_info_service.ak.stock_individual_info_em')
+    @patch('core.services.asset_info_service.ak.stock_individual_info_em')
     def test_fetch_asset_basic_info_akshare_failure(self, mock_akshare):
         """Test asset info fetching when AKShare fails"""
         # Mock AKShare failure

@@ -22,7 +22,7 @@ class TestTradingCalendar:
         """每个测试方法前的设置"""
         # 清理全局实例
         import core.services.trading_calendar
-        src.services.trading_calendar._trading_calendar = None
+        core.services.trading_calendar._trading_calendar = None
 
     def test_trading_calendar_initialization(self):
         """测试交易日历初始化"""
