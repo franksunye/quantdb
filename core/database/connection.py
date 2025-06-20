@@ -10,11 +10,8 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
-# Import type hints for adapters
+# Import type hints for adapters (removed deprecated src/ imports)
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:
-    from src.db.supabase_adapter import SupabaseAdapter
-    from src.db.sqlite_adapter import SQLiteAdapter
 
 # Configuration will be imported from core.utils.config
 from ..utils.config import DATABASE_URL, DB_TYPE
@@ -45,13 +42,13 @@ def get_db() -> Generator[Session, None, None]:
     finally:
         db.close()
 
-# Dependency to get DB adapter
-def get_db_adapter() -> Union['SupabaseAdapter', 'SQLiteAdapter']:
+# Dependency to get DB adapter (simplified for core architecture)
+def get_db_adapter():
     """
     Dependency for FastAPI to get a database adapter
 
-    Returns:
-        Database adapter instance based on configuration
+    Note: Simplified for core architecture. Database adapters are now
+    handled through the core services layer.
     """
-    from src.db.adapter_factory import create_db_adapter
-    return create_db_adapter(DB_TYPE)
+    # Return the engine directly for core architecture
+    return engine

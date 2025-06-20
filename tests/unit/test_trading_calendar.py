@@ -12,7 +12,7 @@ from unittest.mock import patch, MagicMock
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.trading_calendar import TradingCalendar, get_trading_calendar, is_trading_day, get_trading_days
+from core.services.trading_calendar import TradingCalendar, get_trading_calendar, is_trading_day, get_trading_days
 
 
 class TestTradingCalendar:
@@ -21,7 +21,7 @@ class TestTradingCalendar:
     def setup_method(self):
         """每个测试方法前的设置"""
         # 清理全局实例
-        import src.services.trading_calendar
+        import core.services.trading_calendar
         src.services.trading_calendar._trading_calendar = None
 
     def test_trading_calendar_initialization(self):

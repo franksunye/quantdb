@@ -6,7 +6,8 @@
 """
 
 import os
-from src.enhanced_logger import setup_enhanced_logger
+# Enhanced logger migrated to core
+from core.utils.logger import get_logger as core_get_logger
 
 # 简单的配置获取，避免依赖复杂的config模块
 def _get_log_level():
@@ -25,14 +26,9 @@ def get_logger(name: str):
         name: 日志记录器名称，通常使用 __name__
 
     Returns:
-        配置好的 EnhancedLogger 实例
+        配置好的 Logger 实例
     """
-    return setup_enhanced_logger(
-        name=name,
-        level="DEBUG" if _is_debug() else _get_log_level(),
-        detailed=True,
-        console_output=True
-    )
+    return core_get_logger(name)
 
 # 为了兼容性，提供旧的接口
 def setup_logger(name: str):

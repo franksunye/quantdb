@@ -13,8 +13,8 @@ from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 from datetime import datetime
 
-from src.api.main import app
-from src.api.models import Asset
+from api.main import app
+from core.models import Asset
 
 
 client = TestClient(app)

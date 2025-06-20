@@ -7,6 +7,6 @@ which serve as an intelligent middleware layer above external data sources
 like AKShare, optimizing data acquisition and caching processes.
 """
 
-from src.cache.akshare_adapter import AKShareAdapter
+from core.cache.akshare_adapter import AKShareAdapter
 
 __all__ = ['AKShareAdapter']

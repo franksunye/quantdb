@@ -13,8 +13,8 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime, date, timedelta
 import pandas as pd
 
-from src.services.asset_info_service import AssetInfoService
-from src.api.models import Asset
+from core.services.asset_info_service import AssetInfoService
+from core.models import Asset
 
 
 class TestAssetInfoService(unittest.TestCase):

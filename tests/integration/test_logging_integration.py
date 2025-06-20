@@ -11,9 +11,9 @@ import time
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 
-from src.api.main import app
-from src.config import API_PREFIX
-from src.enhanced_logger import (
+from api.main import app
+from core.utils.config import API_PREFIX
+# Migrated to core
     EnhancedLogger,
     setup_enhanced_logger,
     log_function

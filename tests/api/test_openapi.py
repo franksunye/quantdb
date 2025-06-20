@@ -14,8 +14,8 @@ from fastapi.testclient import TestClient
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.api.main import app
-from src.logger_unified import get_logger
+from api.main import app
+from core.utils.logger import get_logger
 
 # 设置测试日志记录器
 logger = get_logger("test_openapi")

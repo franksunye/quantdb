@@ -1,0 +1,17 @@
+# FastAPI and web framework
+fastapi>=0.115.0
+uvicorn>=0.34.0
+pydantic>=2.11.0
+
+# HTTP client
+httpx>=0.28.0
+
+# Core dependencies (shared with core/)
+sqlalchemy>=2.0.0
+pandas>=2.3.0
+akshare>=1.17.0
+tenacity>=9.1.0
+
+# Development and testing
+pytest>=6.2.0
+pytest-cov>=6.2.0

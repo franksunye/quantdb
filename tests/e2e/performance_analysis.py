@@ -18,7 +18,7 @@ sys.path.insert(0, str(project_root))
 
 from tests.e2e.config import e2e_config
 from tests.e2e.server_manager import server_manager
-from src.logger_unified import get_logger
+from core.utils.logger import get_logger
 
 logger = get_logger("e2e_performance_analysis")
 

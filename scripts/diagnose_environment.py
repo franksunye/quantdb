@@ -51,7 +51,7 @@ def diagnose_environment():
         project_root = Path(__file__).parent.parent
         sys.path.insert(0, str(project_root))
         
-        from src.config import DATABASE_URL, DB_TYPE
+        from core.utils.config import DATABASE_URL, DB_TYPE
         print(f"   ✅ Config imported successfully")
         print(f"   DATABASE_URL: {DATABASE_URL}")
         print(f"   DB_TYPE: {DB_TYPE}")
@@ -71,7 +71,7 @@ def diagnose_environment():
     # 5. Test database connection
     print("\n5. Database Connection Test:")
     try:
-        from src.api.database import engine
+        from core.database import engine
         from sqlalchemy import text
         
         with engine.connect() as conn:
@@ -85,7 +85,7 @@ def diagnose_environment():
     # 6. Check database file
     print("\n6. Database File Check:")
     try:
-        from src.config import DATABASE_PATH
+        from core.utils.config import DATABASE_PATH
         db_path = Path(DATABASE_PATH)
         if db_path.exists():
             print(f"   ✅ Database file exists: {db_path}")

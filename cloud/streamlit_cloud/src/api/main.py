@@ -10,13 +10,13 @@ import logging
 from sqlalchemy.orm import Session
 from datetime import datetime
 
-from src.config import API_PREFIX, DEBUG, ENVIRONMENT
-from src.logger_unified import get_logger
-from src.api.database import get_db
-# from src.mcp.interpreter import MCPInterpreter  # MCP功能已归档
-from src.api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
-from src.api.version import APIVersion, get_version_prefix, get_latest_version_info
-from src.api.errors import (
+from core.utils.config import API_PREFIX, DEBUG, ENVIRONMENT
+from core.utils.logger import get_logger
+from core.database import get_db
+# MCP functionality archived
+from api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
+from api.version import APIVersion, get_version_prefix, get_latest_version_info
+from api.errors import (
     register_exception_handlers,
     QuantDBException,
     DataNotFoundException,
@@ -27,9 +27,9 @@ from src.api.errors import (
 logger = get_logger(__name__)
 
 # Import simplified components
-from src.cache.akshare_adapter import AKShareAdapter
-from src.services.stock_data_service import StockDataService
-from src.services.database_cache import DatabaseCache
+from core.cache.akshare_adapter import AKShareAdapter
+from core.services.stock_data_service import StockDataService
+from core.services.database_cache import DatabaseCache
 
 # Create simplified components
 akshare_adapter = AKShareAdapter()
@@ -111,11 +111,11 @@ async def health_check_v2():
     }
 
 # Import and include routers
-from src.api.routes import assets, cache, historical_data, batch_assets
-from src.api.routes.version import router as version_router
-from src.api.cache_api import router as cache_api_router
-# from src.api.endpoints.monitoring import router as monitoring_router  # 暂时注释
-# from src.mcp.schemas import MCPRequest, MCPResponse  # MCP功能已归档
+from api.routes import assets, cache, historical_data, batch_assets
+from api.routes.version import router as version_router
+from api.cache_api import router as cache_api_router
+# from api.endpoints.monitoring import router as monitoring_router  # 暂时注释
+# MCP schemas archived
 
 # Include routers with consistent prefixes
 app.include_router(

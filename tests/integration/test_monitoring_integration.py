@@ -17,9 +17,9 @@ import asyncio
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from src.services.monitoring_service import MonitoringService
-from src.services.monitoring_middleware import RequestMonitor, monitor_stock_request
-from src.api.models import Base, RequestLog, DataCoverage, Asset, DailyStockData
+from core.services.monitoring_service import MonitoringService
+from core.services.monitoring_middleware import RequestMonitor, monitor_stock_request
+from core.models import Base, RequestLog, DataCoverage, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 

@@ -4,15 +4,15 @@ Initialize the test database for testing
 import sys
 from pathlib import Path
 
-# Add the parent directory to the path so we can import from src
+# Add the parent directory to the path so we can import # Migrated to core
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from src.api.database import Base
-from src.api.models import Asset, DailyStockData
+from core.database import Base
+from core.models import Asset, DailyStockData
 from datetime import date, timedelta
 
 def init_test_db():
