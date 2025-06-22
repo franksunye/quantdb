@@ -14,6 +14,7 @@ from fastapi.testclient import TestClient
 from api.main import app
 from core.utils.config import API_PREFIX
 # Migrated to core
+from core.utils.logger import (
     EnhancedLogger,
     setup_enhanced_logger,
     log_function
