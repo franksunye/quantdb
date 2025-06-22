@@ -19,9 +19,8 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-# Migrated to core
-# Migrated to core
-# Migrated to core
+from core.database import get_db
+from core.models import Asset, DailyStockData
 from sqlalchemy import func
 import json
 
@@ -40,7 +39,6 @@ def monitor_water_pool_status():
         print("\n📊 数据库基础统计:")
 
         # 查询assets表获取股票信息
-        # Migrated to core
         total_assets = db.query(func.count(Asset.asset_id)).scalar() or 0
         total_records = db.query(func.count(DailyStockData.id)).scalar() or 0
         

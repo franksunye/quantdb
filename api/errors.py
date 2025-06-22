@@ -5,7 +5,7 @@ This module exports error classes and handlers from the middleware module
 for backward compatibility and easier imports.
 """
 
-from .middleware import (
+from api.middleware import (
     ErrorCode,
     QuantDBException,
     DataNotFoundException,

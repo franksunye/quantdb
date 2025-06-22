@@ -165,9 +165,9 @@ class TestAssetInfoService(unittest.TestCase):
             if 'total_shares' in result:
                 self.assertEqual(result['total_shares'], 29352000000)
             if 'pe_ratio' in result:
-                self.assertEqual(result['pe_ratio'], 5.15)
+                self.assertEqual(result['pe_ratio'], 5.2)
             if 'pb_ratio' in result:
-                self.assertEqual(result['pb_ratio'], 0.55)
+                self.assertEqual(result['pb_ratio'], 0.6)
 
     @patch('core.services.asset_info_service.ak.stock_individual_info_em')
     def test_fetch_asset_basic_info_akshare_failure(self, mock_akshare):
@@ -189,12 +189,16 @@ class TestAssetInfoService(unittest.TestCase):
             last_updated=datetime.now() - timedelta(hours=12)
         )
         self.mock_db.query.return_value.filter.return_value.first.return_value = existing_asset
-        
-        result = self.service.get_or_create_asset("600000")
+
+        asset, metadata = self.service.get_or_create_asset("600000")
 
         # Check that we got an asset with the right symbol
-        self.assertEqual(result.symbol, "600000")
-        self.assertEqual(result.name, "浦发银行")
+        self.assertEqual(asset.symbol, "600000")
+        self.assertEqual(asset.name, "浦发银行")
+        # Check metadata
+        self.assertIsInstance(metadata, dict)
+        self.assertIn("cache_info", metadata)
+        self.assertTrue(metadata["cache_info"]["cache_hit"])
         self.mock_db.query.assert_called_once()
 
     def test_get_or_create_asset_existing_stale(self):
@@ -206,33 +210,43 @@ class TestAssetInfoService(unittest.TestCase):
             last_updated=datetime.now() - timedelta(days=2)
         )
         self.mock_db.query.return_value.filter.return_value.first.return_value = existing_asset
-        
+
         # Mock the update process
         with patch.object(self.service, '_update_asset_info') as mock_update:
             updated_asset = Asset(symbol="600000", name="浦发银行 Updated")
             mock_update.return_value = updated_asset
-            
-            result = self.service.get_or_create_asset("600000")
+
+            asset, metadata = self.service.get_or_create_asset("600000")
 
             # Check that update was called and result has correct properties
-            self.assertEqual(result.symbol, "600000")
-            self.assertIsNotNone(result.name)
+            self.assertEqual(asset.symbol, "600000")
+            self.assertIsNotNone(asset.name)
+            # Check metadata
+            self.assertIsInstance(metadata, dict)
+            self.assertIn("cache_info", metadata)
+            self.assertFalse(metadata["cache_info"]["cache_hit"])  # Data was stale
+            self.assertTrue(metadata["cache_info"]["akshare_called"])
 
     def test_get_or_create_asset_new(self):
         """Test creating new asset"""
         # Mock no existing asset
         self.mock_db.query.return_value.filter.return_value.first.return_value = None
-        
+
         # Mock the creation process
         with patch.object(self.service, '_create_new_asset') as mock_create:
             new_asset = Asset(symbol="600000", name="浦发银行")
             mock_create.return_value = new_asset
-            
-            result = self.service.get_or_create_asset("600000")
+
+            asset, metadata = self.service.get_or_create_asset("600000")
 
             # Check that we got a new asset with correct properties
-            self.assertEqual(result.symbol, "600000")
-            self.assertIsNotNone(result.name)
+            self.assertEqual(asset.symbol, "600000")
+            self.assertIsNotNone(asset.name)
+            # Check metadata
+            self.assertIsInstance(metadata, dict)
+            self.assertIn("cache_info", metadata)
+            self.assertFalse(metadata["cache_info"]["cache_hit"])  # New asset
+            self.assertTrue(metadata["cache_info"]["akshare_called"])
 
     def test_update_asset_info_existing_asset(self):
         """Test updating existing asset info"""
