@@ -11,10 +11,28 @@ import os
 from pathlib import Path
 import time
 
-# 添加项目根目录到Python路径以访问core模块
-current_dir = Path(__file__).parent
-project_root = current_dir.parent.parent  # 回到QuantDB根目录
-sys.path.insert(0, str(project_root))
+# 尝试添加项目根目录到Python路径以访问core模块
+try:
+    current_dir = Path(__file__).parent
+    project_root = current_dir.parent.parent  # 回到QuantDB根目录
+    sys.path.insert(0, str(project_root))
+
+    # 添加本地src目录到路径（云端部署备用）
+    src_dir = current_dir / "src"
+    if src_dir.exists():
+        sys.path.insert(0, str(src_dir))
+except Exception as path_error:
+    st.warning(f"路径设置警告: {path_error}")
+
+# 设置云端模式标志
+CLOUD_MODE = True
+try:
+    # 测试是否可以导入core模块
+    import core
+    CLOUD_MODE = False
+    st.info("检测到完整项目环境")
+except ImportError:
+    st.info("运行在云端简化模式")
 
 # 页面配置
 st.set_page_config(
@@ -51,75 +69,120 @@ st.set_page_config(
     }
 )
 
-# 验证数据库
+# 简化的数据库验证
 @st.cache_resource
 def verify_database():
-    """验证数据库连接和表结构"""
+    """验证数据库连接和表结构 - 简化版本"""
     try:
-        from core.database import engine, Base, SessionLocal
-        from core.models import Asset, DailyStockData, IntradayStockData, RequestLog, DataCoverage, SystemMetrics
-        from sqlalchemy import inspect
+        import sqlite3
+        from pathlib import Path
 
-        # 检查数据库连接
-        inspector = inspect(engine)
-        existing_tables = inspector.get_table_names()
+        current_dir = Path(__file__).parent
+        db_path = current_dir / "database" / "stock_data.db"
+
+        if not db_path.exists():
+            st.warning(f"数据库文件不存在: {db_path}")
+            return False
+
+        # 测试SQLite连接
+        conn = sqlite3.connect(str(db_path))
+        cursor = conn.cursor()
+
+        # 检查表是否存在
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = [row[0] for row in cursor.fetchall()]
 
         expected_tables = ['assets', 'daily_stock_data', 'intraday_stock_data', 'request_logs', 'data_coverage', 'system_metrics']
-        missing_tables = [table for table in expected_tables if table not in existing_tables]
+        existing_tables = [table for table in expected_tables if table in tables]
+        missing_tables = [table for table in expected_tables if table not in tables]
 
         if missing_tables:
             st.warning(f"缺少数据库表: {missing_tables}")
-            # 尝试创建缺失的表
-            Base.metadata.create_all(bind=engine)
-            st.info("已尝试创建缺失的表")
+
+        if existing_tables:
+            st.success(f"数据库验证成功，找到表: {existing_tables}")
 
         # 测试基本查询
-        db_session = SessionLocal()
-        try:
-            asset_count = db_session.query(Asset).count()
-            st.success(f"数据库验证成功，找到 {asset_count} 个资产")
-            return True
-        except Exception as query_error:
-            st.error(f"数据库查询测试失败: {query_error}")
-            # 尝试重新创建所有表
-            Base.metadata.drop_all(bind=engine)
-            Base.metadata.create_all(bind=engine)
-            st.info("已重新创建所有数据库表")
-            return False
-        finally:
-            db_session.close()
+        if 'assets' in tables:
+            cursor.execute("SELECT COUNT(*) FROM assets")
+            asset_count = cursor.fetchone()[0]
+            st.info(f"资产表中有 {asset_count} 条记录")
+
+        conn.close()
+        return len(existing_tables) > 0
 
     except Exception as e:
         st.error(f"数据库验证失败: {e}")
         return False
 
-# 初始化服务
+# 条件化的服务初始化
 @st.cache_resource
 def init_services():
-    """初始化服务实例"""
+    """初始化服务实例 - 支持完整模式和云端模式"""
     try:
-        # 首先验证数据库
-        if not verify_database():
-            st.warning("数据库验证失败，但继续尝试初始化服务")
+        if not CLOUD_MODE:
+            # 完整模式：尝试使用core模块
+            st.info("正在初始化完整服务...")
+            try:
+                from core.services import StockDataService, AssetInfoService, DatabaseCache
+                from core.cache import AKShareAdapter
+                from core.database import get_db
 
-        # 导入现有服务
-        from core.services import StockDataService, AssetInfoService, DatabaseCache
-        from core.cache import AKShareAdapter
-        from core.database import get_db
+                # 创建数据库会话
+                db_session = next(get_db())
+                akshare_adapter = AKShareAdapter()
 
-        # 创建数据库会话
-        db_session = next(get_db())
+                return {
+                    'stock_service': StockDataService(db_session, akshare_adapter),
+                    'asset_service': AssetInfoService(db_session),
+                    'cache_service': DatabaseCache(db_session),
+                    'akshare_adapter': akshare_adapter,
+                    'db_session': db_session,
+                    'mode': 'full'
+                }
+            except Exception as full_error:
+                st.warning(f"完整模式初始化失败，切换到云端模式: {full_error}")
 
-        # 创建AKShare适配器
-        akshare_adapter = AKShareAdapter()
+        # 云端模式：简化的服务初始化
+        st.info("正在初始化云端简化服务...")
 
-        return {
-            'stock_service': StockDataService(db_session, akshare_adapter),
-            'asset_service': AssetInfoService(db_session),
-            'cache_service': DatabaseCache(db_session),
-            'akshare_adapter': akshare_adapter,
-            'db_session': db_session
+        # 创建一个简化的服务容器
+        services = {
+            'stock_service': None,
+            'asset_service': None,
+            'cache_service': None,
+            'akshare_adapter': None,
+            'db_session': None,
+            'mode': 'cloud'
         }
+
+        # 尝试基本的数据库连接
+        try:
+            import sqlite3
+            from pathlib import Path
+
+            current_dir = Path(__file__).parent
+            db_path = current_dir / "database" / "stock_data.db"
+
+            # 测试SQLite连接
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            conn.close()
+
+            st.success(f"数据库连接成功，找到 {len(tables)} 个表")
+
+            # 创建简化的服务对象
+            services['db_path'] = str(db_path)
+            services['table_count'] = len(tables)
+
+        except Exception as db_error:
+            st.warning(f"数据库连接失败: {db_error}")
+            services['db_error'] = str(db_error)
+
+        return services
+
     except Exception as e:
         st.error(f"服务初始化失败: {e}")
         return None
@@ -127,15 +190,35 @@ def init_services():
 def get_system_status():
     """获取系统状态"""
     try:
-        # Debug information
-        from core.utils.config import DATABASE_URL, DATABASE_PATH
+        # 使用简化的配置，避免复杂的模块导入
         import os
         from pathlib import Path
 
-        # Check database file existence
-        db_exists = os.path.exists(DATABASE_PATH)
         current_dir = Path(__file__).parent
 
+        # 简化的数据库路径配置
+        possible_db_paths = [
+            current_dir / "database" / "stock_data.db",
+            current_dir / "database" / "stock_data.db.backup",
+            "database/stock_data.db",
+            "./database/stock_data.db"
+        ]
+
+        DATABASE_PATH = None
+        db_exists = False
+
+        for path in possible_db_paths:
+            if os.path.exists(path):
+                DATABASE_PATH = str(path)
+                db_exists = True
+                break
+
+        if not DATABASE_PATH:
+            DATABASE_PATH = str(current_dir / "database" / "stock_data.db")
+
+        DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
+
+        # 尝试简化的服务初始化
         services = init_services()
         if not services:
             return {
@@ -147,31 +230,36 @@ def get_system_status():
                     'database_url': DATABASE_URL,
                     'database_path': DATABASE_PATH,
                     'db_exists': db_exists,
-                    'current_dir': str(current_dir)
+                    'current_dir': str(current_dir),
+                    'checked_paths': [str(p) for p in possible_db_paths]
                 }
             }
 
         # 测试API响应时间
         start_time = time.time()
 
-        # 数据库查询测试
-        try:
-            from core.models import Asset
-            asset_count = services['db_session'].query(Asset).count()
-        except Exception as db_error:
-            asset_count = 0
-            # Add debug info for database errors
-            st.error(f"数据库查询错误: {db_error}")
-            st.info(f"数据库路径: {DATABASE_PATH}")
-            st.info(f"数据库存在: {db_exists}")
+        # 简化的数据库查询测试
+        asset_count = 0
+        if services and 'table_count' in services:
+            # 使用简化的SQLite查询
+            try:
+                import sqlite3
+                conn = sqlite3.connect(DATABASE_PATH)
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM assets")
+                asset_count = cursor.fetchone()[0]
+                conn.close()
+            except Exception as db_error:
+                st.warning(f"数据库查询错误: {db_error}")
+                asset_count = 0
 
         api_response_time = (time.time() - start_time) * 1000
 
-        # 获取缓存状态
-        try:
-            cache_stats = services['cache_service'].get_cache_stats()
-        except Exception:
-            cache_stats = {}
+        # 简化的缓存状态
+        cache_stats = {
+            'database_type': 'SQLite',
+            'status': 'active' if db_exists else 'inactive'
+        }
 
         return {
             'api_status': 'running',

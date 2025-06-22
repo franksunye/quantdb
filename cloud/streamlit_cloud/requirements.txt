@@ -27,5 +27,27 @@ pydantic>=1.8.0
 # 环境变量管理
 python-dotenv>=0.19.0
 
+# FastAPI相关依赖（core模块可能需要）
+fastapi>=0.68.0
+uvicorn>=0.15.0
+httpx>=0.18.0
+
+# 重试机制（core服务需要）
+tenacity>=9.1.0
+
+# 认证相关（core模块可能需要）
+python-jose>=3.3.0
+passlib>=1.7.4
+python-multipart>=0.0.5
+
+# 数据库迁移（可能需要）
+alembic>=1.7.0
+
+# PostgreSQL支持（如果需要）
+psycopg2-binary>=2.9.0
+
+# 任务调度（可能需要）
+schedule>=1.1.0
+
 # 可选：增强功能
 streamlit-option-menu>=0.3.6
