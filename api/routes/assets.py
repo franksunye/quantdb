@@ -82,18 +82,31 @@ async def get_asset(asset_id: int, db: Session = Depends(get_db)):
         logger.error(f"Unexpected error when getting asset {asset_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@router.get("/symbol/{symbol}", response_model=AssetWithMetadata)
+@router.get("/symbol/{symbol}", response_model=AssetSchema)
 async def get_asset_by_symbol(
     symbol: str,
     asset_info_service: AssetInfoService = Depends(get_asset_info_service)
 ):
     """
-    Get a specific asset by symbol with enhanced information and cache metadata
+    Get a specific asset by symbol with enhanced information
     """
     try:
+        # Validate symbol format - should be 6 digits for A-shares or 5 digits for Hong Kong stocks
+        if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
+            raise HTTPException(status_code=400, detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks")
+
         # Use asset info service to get or create asset with enhanced info
-        asset, metadata = asset_info_service.get_or_create_asset(symbol)
-        return AssetWithMetadata(asset=asset, metadata=metadata)
+        result = asset_info_service.get_or_create_asset(symbol)
+
+        # Handle both tuple and single asset returns
+        if isinstance(result, tuple):
+            asset, metadata = result
+        else:
+            asset = result
+
+        return asset
+    except HTTPException:
+        raise
     except SQLAlchemyError as e:
         logger.error(f"Database error when getting asset with symbol {symbol}: {e}")
         raise HTTPException(status_code=500, detail="Database error")

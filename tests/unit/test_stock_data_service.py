@@ -170,7 +170,7 @@ class TestStockDataService(unittest.TestCase):
         self.db_cache_mock.get.assert_called_once()
         self.akshare_adapter_mock.get_stock_data.assert_not_called()
         # Check for the new cache hit message
-        logger_mock.info.assert_any_call("✅ All requested trading day data for 600000 already exists in database - CACHE HIT!")
+        logger_mock.info.assert_any_call("All requested trading day data for 600000 already exists in database - CACHE HIT!")
 
     @patch('core.services.stock_data_service.logger')
     def test_get_stock_data_partial_cache(self, logger_mock):

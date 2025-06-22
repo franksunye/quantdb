@@ -57,14 +57,14 @@ class TestOpenAPI(unittest.TestCase):
         # 验证API信息
         self.assertEqual(openapi_spec["info"]["title"], "QuantDB API",
                          "API标题应为'QuantDB API'")
-        self.assertEqual(openapi_spec["info"]["version"], "0.5.0",
-                         "API版本应为'0.5.0'")
+        self.assertEqual(openapi_spec["info"]["version"], "2.0.0",
+                         "API版本应为'2.0.0'")
 
         # 验证是否包含关键路径
         paths = openapi_spec["paths"]
-        self.assertIn("/historical/stock/{symbol}", paths,
+        self.assertIn("/api/v1/historical/stock/{symbol}", paths,
                       "OpenAPI规范应包含历史股票数据路径")
-        self.assertIn("/historical/database/cache/status", paths,
+        self.assertIn("/api/v1/historical/database/cache/status", paths,
                       "OpenAPI规范应包含缓存状态路径")
 
         logger.info("OpenAPI JSON端点测试通过")

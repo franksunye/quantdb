@@ -70,7 +70,7 @@ async def get_historical_stock_data(
     try:
         # Validate symbol format - support both A-shares and Hong Kong stocks
         if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
-            raise HTTPException(status_code=400, detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks")
+            raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
 
         # Get or create asset with enhanced information
         asset, asset_metadata = asset_info_service.get_or_create_asset(symbol)
@@ -104,7 +104,7 @@ async def get_historical_stock_data(
                     "data": [],
                     "metadata": {
                         "count": 0,
-                        "status": "no_data",
+                        "status": "success",
                         "message": "No data found for the specified parameters",
                         "error_analysis": error_analysis,
                         "suggestions": [
@@ -251,6 +251,11 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
         from core.services.trading_calendar import get_trading_calendar
 
         # 分析日期范围
+        if start_date is None or end_date is None:
+            analysis["possible_reasons"].append("日期参数缺失")
+            analysis["recommendations"].append("提供有效的开始和结束日期")
+            return analysis
+
         start_dt = datetime.strptime(start_date, '%Y%m%d')
         end_dt = datetime.strptime(end_date, '%Y%m%d')
         date_diff = (end_dt - start_dt).days
