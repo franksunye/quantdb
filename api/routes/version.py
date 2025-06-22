@@ -1,19 +1,25 @@
-# src/api/version.py
 """
-API version management utilities.
+API version routes.
 
-This module provides utilities for managing API versions and ensuring backward compatibility.
+This module provides routes for retrieving API version information.
 """
 
-from enum import Enum
-from typing import Dict, List, Optional, Union
-from datetime import datetime
+from typing import Dict, Any
+from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel
+from datetime import datetime
+from enum import Enum
 
 from core.utils.logger import get_logger
 
 # Setup logger
 logger = get_logger(__name__)
+
+# Create router
+router = APIRouter(
+    tags=["version"],
+    responses={404: {"description": "Not found"}},
+)
 
 class APIVersion(str, Enum):
     """API version enum."""
@@ -23,10 +29,10 @@ class APIVersion(str, Enum):
     @classmethod
     def get_latest(cls) -> "APIVersion":
         """Get the latest API version."""
-        return APIVersion.V1  # Current production version
+        return APIVersion.V2  # Latest version
 
     @classmethod
-    def get_all(cls) -> List["APIVersion"]:
+    def get_all(cls) -> list["APIVersion"]:
         """Get all API versions."""
         return [v for v in APIVersion]
 
@@ -45,47 +51,39 @@ class VersionInfo(BaseModel):
     api_version: str
     release_date: str
     deprecated: bool = False
-    sunset_date: Optional[str] = ""
     description: str
 
-# Version information for each API version
-VERSION_INFO: Dict[APIVersion, VersionInfo] = {
-    APIVersion.V1: VersionInfo(
-        version="0.7.7-production-ready",
+class VersionResponse(BaseModel):
+    """API version response model."""
+    version: str
+    api_version: str
+    release_date: str
+    deprecated: bool
+    description: str
+
+class VersionsResponse(BaseModel):
+    """API versions response model."""
+    versions: Dict[str, VersionResponse]
+    latest: str
+    current: str
+
+# Version information
+VERSION_INFO = {
+    "v1": VersionInfo(
+        version="2.0.0",
         api_version="v1",
-        release_date="2025-01-29",
+        release_date="2025-06-22",
         deprecated=False,
-        sunset_date="",
-        description="Production-ready version with unified logging, intelligent cache, and comprehensive testing."
+        description="Production-ready version with Core/API architecture"
     ),
-    APIVersion.V2: VersionInfo(
-        version="0.8.0-future",
+    "v2": VersionInfo(
+        version="2.1.0",
         api_version="v2",
         release_date="TBD",
         deprecated=False,
-        sunset_date="",
-        description="Future API version with enhanced features (planned)."
+        description="Future API version with enhanced features (planned)"
     )
 }
-
-def get_version_info(version: Union[APIVersion, str]) -> Optional[VersionInfo]:
-    """
-    Get information about a specific API version.
-
-    Args:
-        version: API version to get information for.
-
-    Returns:
-        Version information or None if version is not found.
-    """
-    if isinstance(version, str):
-        try:
-            version = APIVersion(version.lower())
-        except ValueError:
-            logger.warning(f"Invalid API version: {version}")
-            return None
-
-    return VERSION_INFO.get(version)
 
 def get_all_versions() -> Dict[str, VersionInfo]:
     """
@@ -94,42 +92,7 @@ def get_all_versions() -> Dict[str, VersionInfo]:
     Returns:
         Dictionary with version information for all API versions.
     """
-    return {v.value: info for v, info in VERSION_INFO.items()}
-
-def get_version_prefix(version: Union[APIVersion, str]) -> str:
-    """
-    Get the URL prefix for a specific API version.
-
-    Args:
-        version: API version to get prefix for.
-
-    Returns:
-        URL prefix for the specified version.
-    """
-    if isinstance(version, str):
-        try:
-            version = APIVersion(version.lower())
-        except ValueError:
-            logger.warning(f"Invalid API version: {version}")
-            return "/api/v1"  # Default to v1 for invalid versions
-
-    return f"/api/{version.value}"
-
-def is_version_deprecated(version: Union[APIVersion, str]) -> bool:
-    """
-    Check if an API version is deprecated.
-
-    Args:
-        version: API version to check.
-
-    Returns:
-        True if the version is deprecated, False otherwise.
-    """
-    info = get_version_info(version)
-    if not info:
-        return False
-
-    return info.deprecated
+    return VERSION_INFO
 
 def get_latest_version_info() -> VersionInfo:
     """
@@ -139,4 +102,55 @@ def get_latest_version_info() -> VersionInfo:
         Version information for the latest API version.
     """
     latest = APIVersion.get_latest()
-    return VERSION_INFO[latest]
+    return VERSION_INFO[latest.value]
+
+@router.get("/", response_model=VersionsResponse)
+async def get_versions():
+    """
+    Get information about all API versions.
+
+    Returns:
+        Dictionary with version information for all API versions.
+    """
+    logger.info("Getting information about all API versions")
+
+    versions = {k: VersionResponse(**v.model_dump()) for k, v in VERSION_INFO.items()}
+
+    return VersionsResponse(
+        versions=versions,
+        latest="v2",  # Latest version is v2
+        current="v1"  # Current production version is v1
+    )
+
+@router.get("/latest", response_model=VersionResponse)
+async def get_latest_version():
+    """
+    Get information about the latest API version.
+
+    Returns:
+        Version information for the latest API version.
+    """
+    logger.info("Getting information about the latest API version")
+
+    return VersionResponse(**VERSION_INFO["v2"].model_dump())  # Return latest version (v2)
+
+@router.get("/{version}", response_model=VersionResponse)
+async def get_version(
+    version: str = Path(..., description="API version to get information for")
+):
+    """
+    Get information about a specific API version.
+
+    Args:
+        version: API version to get information for.
+
+    Returns:
+        Version information for the specified version.
+    """
+    logger.info(f"Getting information about API version: {version}")
+
+    if version not in VERSION_INFO:
+        logger.warning(f"Invalid API version: {version}")
+        raise HTTPException(status_code=404, detail=f"API version '{version}' not found")
+
+    return VersionResponse(**VERSION_INFO[version].model_dump())

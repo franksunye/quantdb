@@ -48,8 +48,20 @@ async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "quantdb-api", "version": "2.0.0"}
 
+# V2 Health check endpoint
+@app.get("/api/v2/health")
+async def health_check_v2():
+    """V2 Health check endpoint."""
+    from datetime import datetime
+    return {
+        "status": "ok",
+        "version": "2.1.0",
+        "api_version": "v2",
+        "timestamp": datetime.now().isoformat()
+    }
+
 # Import and include routers
-from api.routes import assets, stocks, cache, batch
+from api.routes import assets, stocks, cache, batch, version
 
 app.include_router(
     assets.router,
@@ -73,6 +85,19 @@ app.include_router(
     batch.router,
     prefix=f"{API_PREFIX}/batch",
     tags=["batch"]
+)
+
+app.include_router(
+    version.router,
+    prefix=f"{API_PREFIX}/version",
+    tags=["version"]
+)
+
+# Add v2 version router
+app.include_router(
+    version.router,
+    prefix="/api/v2/version",
+    tags=["version-v2"]
 )
 
 if __name__ == "__main__":
