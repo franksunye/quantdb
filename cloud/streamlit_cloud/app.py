@@ -24,15 +24,29 @@ try:
 except Exception as path_error:
     st.warning(f"路径设置警告: {path_error}")
 
-# 设置云端模式标志
+# 设置云端模式标志 - 更智能的检测
 CLOUD_MODE = True
 try:
-    # 测试是否可以导入core模块
-    import core
-    CLOUD_MODE = False
-    st.info("检测到完整项目环境")
-except ImportError:
-    st.info("运行在云端简化模式")
+    # 检测是否在Streamlit Cloud环境
+    import os
+    if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
+        CLOUD_MODE = True
+        st.info("🌐 检测到Streamlit Cloud环境，使用云端模式")
+    else:
+        # 测试是否可以完整导入和初始化core模块
+        from core.services import StockDataService, AssetInfoService, DatabaseCache
+        from core.cache import AKShareAdapter
+        from core.database import get_db
+
+        # 测试是否可以创建数据库会话
+        db_session = next(get_db())
+        db_session.close()
+
+        CLOUD_MODE = False
+        st.info("🖥️ 检测到本地完整环境，使用完整模式")
+except Exception as e:
+    CLOUD_MODE = True
+    st.info(f"🌐 环境检测失败，使用云端模式: {str(e)[:100]}...")
 
 # 页面配置
 st.set_page_config(
@@ -121,8 +135,16 @@ def init_services():
     """初始化服务实例 - 支持完整模式和云端模式"""
 
     try:
-        if not CLOUD_MODE:
-            # 完整模式：尝试使用core模块
+        # 强制检查是否在云端环境
+        import os
+        is_streamlit_cloud = (
+            'STREAMLIT_SHARING' in os.environ or
+            'STREAMLIT_CLOUD' in os.environ or
+            'HOSTNAME' in os.environ and 'streamlit' in os.environ.get('HOSTNAME', '').lower()
+        )
+
+        if not CLOUD_MODE and not is_streamlit_cloud:
+            # 完整模式：尝试使用core模块（仅在非云端环境）
             try:
                 from core.services import StockDataService, AssetInfoService, DatabaseCache
                 from core.cache import AKShareAdapter
@@ -220,6 +242,12 @@ def show_initialization_status():
         if status == 'success':
             if mode == 'full':
                 st.success(f"✅ {message}")
+                # 测试DatabaseCache方法
+                if services.get('cache_service'):
+                    if hasattr(services['cache_service'], 'get_stats'):
+                        st.success("✅ DatabaseCache.get_stats方法可用")
+                    else:
+                        st.error("❌ DatabaseCache.get_stats方法不可用")
             elif mode == 'cloud':
                 st.info(f"☁️ {message}")
             else:
@@ -294,9 +322,18 @@ def get_system_status():
                         from core.models import Asset
                         asset_count = services['db_session'].query(Asset).count()
                     if services.get('cache_service'):
-                        cache_stats = services['cache_service'].get_cache_stats()
+                        # 检查cache_service是否有get_stats方法
+                        if hasattr(services['cache_service'], 'get_stats'):
+                            cache_stats = services['cache_service'].get_stats()
+                        else:
+                            st.warning("DatabaseCache对象缺少get_stats方法")
+                            cache_stats = {'error': 'get_stats method not found'}
                 except Exception as full_query_error:
-                    st.warning(f"完整模式查询错误: {full_query_error}")
+                    st.error(f"完整模式查询错误: {full_query_error}")
+                    st.error(f"错误类型: {type(full_query_error).__name__}")
+                    # 强制切换到云端模式查询
+                    asset_count = 0
+                    cache_stats = {'error': str(full_query_error)}
 
             elif services.get('mode') == 'cloud':
                 # 云端模式：使用SQLite直连查询
