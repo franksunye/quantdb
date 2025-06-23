@@ -190,37 +190,37 @@ def main():
             # Display recent queries
             display_recent_stock_queries()
 
-    # 检查是否有自动查询请求
+    # Check for automatic query requests
     if st.session_state.get('auto_query_stock'):
         symbol = st.session_state.get('symbol', '600000')
         query_button = True
         st.session_state.auto_query_stock = False
 
-    # 检查是否有保存的查询状态（用于保持页面状态）
+    # Check for saved query state (to maintain page state)
     if not query_button and st.session_state.get('current_stock_symbol'):
         symbol = st.session_state.get('current_stock_symbol')
         start_date = st.session_state.get('current_start_date', date.today() - timedelta(days=7))
         end_date = st.session_state.get('current_end_date', date.today())
         adjust = st.session_state.get('current_adjust', "")
-        query_button = True  # 自动重新显示之前查询的股票数据
+        query_button = True  # Automatically redisplay previously queried stock data
 
-    # 处理建议股票的查询
+    # Handle suggested stock queries
     if st.session_state.get('suggested_symbol'):
         suggested_symbol = st.session_state.pop('suggested_symbol')
         suggested_name = st.session_state.pop('suggested_name', '')
 
-        # 自动设置参数并查询
+        # Automatically set parameters and query
         symbol = suggested_symbol
-        start_date = date.today() - timedelta(days=7)  # 使用7天范围，提升性能
+        start_date = date.today() - timedelta(days=7)  # Use 7-day range for better performance
         end_date = date.today()
         adjust = ""
         query_button = True
 
-    # 左侧主内容区域
+    # Left main content area
     with col_main:
         if query_button or st.session_state.get('auto_query', False):
 
-            # 验证输入
+            # Validate input
             if not symbol:
                 st.error("Please enter a stock code")
                 return
@@ -229,24 +229,24 @@ def main():
                 st.error("Start date must be earlier than end date")
                 return
 
-            # 验证股票代码格式
+            # Validate stock code format
             if not validate_stock_code(symbol):
                 st.error("Please enter a valid stock code (A-shares: 6 digits, HK stocks: 5 digits)")
                 return
 
-            # 保存当前查询状态
+            # Save current query state
             st.session_state.current_stock_symbol = symbol
             st.session_state.current_start_date = start_date
             st.session_state.current_end_date = end_date
             st.session_state.current_adjust = adjust
 
-            # 显示查询信息
+            # Display query information
             st.info(f"Querying stock {symbol} data from {start_date} to {end_date}...")
 
-            # 查询数据
+            # Query data
             with st.spinner("Querying data..."):
                 try:
-                    # 调用后端服务获取股票数据
+                    # Call backend service to get stock data
                     result = stock_service.get_stock_data(
                         symbol=symbol,
                         start_date=start_date.strftime('%Y%m%d'),
@@ -255,89 +255,89 @@ def main():
                     )
 
                     if result is None or (isinstance(result, pd.DataFrame) and result.empty):
-                        st.warning("未找到指定时间范围内的数据")
+                        st.warning("No data found for the specified time range")
 
-                        # 提供基本的错误信息和解决方案
-                        with st.expander("🔍 可能的原因和解决方案"):
+                        # Provide basic error information and solutions
+                        with st.expander("🔍 Possible Causes and Solutions"):
                             st.markdown("""
-                            **可能的原因：**
-                            1. 📅 **时间范围问题**：选择的日期范围内可能没有交易日（周末、节假日）
-                            2. 📈 **股票状态问题**：该股票可能已停牌、退市或长期停牌
-                            3. 🌐 **数据源问题**：AKShare暂时无法获取该股票的数据
-                            4. ⏰ **数据延迟**：最新数据可能还未更新
+                            **Possible Causes:**
+                            1. 📅 **Date Range Issue**: No trading days in the selected date range (weekends, holidays)
+                            2. 📈 **Stock Status Issue**: The stock may be suspended, delisted, or long-term suspended
+                            3. 🌐 **Data Source Issue**: AKShare temporarily unable to retrieve data for this stock
+                            4. ⏰ **Data Delay**: Latest data may not be updated yet
 
-                            **建议的解决方案：**
-                            - 🔄 **扩大时间范围**：尝试查询最近30天或更长时间
-                            - 📊 **更换股票代码**：尝试查询活跃股票如：600000(浦发银行)、000001(平安银行)
-                            - 📅 **检查交易日**：避免选择周末或节假日
-                            - 🔍 **验证股票代码**：确认股票代码是否正确且仍在交易
+                            **Suggested Solutions:**
+                            - 🔄 **Expand Time Range**: Try querying the last 30 days or longer period
+                            - 📊 **Change Stock Code**: Try active stocks like: 600000(SPDB), 000001(PAB)
+                            - 📅 **Check Trading Days**: Avoid selecting weekends or holidays
+                            - 🔍 **Verify Stock Code**: Confirm the stock code is correct and still trading
                             """)
 
-                        # 提供快速替代选项
-                        st.markdown("**🚀 快速尝试活跃股票：**")
+                        # Provide quick alternative options
+                        st.markdown("**🚀 Quick Try Active Stocks:**")
 
-                        # A股推荐
-                        st.markdown("**A股推荐：**")
+                        # A-share recommendations
+                        st.markdown("**A-Share Recommendations:**")
                         col1, col2, col3 = st.columns(3)
 
                         with col1:
-                            if st.button("浦发银行(600000)", key="suggest_600000"):
+                            if st.button("SPDB(600000)", key="suggest_600000"):
                                 st.session_state.update({
                                     'suggested_symbol': '600000',
-                                    'suggested_name': '浦发银行'
+                                    'suggested_name': 'SPDB'
                                 })
                                 st.rerun()
 
                         with col2:
-                            if st.button("平安银行(000001)", key="suggest_000001"):
+                            if st.button("PAB(000001)", key="suggest_000001"):
                                 st.session_state.update({
                                     'suggested_symbol': '000001',
-                                    'suggested_name': '平安银行'
+                                    'suggested_name': 'PAB'
                                 })
                                 st.rerun()
 
                         with col3:
-                            if st.button("贵州茅台(600519)", key="suggest_600519"):
+                            if st.button("Kweichow Moutai(600519)", key="suggest_600519"):
                                 st.session_state.update({
                                     'suggested_symbol': '600519',
-                                    'suggested_name': '贵州茅台'
+                                    'suggested_name': 'Kweichow Moutai'
                                 })
                                 st.rerun()
 
-                        # 港股推荐
-                        st.markdown("**🇭🇰 港股推荐：**")
+                        # HK stock recommendations
+                        st.markdown("**🇭🇰 HK Stock Recommendations:**")
                         col4, col5, col6 = st.columns(3)
 
                         with col4:
-                            if st.button("腾讯控股(00700)", key="suggest_00700"):
+                            if st.button("Tencent(00700)", key="suggest_00700"):
                                 st.session_state.update({
                                     'suggested_symbol': '00700',
-                                    'suggested_name': '腾讯控股'
+                                    'suggested_name': 'Tencent'
                                 })
                                 st.rerun()
 
                         with col5:
-                            if st.button("阿里巴巴(09988)", key="suggest_09988"):
+                            if st.button("Alibaba(09988)", key="suggest_09988"):
                                 st.session_state.update({
                                     'suggested_symbol': '09988',
-                                    'suggested_name': '阿里巴巴-SW'
+                                    'suggested_name': 'Alibaba-SW'
                                 })
                                 st.rerun()
 
                         with col6:
-                            if st.button("小米集团(01810)", key="suggest_01810"):
+                            if st.button("Xiaomi(01810)", key="suggest_01810"):
                                 st.session_state.update({
                                     'suggested_symbol': '01810',
-                                    'suggested_name': '小米集团-W'
+                                    'suggested_name': 'Xiaomi-W'
                                 })
                                 st.rerun()
 
                         return
 
-                    # 转换为DataFrame
+                    # Convert to DataFrame
                     df = pd.DataFrame(result) if not isinstance(result, pd.DataFrame) else result
 
-                    # 显示成功信息
+                    # Display success information
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.success(f"Retrieved {len(df)} records")
@@ -346,10 +346,10 @@ def main():
                     with col3:
                         st.info("Response time: Fast")
 
-                    # 添加到最近查询列表
+                    # Add to recent query list
                     add_to_recent_stock_queries(symbol, f"Stock {symbol}")
 
-                    # 显示数据
+                    # Display data
                     display_stock_data(df, symbol, {
                         'cache_hit': False,
                         'response_time_ms': 100,
@@ -357,11 +357,11 @@ def main():
                     })
 
                 except Exception as e:
-                    st.error(f"查询失败: {str(e)}")
+                    st.error(f"Query failed: {str(e)}")
                     st.exception(e)
 
         else:
-            # 显示使用说明
+            # Display usage guide
             show_usage_guide()
 
 
@@ -369,17 +369,17 @@ def main():
 
 
 def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
-    """显示股票数据"""
+    """Display stock data"""
 
-    # 计算基础指标
+    # Calculate basic metrics
     if CHARTS_AVAILABLE:
         metrics = calculate_basic_metrics(df)
 
-        # 显示指标仪表板
+        # Display metrics dashboard
         st.subheader("Key Metrics")
         create_metrics_dashboard(metrics)
     else:
-        # 简单的指标显示
+        # Simple metrics display
         st.subheader("Key Metrics")
         col1, col2, col3, col4 = st.columns(4)
 
@@ -398,32 +398,32 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
 
     st.markdown("---")
 
-    # 图表选择
+    # Chart selection
     st.subheader("Data Visualization")
 
     if CHARTS_AVAILABLE:
         chart_tabs = st.tabs(["Price Trend", "Candlestick", "Volume", "Returns Analysis", "Performance"])
 
         with chart_tabs[0]:
-            st.markdown("#### 价格趋势图")
-            price_chart = create_price_chart(df, f"股票 {symbol} 价格趋势")
+            st.markdown("#### Price Trend Chart")
+            price_chart = create_price_chart(df, f"Stock {symbol} Price Trend")
             st.plotly_chart(price_chart, use_container_width=True)
 
         with chart_tabs[1]:
-            st.markdown("#### K线图")
+            st.markdown("#### Candlestick Chart")
             if all(col in df.columns for col in ['open', 'high', 'low', 'close']):
-                candlestick_chart = create_candlestick_chart(df, f"股票 {symbol} K线图")
+                candlestick_chart = create_candlestick_chart(df, f"Stock {symbol} Candlestick Chart")
                 st.plotly_chart(candlestick_chart, use_container_width=True)
             else:
-                st.info("暂无完整的OHLC数据，无法显示K线图")
+                st.info("No complete OHLC data available, cannot display candlestick chart")
 
         with chart_tabs[2]:
-            st.markdown("#### 成交量")
+            st.markdown("#### Volume")
             if 'volume' in df.columns:
-                volume_chart = create_volume_chart(df, f"股票 {symbol} 成交量")
+                volume_chart = create_volume_chart(df, f"Stock {symbol} Volume")
                 st.plotly_chart(volume_chart, use_container_width=True)
             else:
-                st.info("暂无成交量数据")
+                st.info("No volume data available")
 
         with chart_tabs[3]:
             st.markdown("#### 收益率分析")
