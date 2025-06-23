@@ -12,18 +12,31 @@ import sys
 import json
 from pathlib import Path
 
-# 添加src目录到Python路径
-current_dir = Path(__file__).parent.parent
-src_dir = current_dir / "src"
-sys.path.insert(0, str(src_dir))
+# 添加项目根目录到Python路径以访问core模块
+current_dir = Path(__file__).parent
+project_root = current_dir.parent.parent  # 回到QuantDB根目录
+sys.path.insert(0, str(project_root))
 
-# 导入工具组件
+# 检测运行环境
+CLOUD_MODE = True
 try:
-    from utils.config import config
-    from utils.stock_validator import validate_stock_code, get_stock_recommendations
-    ADVANCED_FEATURES = True
+    # 检测是否在Streamlit Cloud环境
+    import os
+    if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
+        CLOUD_MODE = True
+    else:
+        # 测试是否可以导入core模块
+        from core.services import StockDataService
+        CLOUD_MODE = False
+except Exception:
+    CLOUD_MODE = True
+
+# 导入Excel支持
+try:
+    import openpyxl
+    EXCEL_SUPPORT = True
 except ImportError:
-    ADVANCED_FEATURES = False
+    EXCEL_SUPPORT = False
 
 # 页面配置
 st.set_page_config(
@@ -34,24 +47,52 @@ st.set_page_config(
 
 @st.cache_resource
 def init_services():
-    """初始化服务实例"""
+    """初始化服务实例 - 云端优化版本"""
     try:
-        from services.stock_data_service import StockDataService
-        from services.asset_info_service import AssetInfoService
-        from cache.akshare_adapter import AKShareAdapter
-        from api.database import get_db
+        if not CLOUD_MODE:
+            # 完整模式：使用core模块
+            from core.services import StockDataService, AssetInfoService
+            from core.cache import AKShareAdapter
+            from core.database import get_db
 
-        db_session = next(get_db())
-        akshare_adapter = AKShareAdapter()
-        
-        return {
-            'stock_service': StockDataService(db_session, akshare_adapter),
-            'asset_service': AssetInfoService(db_session),
-            'db_session': db_session
-        }
+            db_session = next(get_db())
+            akshare_adapter = AKShareAdapter()
+
+            return {
+                'stock_service': StockDataService(db_session, akshare_adapter),
+                'asset_service': AssetInfoService(db_session),
+                'db_session': db_session,
+                'mode': 'full'
+            }
+        else:
+            # 云端模式：简化的服务初始化
+            import sqlite3
+
+            db_path = current_dir / "database" / "stock_data.db"
+
+            # 测试SQLite连接
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+
+            # 获取基本信息
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = [row[0] for row in cursor.fetchall()]
+
+            conn.close()
+
+            return {
+                'db_path': str(db_path),
+                'tables': tables,
+                'mode': 'cloud'
+            }
+
     except Exception as e:
         st.error(f"服务初始化失败: {e}")
-        return None
+        # 返回最小服务对象
+        return {
+            'mode': 'minimal',
+            'error': str(e)
+        }
 
 def main():
     """主页面函数"""
@@ -66,6 +107,20 @@ def main():
     if not services:
         st.error("❌ 服务初始化失败，请刷新页面重试")
         return
+
+    # 显示运行模式
+    mode = services.get('mode', 'unknown')
+    if mode == 'full':
+        st.info("🖥️ 运行模式: 完整模式 (使用core服务)")
+    elif mode == 'cloud':
+        st.info("☁️ 运行模式: 云端模式 (SQLite直连)")
+    elif mode == 'minimal':
+        st.warning("⚠️ 运行模式: 最小模式 (功能受限)")
+        st.error(f"初始化错误: {services.get('error', '未知错误')}")
+
+    # Excel支持提示
+    if not EXCEL_SUPPORT:
+        st.warning("⚠️ Excel导出功能不可用，请使用CSV格式")
     
     # 导出选项
     st.subheader("📋 导出配置")
@@ -100,17 +155,15 @@ def main():
             # 解析股票代码
             symbols = [s.strip() for s in symbols_input.split('\n') if s.strip()]
             
-            # 验证股票代码
+            # 简化的股票代码验证
             valid_symbols = []
             for symbol in symbols:
-                if ADVANCED_FEATURES:
-                    validation = validate_stock_code(symbol)
-                    if validation['is_valid']:
-                        valid_symbols.append(symbol)
+                # 基本验证：5-6位数字
+                if symbol.isdigit() and 5 <= len(symbol) <= 6:
+                    valid_symbols.append(symbol)
                 else:
-                    if config.validate_symbol(symbol):
-                        valid_symbols.append(config.normalize_symbol(symbol))
-            
+                    st.warning(f"⚠️ 无效股票代码: {symbol}")
+
             symbols = valid_symbols
             
             if symbols:
@@ -164,51 +217,83 @@ def main():
 
 def export_stock_data(symbols, start_date, end_date, export_format, services):
     """导出股票历史数据"""
-    
+
     try:
+        mode = services.get('mode', 'unknown')
         start_date_str = start_date.strftime('%Y%m%d')
         end_date_str = end_date.strftime('%Y%m%d')
-        
+
         all_data = []
-        
+
         # 进度条
         progress_bar = st.progress(0)
         status_text = st.empty()
-        
+
         for idx, symbol in enumerate(symbols):
             status_text.text(f"正在获取 {symbol} 的数据...")
-            
+
             try:
-                # 获取股票数据
-                stock_data = services['stock_service'].get_stock_data(
-                    symbol=symbol,
-                    start_date=start_date_str,
-                    end_date=end_date_str
-                )
-                
-                if stock_data is not None and not stock_data.empty:
-                    df = stock_data.copy()
-                    df['symbol'] = symbol
-                    
-                    # 获取股票名称
-                    try:
-                        asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
-                        stock_name = asset_info.name if asset_info else f'股票{symbol}'
-                        df['name'] = stock_name
-                    except:
-                        df['name'] = f'股票{symbol}'
-                    
-                    # 确保日期列格式正确
-                    if 'date' in df.columns:
+                if mode == 'full':
+                    # 完整模式：使用stock_service
+                    stock_data = services['stock_service'].get_stock_data(
+                        symbol=symbol,
+                        start_date=start_date_str,
+                        end_date=end_date_str
+                    )
+
+                    if stock_data is not None and not stock_data.empty:
+                        df = stock_data.copy()
+                        df['symbol'] = symbol
+
+                        # 获取股票名称
+                        try:
+                            asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+                            stock_name = asset_info.name if asset_info else f'股票{symbol}'
+                            df['name'] = stock_name
+                        except:
+                            df['name'] = f'股票{symbol}'
+
+                        all_data.append(df)
+
+                elif mode == 'cloud':
+                    # 云端模式：直接查询SQLite数据库
+                    import sqlite3
+                    conn = sqlite3.connect(services['db_path'])
+
+                    # 查询股票数据
+                    query = """
+                    SELECT a.symbol, a.name, d.date, d.open, d.high, d.low, d.close, d.volume, d.turnover
+                    FROM daily_stock_data d
+                    JOIN assets a ON d.asset_id = a.asset_id
+                    WHERE a.symbol = ? AND d.date BETWEEN ? AND ?
+                    ORDER BY d.date
+                    """
+
+                    df = pd.read_sql_query(query, conn, params=(symbol, start_date, end_date))
+                    conn.close()
+
+                    if not df.empty:
+                        # 格式化日期
                         df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
-                    elif 'trade_date' in df.columns:
-                        df['trade_date'] = pd.to_datetime(df['trade_date']).dt.strftime('%Y-%m-%d')
-                    
+                        all_data.append(df)
+
+                else:
+                    # 最小模式：创建示例数据
+                    df = pd.DataFrame({
+                        'symbol': [symbol],
+                        'name': [f'股票{symbol}'],
+                        'trade_date': [start_date.strftime('%Y-%m-%d')],
+                        'open': [0.0],
+                        'high': [0.0],
+                        'low': [0.0],
+                        'close': [0.0],
+                        'volume': [0]
+                    })
                     all_data.append(df)
-                
+
             except Exception as e:
                 st.warning(f"获取 {symbol} 数据失败: {str(e)}")
-            
+
             progress_bar.progress((idx + 1) / len(symbols))
         
         status_text.text("数据获取完成，正在生成文件...")
@@ -251,31 +336,36 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
                 )
             
             elif export_format == "Excel":
-                excel_buffer = io.BytesIO()
-                try:
-                    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                        combined_df.to_excel(writer, sheet_name='股票数据', index=False)
-                        
-                        # 添加汇总信息
-                        summary_df = pd.DataFrame({
-                            '导出信息': ['导出时间', '数据范围', '股票数量', '记录总数'],
-                            '值': [
-                                datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                f"{start_date} 至 {end_date}",
-                                len(symbols),
-                                len(combined_df)
-                            ]
-                        })
-                        summary_df.to_excel(writer, sheet_name='导出信息', index=False)
-                    
-                    excel_data = excel_buffer.getvalue()
-                    st.download_button(
-                        label="📥 下载Excel文件",
-                        data=excel_data,
-                        file_name=f"{filename}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except ImportError:
+                if EXCEL_SUPPORT:
+                    excel_buffer = io.BytesIO()
+                    try:
+                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                            combined_df.to_excel(writer, sheet_name='股票数据', index=False)
+
+                            # 添加汇总信息
+                            summary_df = pd.DataFrame({
+                                '导出信息': ['导出时间', '数据范围', '股票数量', '记录总数'],
+                                '值': [
+                                    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                    f"{start_date} 至 {end_date}",
+                                    len(symbols),
+                                    len(combined_df)
+                                ]
+                            })
+                            summary_df.to_excel(writer, sheet_name='导出信息', index=False)
+
+                        excel_data = excel_buffer.getvalue()
+                        st.download_button(
+                            label="📥 下载Excel文件",
+                            data=excel_data,
+                            file_name=f"{filename}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    except Exception as e:
+                        st.error(f"Excel导出失败: {e}")
+                        st.info("请尝试使用CSV格式")
+                        return
+                else:
                     st.error("Excel导出需要安装openpyxl库，请使用CSV格式")
                     return
             
@@ -300,6 +390,7 @@ def export_asset_info(symbols, export_format, services):
     """导出资产信息"""
 
     try:
+        mode = services.get('mode', 'unknown')
         asset_data = []
 
         # 进度条
@@ -310,17 +401,61 @@ def export_asset_info(symbols, export_format, services):
             status_text.text(f"正在获取 {symbol} 的资产信息...")
 
             try:
-                asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+                if mode == 'full':
+                    # 完整模式：使用asset_service
+                    asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
 
-                if asset_info:
+                    if asset_info:
+                        asset_dict = {
+                            'symbol': asset_info.symbol,
+                            'name': asset_info.name,
+                            'asset_type': asset_info.asset_type,
+                            'exchange': asset_info.exchange,
+                            'industry': asset_info.industry,
+                            'data_source': asset_info.data_source,
+                            'last_updated': asset_info.last_updated.strftime('%Y-%m-%d %H:%M:%S') if asset_info.last_updated else None
+                        }
+                        asset_data.append(asset_dict)
+
+                elif mode == 'cloud':
+                    # 云端模式：直接查询SQLite数据库
+                    import sqlite3
+                    conn = sqlite3.connect(services['db_path'])
+
+                    query = """
+                    SELECT symbol, name, asset_type, exchange, industry, data_source, last_updated
+                    FROM assets
+                    WHERE symbol = ?
+                    """
+
+                    cursor = conn.cursor()
+                    cursor.execute(query, (symbol,))
+                    result = cursor.fetchone()
+
+                    if result:
+                        asset_dict = {
+                            'symbol': result[0],
+                            'name': result[1],
+                            'asset_type': result[2],
+                            'exchange': result[3],
+                            'industry': result[4],
+                            'data_source': result[5],
+                            'last_updated': result[6]
+                        }
+                        asset_data.append(asset_dict)
+
+                    conn.close()
+
+                else:
+                    # 最小模式：创建基本信息
                     asset_dict = {
-                        'symbol': asset_info.symbol,
-                        'name': asset_info.name,
-                        'asset_type': asset_info.asset_type,
-                        'exchange': asset_info.exchange,
-                        'industry': asset_info.industry,
-                        'data_source': asset_info.data_source,
-                        'last_updated': asset_info.last_updated.strftime('%Y-%m-%d %H:%M:%S') if asset_info.last_updated else None
+                        'symbol': symbol,
+                        'name': f'股票{symbol}',
+                        'asset_type': '股票',
+                        'exchange': 'N/A',
+                        'industry': 'N/A',
+                        'data_source': 'N/A',
+                        'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     }
                     asset_data.append(asset_dict)
 
@@ -361,19 +496,24 @@ def export_asset_info(symbols, export_format, services):
                 )
 
             elif export_format == "Excel":
-                excel_buffer = io.BytesIO()
-                try:
-                    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                        df.to_excel(writer, sheet_name='资产信息', index=False)
+                if EXCEL_SUPPORT:
+                    excel_buffer = io.BytesIO()
+                    try:
+                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                            df.to_excel(writer, sheet_name='资产信息', index=False)
 
-                    excel_data = excel_buffer.getvalue()
-                    st.download_button(
-                        label="📥 下载Excel文件",
-                        data=excel_data,
-                        file_name=f"{filename}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except ImportError:
+                        excel_data = excel_buffer.getvalue()
+                        st.download_button(
+                            label="📥 下载Excel文件",
+                            data=excel_data,
+                            file_name=f"{filename}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    except Exception as e:
+                        st.error(f"Excel导出失败: {e}")
+                        st.info("请尝试使用CSV格式")
+                        return
+                else:
                     st.error("Excel导出需要安装openpyxl库，请使用CSV格式")
                     return
 
@@ -430,19 +570,24 @@ def export_watchlist(export_format):
                 )
 
             elif export_format == "Excel":
-                excel_buffer = io.BytesIO()
-                try:
-                    with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                        df.to_excel(writer, sheet_name='自选股', index=False)
+                if EXCEL_SUPPORT:
+                    excel_buffer = io.BytesIO()
+                    try:
+                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
+                            df.to_excel(writer, sheet_name='自选股', index=False)
 
-                    excel_data = excel_buffer.getvalue()
-                    st.download_button(
-                        label="📥 下载Excel文件",
-                        data=excel_data,
-                        file_name=f"{filename}.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
-                except ImportError:
+                        excel_data = excel_buffer.getvalue()
+                        st.download_button(
+                            label="📥 下载Excel文件",
+                            data=excel_data,
+                            file_name=f"{filename}.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                        )
+                    except Exception as e:
+                        st.error(f"Excel导出失败: {e}")
+                        st.info("请尝试使用CSV格式")
+                        return
+                else:
                     st.error("Excel导出需要安装openpyxl库，请使用CSV格式")
                     return
 
