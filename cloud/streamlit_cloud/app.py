@@ -119,10 +119,10 @@ def verify_database():
 @st.cache_resource
 def init_services():
     """初始化服务实例 - 支持完整模式和云端模式"""
+
     try:
         if not CLOUD_MODE:
             # 完整模式：尝试使用core模块
-            st.info("正在初始化完整服务...")
             try:
                 from core.services import StockDataService, AssetInfoService, DatabaseCache
                 from core.cache import AKShareAdapter
@@ -132,20 +132,23 @@ def init_services():
                 db_session = next(get_db())
                 akshare_adapter = AKShareAdapter()
 
-                return {
+                result = {
                     'stock_service': StockDataService(db_session, akshare_adapter),
                     'asset_service': AssetInfoService(db_session),
                     'cache_service': DatabaseCache(db_session),
                     'akshare_adapter': akshare_adapter,
                     'db_session': db_session,
-                    'mode': 'full'
+                    'mode': 'full',
+                    'status': 'success',
+                    'message': '完整服务初始化成功'
                 }
+                return result
+
             except Exception as full_error:
-                st.warning(f"完整模式初始化失败，切换到云端模式: {full_error}")
+                # 完整模式失败，继续尝试云端模式
+                pass
 
         # 云端模式：简化的服务初始化
-        st.info("正在初始化云端简化服务...")
-
         # 创建一个简化的服务容器
         services = {
             'stock_service': None,
@@ -153,7 +156,9 @@ def init_services():
             'cache_service': None,
             'akshare_adapter': None,
             'db_session': None,
-            'mode': 'cloud'
+            'mode': 'cloud',
+            'status': 'success',
+            'message': '云端服务初始化成功'
         }
 
         # 尝试基本的数据库连接
@@ -164,6 +169,18 @@ def init_services():
             current_dir = Path(__file__).parent
             db_path = current_dir / "database" / "stock_data.db"
 
+            if not db_path.exists():
+                # 尝试其他可能的路径
+                alternative_paths = [
+                    current_dir / "database" / "stock_data.db.backup",
+                    Path("database/stock_data.db"),
+                    Path("./database/stock_data.db")
+                ]
+                for alt_path in alternative_paths:
+                    if alt_path.exists():
+                        db_path = alt_path
+                        break
+
             # 测试SQLite连接
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()
@@ -171,21 +188,48 @@ def init_services():
             tables = cursor.fetchall()
             conn.close()
 
-            st.success(f"数据库连接成功，找到 {len(tables)} 个表")
-
             # 创建简化的服务对象
             services['db_path'] = str(db_path)
             services['table_count'] = len(tables)
+            services['tables'] = [table[0] for table in tables]
+            services['message'] = f'云端服务初始化成功，数据库连接正常（{len(tables)}个表）'
 
         except Exception as db_error:
-            st.warning(f"数据库连接失败: {db_error}")
+            services['status'] = 'error'
+            services['message'] = f'数据库连接失败: {db_error}'
             services['db_error'] = str(db_error)
 
         return services
 
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
-        return None
+        return {
+            'mode': 'error',
+            'status': 'error',
+            'message': f'服务初始化失败: {e}',
+            'error': str(e)
+        }
+
+def show_initialization_status():
+    """显示初始化状态"""
+    services = init_services()
+    if services:
+        status = services.get('status', 'unknown')
+        message = services.get('message', '初始化完成')
+        mode = services.get('mode', 'unknown')
+
+        if status == 'success':
+            if mode == 'full':
+                st.success(f"✅ {message}")
+            elif mode == 'cloud':
+                st.info(f"☁️ {message}")
+            else:
+                st.success(f"✅ {message}")
+        elif status == 'error':
+            st.error(f"❌ {message}")
+        else:
+            st.warning(f"⚠️ {message}")
+    else:
+        st.error("❌ 服务初始化失败")
 
 def get_system_status():
     """获取系统状态"""
@@ -238,39 +282,71 @@ def get_system_status():
         # 测试API响应时间
         start_time = time.time()
 
-        # 简化的数据库查询测试
+        # 改进的数据库查询测试
         asset_count = 0
-        if services and 'table_count' in services:
-            # 使用简化的SQLite查询
-            try:
-                import sqlite3
-                conn = sqlite3.connect(DATABASE_PATH)
-                cursor = conn.cursor()
-                cursor.execute("SELECT COUNT(*) FROM assets")
-                asset_count = cursor.fetchone()[0]
-                conn.close()
-            except Exception as db_error:
-                st.warning(f"数据库查询错误: {db_error}")
-                asset_count = 0
+        cache_stats = {}
+
+        if services:
+            if services.get('mode') == 'full':
+                # 完整模式：使用服务查询
+                try:
+                    if services.get('db_session'):
+                        from core.models import Asset
+                        asset_count = services['db_session'].query(Asset).count()
+                    if services.get('cache_service'):
+                        cache_stats = services['cache_service'].get_cache_stats()
+                except Exception as full_query_error:
+                    st.warning(f"完整模式查询错误: {full_query_error}")
+
+            elif services.get('mode') == 'cloud':
+                # 云端模式：使用SQLite直连查询
+                try:
+                    if 'db_path' in services and os.path.exists(services['db_path']):
+                        import sqlite3
+                        conn = sqlite3.connect(services['db_path'])
+                        cursor = conn.cursor()
+
+                        # 检查assets表是否存在
+                        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='assets';")
+                        if cursor.fetchone():
+                            cursor.execute("SELECT COUNT(*) FROM assets")
+                            asset_count = cursor.fetchone()[0]
+
+                        # 获取简化的缓存统计
+                        tables = services.get('tables', [])
+                        cache_stats = {
+                            'database_type': 'SQLite',
+                            'status': 'active',
+                            'tables': len(tables),
+                            'table_names': tables
+                        }
+
+                        conn.close()
+
+                except Exception as cloud_query_error:
+                    st.warning(f"云端模式查询错误: {cloud_query_error}")
+                    asset_count = 0
+                    cache_stats = {
+                        'database_type': 'SQLite',
+                        'status': 'error',
+                        'error': str(cloud_query_error)
+                    }
 
         api_response_time = (time.time() - start_time) * 1000
-
-        # 简化的缓存状态
-        cache_stats = {
-            'database_type': 'SQLite',
-            'status': 'active' if db_exists else 'inactive'
-        }
 
         return {
             'api_status': 'running',
             'api_response_time': api_response_time,
             'asset_count': asset_count,
             'cache_stats': cache_stats,
+            'service_mode': services.get('mode', 'unknown') if services else 'none',
             'debug_info': {
                 'database_url': DATABASE_URL,
                 'database_path': DATABASE_PATH,
                 'db_exists': db_exists,
-                'current_dir': str(current_dir)
+                'current_dir': str(current_dir),
+                'services_available': bool(services),
+                'cloud_mode': CLOUD_MODE
             }
         }
     except Exception as e:
@@ -315,7 +391,10 @@ def main():
         st.markdown("### 决策")
     
     st.markdown("---")
-    
+
+    # 显示初始化状态
+    show_initialization_status()
+
     # 系统状态概览
     st.markdown("### 📊 系统状态概览")
     
@@ -348,12 +427,33 @@ def main():
         
         with col4:
             cache_stats = system_status.get('cache_stats', {})
-            cache_efficiency = "优秀" if asset_count > 5 else "建设中"
+            service_mode = system_status.get('service_mode', 'unknown')
+
+            # 根据服务模式和缓存状态确定显示内容
+            if cache_stats.get('status') == 'active':
+                if service_mode == 'full':
+                    cache_efficiency = "完整模式"
+                    cache_delta = "核心服务"
+                elif service_mode == 'cloud':
+                    cache_efficiency = "云端模式"
+                    cache_delta = f"SQLite({cache_stats.get('tables', 0)}表)"
+                else:
+                    cache_efficiency = "运行中"
+                    cache_delta = "SQLite持久化"
+            else:
+                cache_efficiency = "初始化中"
+                cache_delta = "请稍候"
+
             st.metric(
                 label="缓存状态",
                 value=cache_efficiency,
-                delta="SQLite持久化"
+                delta=cache_delta
             )
+
+        # 显示服务模式信息
+        service_mode = system_status.get('service_mode', 'unknown')
+        if service_mode != 'unknown':
+            st.info(f"🔧 当前运行模式: **{service_mode.upper()}** {'(完整功能)' if service_mode == 'full' else '(云端优化)'}")
 
         # Debug information (only show if there are issues)
         if asset_count == 0 and 'debug_info' in system_status:
