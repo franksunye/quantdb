@@ -122,8 +122,8 @@ async def get_version():
     """
     return {
         "name": "QuantDB API",
-        "version": "2.0.0-alpha",
-        "core_version": "2.0.0-alpha",
+        "version": "2.0.0-streamlit-cloud",
+        "core_version": "2.0.0-streamlit-cloud",
         "build_time": time.time(),
         "environment": "development" if is_development() else "production"
     }

@@ -70,11 +70,11 @@ class VersionsResponse(BaseModel):
 # Version information
 VERSION_INFO = {
     "v1": VersionInfo(
-        version="2.0.0",
+        version="2.0.0-streamlit-cloud",
         api_version="v1",
-        release_date="2025-06-22",
+        release_date="2025-06-23",
         deprecated=False,
-        description="Production-ready version with Core/API architecture"
+        description="Production-ready version with Streamlit Cloud deployment and Core/API architecture"
     ),
     "v2": VersionInfo(
         version="2.1.0",
