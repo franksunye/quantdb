@@ -1,38 +1,38 @@
 """
-QuantDB Frontend 配置管理
+QuantDB Frontend Configuration Management
 
-管理前端应用的配置参数和常量。
+Manages configuration parameters and constants for the frontend application.
 """
 
 import os
 from typing import Dict, Any
 
 class Config:
-    """前端配置类"""
-    
-    # API配置
+    """Frontend configuration class"""
+
+    # API Configuration
     API_BASE_URL = os.getenv("QUANTDB_API_URL", "http://localhost:8000")
     API_PREFIX = "/api/v1"
-    API_TIMEOUT = int(os.getenv("API_TIMEOUT", "300"))  # 秒 - 增加到5分钟以支持首次数据获取
-    
-    # 应用配置
-    APP_TITLE = "QuantDB - 量化数据平台"
+    API_TIMEOUT = int(os.getenv("API_TIMEOUT", "300"))  # seconds - increased to 5 minutes for initial data fetch
+
+    # Application Configuration
+    APP_TITLE = "QuantDB - Quantitative Data Platform"
     APP_VERSION = "v1.0.0-mvp"
-    APP_DESCRIPTION = "高性能股票数据缓存服务前端"
+    APP_DESCRIPTION = "High-Performance Stock Data Caching Service Frontend"
     
-    # 页面配置
+    # Page Configuration
     PAGE_ICON = "📊"
     LAYOUT = "wide"
     SIDEBAR_STATE = "expanded"
-    
-    # 数据配置
-    DEFAULT_DAYS = 30  # 默认查询天数
-    MAX_DAYS = 365     # 最大查询天数
-    MIN_DAYS = 1       # 最小查询天数
-    
-    # 图表配置
+
+    # Data Configuration
+    DEFAULT_DAYS = 30  # default query days
+    MAX_DAYS = 365     # maximum query days
+    MIN_DAYS = 1       # minimum query days
+
+    # Chart Configuration
     CHART_HEIGHT = 400
-    CHART_WIDTH = None  # 使用容器宽度
+    CHART_WIDTH = None  # use container width
     
     # 颜色配置
     COLORS = {
@@ -55,34 +55,34 @@ class Config:
         "600036": "招商银行"
     }
     
-    # 缓存配置
-    CACHE_TTL = 300  # 前端缓存TTL (秒)
-    
-    # 错误消息
+    # Cache Configuration
+    CACHE_TTL = 300  # frontend cache TTL (seconds)
+
+    # Error Messages
     ERROR_MESSAGES = {
-        "api_connection": "无法连接到后端API服务，请检查服务是否启动",
-        "invalid_symbol": "股票代码格式错误，请输入有效代码 (A股: 600000, 港股: 02171)",
-        "invalid_date": "日期格式错误或日期范围无效",
-        "no_data": "未找到指定时间范围内的数据",
-        "server_error": "服务器内部错误，请稍后重试",
-        "timeout": "请求超时，请检查网络连接"
+        "api_connection": "Unable to connect to backend API service, please check if the service is running",
+        "invalid_symbol": "Invalid stock symbol format, please enter a valid code (A-Share: 600000, HK Stock: 02171)",
+        "invalid_date": "Invalid date format or date range",
+        "no_data": "No data found for the specified time range",
+        "server_error": "Internal server error, please try again later",
+        "timeout": "Request timeout, please check your network connection"
     }
-    
-    # 成功消息
+
+    # Success Messages
     SUCCESS_MESSAGES = {
-        "data_loaded": "数据加载成功",
-        "cache_hit": "数据来自缓存，响应速度极快",
-        "api_healthy": "API服务运行正常"
+        "data_loaded": "Data loaded successfully",
+        "cache_hit": "Data from cache, extremely fast response",
+        "api_healthy": "API service is running normally"
     }
     
     @classmethod
     def get_api_url(cls, endpoint: str = "") -> str:
-        """获取完整的API URL"""
+        """Get complete API URL"""
         return f"{cls.API_BASE_URL}{cls.API_PREFIX}{endpoint}"
-    
+
     @classmethod
     def get_color(cls, color_name: str) -> str:
-        """获取颜色值"""
+        """Get color value"""
         return cls.COLORS.get(color_name, cls.COLORS["primary"])
     
     @classmethod
@@ -111,27 +111,27 @@ class Config:
     
     @classmethod
     def normalize_symbol(cls, symbol: str) -> str:
-        """标准化股票代码 - 支持A股和港股"""
+        """Normalize stock symbol - supports A-Share and HK stocks"""
         if not symbol:
             return ""
 
-        # 检测是否为港股 (5位数字)
+        # Detect if it's HK stock (5 digits)
         if symbol.isdigit() and len(symbol) == 5:
-            return symbol  # 港股代码保持原样
+            return symbol  # Keep HK stock code as is
 
-        # A股处理: 移除前缀和后缀，转换为大写
+        # A-Share processing: remove prefix and suffix, convert to uppercase
         clean_symbol = symbol.upper().replace("SH", "").replace("SZ", "").replace(".SH", "").replace(".SZ", "").rstrip(".")
 
-        # 如果长度不足6位，前面补0 (仅对A股)
+        # If length is less than 6 digits, pad with zeros (A-Share only)
         if clean_symbol.isdigit():
             return clean_symbol.zfill(6)
 
         return clean_symbol
 
-# 创建全局配置实例
+# Create global configuration instance
 config = Config()
 
-# 导出常用配置
+# Export common configurations
 API_BASE_URL = config.API_BASE_URL
 API_PREFIX = config.API_PREFIX
 COLORS = config.COLORS

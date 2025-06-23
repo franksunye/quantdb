@@ -1,6 +1,7 @@
 """
-QuantDB Streamlit Cloud Edition - 主应用入口
-适配Streamlit Cloud部署的单体应用架构，保留SQLite数据库和完整功能
+QuantDB Streamlit Cloud Edition - Main Application Entry
+Monolithic application architecture adapted for Streamlit Cloud deployment,
+retaining SQLite database and complete functionality
 """
 
 import streamlit as st
@@ -11,36 +12,36 @@ import os
 from pathlib import Path
 import time
 
-# 尝试添加项目根目录到Python路径以访问core模块
+# Try to add project root directory to Python path to access core modules
 PATH_ERROR = None
 try:
     current_dir = Path(__file__).parent
     project_root = current_dir.parent.parent  # 回到QuantDB根目录
     sys.path.insert(0, str(project_root))
 
-    # 添加本地src目录到路径（云端部署备用）
+    # Add local src directory to path (cloud deployment backup)
     src_dir = current_dir / "src"
     if src_dir.exists():
         sys.path.insert(0, str(src_dir))
 except Exception as path_error:
     PATH_ERROR = str(path_error)
 
-# 设置云端模式标志 - 更智能的检测
+# Set cloud mode flag - smarter detection
 CLOUD_MODE = True
 ENVIRONMENT_INFO = None
 try:
-    # 检测是否在Streamlit Cloud环境
+    # Detect if running in Streamlit Cloud environment
     import os
     if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
         CLOUD_MODE = True
         ENVIRONMENT_INFO = "Streamlit Cloud environment detected, using cloud mode"
     else:
-        # 测试是否可以完整导入和初始化core模块
+        # Test if core modules can be fully imported and initialized
         from core.services import StockDataService, AssetInfoService, DatabaseCache
         from core.cache import AKShareAdapter
         from core.database import get_db
 
-        # 测试是否可以创建数据库会话
+        # Test if database session can be created
         db_session = next(get_db())
         db_session.close()
 
@@ -50,7 +51,7 @@ except Exception as e:
     CLOUD_MODE = True
     ENVIRONMENT_INFO = f"Environment detection failed, using cloud mode: {str(e)[:100]}..."
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="QuantDB - Professional Data Platform",
     page_icon="📊",
@@ -85,10 +86,10 @@ st.set_page_config(
     }
 )
 
-# 简化的数据库验证
+# Simplified database verification
 @st.cache_resource
 def verify_database():
-    """验证数据库连接和表结构 - 简化版本"""
+    """Verify database connection and table structure - simplified version"""
     try:
         import sqlite3
         from pathlib import Path
