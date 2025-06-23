@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 env_path = Path(__file__).resolve().parent.parent / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Base paths
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATABASE_PATH = os.path.join(BASE_DIR, 'database/stock_data.db')
+# Base paths - unified to project root
+BASE_DIR = Path(__file__).resolve().parent.parent.parent.parent  # Go to project root
+DATABASE_PATH = os.path.join(BASE_DIR, 'database/stock_data.db')  # Use unified database
 RAW_DATA_DIR = os.path.join(BASE_DIR, 'data/raw/')
 PROCESSED_DATA_DIR = os.path.join(BASE_DIR, 'data/processed/')
 
@@ -22,11 +22,13 @@ def get_database_url():
     if env_url:
         return env_url
 
-    # Try multiple possible paths
+    # Try multiple possible paths - prioritize unified database
     possible_paths = [
-        DATABASE_PATH,  # Standard path
+        DATABASE_PATH,  # Unified project root database
         os.path.join(BASE_DIR, 'database', 'stock_data.db'),  # Alternative
-        'database/stock_data.db',  # Relative path
+        '../../database/stock_data.db',  # Relative to cloud directory
+        '../../../database/stock_data.db',  # Alternative relative path
+        'database/stock_data.db',  # Fallback relative path
         './database/stock_data.db',  # Current dir relative
     ]
 

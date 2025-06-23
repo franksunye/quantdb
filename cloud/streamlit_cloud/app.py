@@ -94,7 +94,9 @@ def verify_database():
         from pathlib import Path
 
         current_dir = Path(__file__).parent
-        db_path = current_dir / "database" / "stock_data.db"
+        # Use unified database at project root
+        project_root = current_dir.parent.parent
+        db_path = project_root / "database" / "stock_data.db"
 
         result = {
             'db_exists': db_path.exists(),
@@ -211,11 +213,14 @@ def init_services():
             from pathlib import Path
 
             current_dir = Path(__file__).parent
-            db_path = current_dir / "database" / "stock_data.db"
+            # Use unified database at project root
+            project_root = current_dir.parent.parent
+            db_path = project_root / "database" / "stock_data.db"
 
             if not db_path.exists():
                 # 尝试其他可能的路径
                 alternative_paths = [
+                    current_dir / "database" / "stock_data.db",  # Old cloud path
                     current_dir / "database" / "stock_data.db.backup",
                     Path("database/stock_data.db"),
                     Path("./database/stock_data.db")
@@ -300,10 +305,13 @@ def get_system_status():
         from pathlib import Path
 
         current_dir = Path(__file__).parent
+        # Use unified database at project root
+        project_root = current_dir.parent.parent
 
-        # 简化的数据库路径配置
+        # 简化的数据库路径配置 - 优先使用统一数据库
         possible_db_paths = [
-            current_dir / "database" / "stock_data.db",
+            project_root / "database" / "stock_data.db",  # Unified database (priority)
+            current_dir / "database" / "stock_data.db",   # Old cloud path (fallback)
             current_dir / "database" / "stock_data.db.backup",
             "database/stock_data.db",
             "./database/stock_data.db"
