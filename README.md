@@ -123,46 +123,18 @@ python run_tests.py
 python scripts/test_runner.py --performance
 ```
 
-## 📁 核心架构
+## 🏗️ 架构概览
 
-```
-quantdb/
-├── src/                           # 核心源码
-│   ├── api/                       # FastAPI 应用
-│   │   ├── main.py                # API 入口
-│   │   ├── models.py              # 数据模型
-│   │   └── routes/                # API 路由
-│   ├── services/                  # 业务服务
-│   │   ├── stock_data_service.py  # 股票数据服务
-│   │   ├── asset_info_service.py  # 资产信息服务
-│   │   ├── trading_calendar.py    # 交易日历服务
-│   │   └── database_cache.py      # 数据库缓存
-│   └── cache/                     # 缓存适配器
-│       └── akshare_adapter.py     # AKShare 适配器
-├── quantdb_frontend/              # 本地前端应用
-│   ├── app.py                     # Streamlit 主应用
-│   ├── pages/                     # 功能页面
-│   ├── utils/                     # 工具模块
-│   ├── tests/                     # 前端测试
-│   └── start.py                   # 一键启动脚本
-├── cloud/                         # 云端部署版本 🆕
-│   └── streamlit_cloud/           # Streamlit Cloud 版本
-│       ├── app.py                 # 云端主应用
-│       ├── pages/                 # 云端功能页面
-│       ├── src/                   # 集成后端服务
-│       ├── utils/                 # 云端工具模块
-│       ├── tests/                 # 云端测试
-│       └── requirements.txt       # 云端依赖
-├── tests/                         # 后端测试套件
-│   ├── unit/                      # 单元测试
-│   ├── integration/               # 集成测试
-│   ├── api/                       # API 测试
-│   ├── e2e/                       # 端到端测试
-│   └── performance/               # 性能测试
-├── docs/                          # 项目文档
-├── tools/                         # 开发工具
-└── scripts/                       # 管理脚本
-```
+QuantDB 采用现代化的微服务架构，包含以下核心组件：
+
+- **🔧 Core Services**: 统一的业务逻辑层，支持多种部署模式
+- **📡 FastAPI Backend**: 高性能 REST API 服务
+- **📱 Streamlit Frontend**: 交互式数据分析界面
+- **☁️ Cloud Deployment**: 云端部署版本，支持 Streamlit Cloud
+- **🧪 Comprehensive Testing**: 完整的测试套件，覆盖单元、集成、API、E2E测试
+- **📊 Smart Caching**: 基于交易日历的智能缓存系统
+
+详细的架构设计请参考 [系统架构文档](./docs/10_ARCHITECTURE.md)。
 
 ## 🔧 技术栈
 
@@ -182,11 +154,10 @@ quantdb/
 | [📋 项目状态](./docs/00_BACKLOG.md) | 当前进展和优先级 |
 | [📅 更新日志](./docs/01_CHANGELOG.md) | 版本历史和变更 |
 | [🏗️ 系统架构](./docs/10_ARCHITECTURE.md) | 架构设计和组件 |
+| [🗄️ 数据库架构](./docs/11_DATABASE_ARCHITECTURE.md) | 数据库设计和模型 |
 | [📊 API 文档](./docs/20_API.md) | 完整 API 使用指南 |
 | [🛠️ 开发指南](./docs/30_DEVELOPMENT.md) | 开发环境和流程 |
 | [🧪 测试指南](./docs/31_TESTING.md) | 测试运行和编写 |
-| [📱 前端规划](./docs/40_FRONTEND.md) | 前端开发设计和规划 |
-| [📋 前端任务](./docs/41_FRONTEND_BACKLOG.md) | 前端开发任务清单 |
 
 ## 🎯 项目状态
 
