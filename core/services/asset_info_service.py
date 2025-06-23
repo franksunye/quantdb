@@ -300,12 +300,33 @@ class AssetInfoService:
                     logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
 
             elif market == 'HK_STOCK':
-                # For Hong Kong stocks, use default naming for now
+                # For Hong Kong stocks, try to get real data from AKShare
                 logger.info(f"Processing Hong Kong stock {symbol}")
-                asset_info['name'] = self._get_default_hk_name(symbol)
+
+                # Try to get HK stock info from AKShare
+                try:
+                    hk_spot_data = ak.stock_hk_spot()
+                    if not hk_spot_data.empty:
+                        # Look for the symbol in the spot data
+                        symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
+                        if not symbol_data.empty:
+                            asset_info['name'] = symbol_data.iloc[0]['name']
+                            logger.info(f"Found HK stock info from AKShare for {symbol}: {asset_info['name']}")
+                        else:
+                            # If not found in spot data, use default
+                            asset_info['name'] = self._get_default_hk_name(symbol)
+                            logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
+                    else:
+                        asset_info['name'] = self._get_default_hk_name(symbol)
+                        logger.warning(f"HK spot data is empty, using default for {symbol}")
+
+                except Exception as e:
+                    logger.warning(f"Error fetching HK spot data for {symbol}: {e}")
+                    asset_info['name'] = self._get_default_hk_name(symbol)
+
                 asset_info['exchange'] = 'HKEX'
                 asset_info['currency'] = 'HKD'
-                logger.info(f"Using default HK stock info for {symbol}: {asset_info['name']}")
+                logger.info(f"Final HK stock info for {symbol}: {asset_info['name']}")
 
         except Exception as e:
             logger.warning(f"Error fetching individual info for {symbol}: {e}")
@@ -457,6 +478,11 @@ class AssetInfoService:
             '09988': '阿里巴巴-SW',
             '00941': '中国移动',
             '01299': '友邦保险',
-            '02318': '中国平安'
+            '02318': '中国平安',
+            '02171': '科济药业-B',  # 添加02171的正确名称
+            '01810': '小米集团-W',
+            '03690': '美团-W',
+            '00388': '香港交易所',
+            '01024': '快手-W'
         }
         return hk_names.get(symbol, f'HK Stock {symbol}')
