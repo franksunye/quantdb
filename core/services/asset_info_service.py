@@ -93,6 +93,19 @@ class AssetInfoService:
 
         return asset, metadata
 
+    def get_asset(self, symbol: str) -> Asset:
+        """
+        Get existing asset or create new one (backward compatibility method).
+
+        Args:
+            symbol: Stock symbol (e.g., "600000")
+
+        Returns:
+            Asset object with enhanced information
+        """
+        asset, _ = self.get_or_create_asset(symbol)
+        return asset
+
     def update_asset_info(self, symbol: str) -> Optional[Asset]:
         """
         Update asset information from AKShare.
