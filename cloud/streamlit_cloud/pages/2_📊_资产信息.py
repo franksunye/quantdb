@@ -161,26 +161,30 @@ def main():
                             asset_obj = asset_result
                             metadata = {}
 
-                        # 转换为字典格式
+                        # 调试信息：显示Asset对象的实际属性
+                        st.info(f"🔍 Asset对象属性: {[attr for attr in dir(asset_obj) if not attr.startswith('_')]}")
+
+                        # 转换为字典格式，使用实际的Asset模型字段
                         asset_data = {
                             'symbol': asset_obj.symbol,
                             'name': asset_obj.name,
                             'asset_type': asset_obj.asset_type,
                             'exchange': asset_obj.exchange,
+                            'currency': getattr(asset_obj, 'currency', 'CNY'),
                             'industry': asset_obj.industry,
                             'concept': asset_obj.concept,
-                            'area': asset_obj.area,
-                            'market': asset_obj.market,
-                            'list_date': asset_obj.list_date,
+                            'area': '中国',  # Asset模型中没有area字段，使用默认值
+                            'market': 'A股' if len(asset_obj.symbol) == 6 else '港股',  # 根据代码长度判断市场
+                            'list_date': getattr(asset_obj, 'listing_date', None),  # 使用正确的字段名
                             'pe_ratio': asset_obj.pe_ratio,
                             'pb_ratio': asset_obj.pb_ratio,
                             'roe': asset_obj.roe,
                             'market_cap': asset_obj.market_cap,
                             'total_shares': asset_obj.total_shares,
                             'circulating_shares': asset_obj.circulating_shares,
-                            'created_at': asset_obj.created_at,
-                            'updated_at': asset_obj.updated_at,
-                            'last_accessed': asset_obj.last_accessed
+                            'created_at': None,  # Asset模型中没有created_at字段
+                            'updated_at': getattr(asset_obj, 'last_updated', None),  # 使用正确的字段名
+                            'last_accessed': None  # Asset模型中没有last_accessed字段
                         }
 
                         asset_metadata = metadata
@@ -239,17 +243,23 @@ def display_asset_info(asset_data: dict, symbol: str):
     
     with col2:
         st.markdown("### 🏭 分类信息")
-        st.write(f"**行业**: {asset_data.get('industry', 'N/A')}")
-        st.write(f"**概念**: {asset_data.get('concept', 'N/A')}")
-        st.write(f"**地区**: {asset_data.get('area', 'N/A')}")
-        st.write(f"**市场**: {asset_data.get('market', 'N/A')}")
+        st.write(f"**行业**: {asset_data.get('industry') or 'N/A'}")
+        st.write(f"**概念**: {asset_data.get('concept') or 'N/A'}")
+        st.write(f"**地区**: {asset_data.get('area') or 'N/A'}")
+        st.write(f"**市场**: {asset_data.get('market') or 'N/A'}")
+        st.write(f"**货币**: {asset_data.get('currency') or 'N/A'}")
     
     with col3:
         st.markdown("### 📅 时间信息")
-        st.write(f"**上市日期**: {asset_data.get('list_date', 'N/A')}")
-        st.write(f"**创建时间**: {format_datetime(asset_data.get('created_at'))}")
+        list_date = asset_data.get('list_date')
+        if list_date:
+            list_date_str = list_date.strftime('%Y-%m-%d') if hasattr(list_date, 'strftime') else str(list_date)
+        else:
+            list_date_str = 'N/A'
+        st.write(f"**上市日期**: {list_date_str}")
+        st.write(f"**数据来源**: AKShare")
         st.write(f"**更新时间**: {format_datetime(asset_data.get('updated_at'))}")
-        st.write(f"**最后访问**: {format_datetime(asset_data.get('last_accessed'))}")
+        st.write(f"**数据状态**: 已缓存")
     
     st.markdown("---")
     
@@ -261,37 +271,66 @@ def display_asset_info(asset_data: dict, symbol: str):
     
     with col1:
         pe_ratio = asset_data.get('pe_ratio')
+        if pe_ratio is not None and pe_ratio > 0:
+            pe_value = f"{pe_ratio:.2f}"
+            pe_delta = "合理" if 10 <= pe_ratio <= 30 else ("偏低" if pe_ratio < 10 else "偏高")
+        else:
+            pe_value = "N/A"
+            pe_delta = None
         st.metric(
             label="市盈率 (PE)",
-            value=f"{pe_ratio:.2f}" if pe_ratio else "N/A",
+            value=pe_value,
+            delta=pe_delta,
             help="市盈率 = 股价 / 每股收益"
         )
-    
+
     with col2:
         pb_ratio = asset_data.get('pb_ratio')
+        if pb_ratio is not None and pb_ratio > 0:
+            pb_value = f"{pb_ratio:.2f}"
+            pb_delta = "合理" if 1 <= pb_ratio <= 3 else ("偏低" if pb_ratio < 1 else "偏高")
+        else:
+            pb_value = "N/A"
+            pb_delta = None
         st.metric(
             label="市净率 (PB)",
-            value=f"{pb_ratio:.2f}" if pb_ratio else "N/A",
+            value=pb_value,
+            delta=pb_delta,
             help="市净率 = 股价 / 每股净资产"
         )
-    
+
     with col3:
         roe = asset_data.get('roe')
+        if roe is not None and roe > 0:
+            roe_value = f"{roe:.2f}%"
+            roe_delta = "优秀" if roe >= 15 else ("良好" if roe >= 10 else "一般")
+        else:
+            roe_value = "N/A"
+            roe_delta = None
         st.metric(
             label="净资产收益率 (ROE)",
-            value=f"{roe:.2f}%" if roe else "N/A",
+            value=roe_value,
+            delta=roe_delta,
             help="净资产收益率 = 净利润 / 净资产"
         )
-    
+
     with col4:
         market_cap = asset_data.get('market_cap')
-        if market_cap:
+        if market_cap and market_cap > 0:
             market_cap_display = format_large_number(market_cap)
+            if market_cap >= 1000e8:  # 1000亿以上
+                cap_delta = "大盘股"
+            elif market_cap >= 100e8:  # 100-1000亿
+                cap_delta = "中盘股"
+            else:  # 100亿以下
+                cap_delta = "小盘股"
         else:
             market_cap_display = "N/A"
+            cap_delta = None
         st.metric(
             label="总市值",
             value=market_cap_display,
+            delta=cap_delta,
             help="总市值 = 股价 × 总股本"
         )
 
@@ -300,42 +339,83 @@ def display_asset_info(asset_data: dict, symbol: str):
 
     with col1:
         total_shares = asset_data.get('total_shares')
-        if total_shares:
+        if total_shares and total_shares > 0:
             total_shares_display = format_large_number(total_shares)
+            shares_delta = "股"
         else:
             total_shares_display = "N/A"
+            shares_delta = None
         st.metric(
             label="总股本",
-            value=total_shares_display
+            value=total_shares_display,
+            delta=shares_delta
         )
 
     with col2:
-        # 修复字段名：float_share -> circulating_shares
         circulating_shares = asset_data.get('circulating_shares')
-        if circulating_shares:
+        if circulating_shares and circulating_shares > 0:
             circulating_shares_display = format_large_number(circulating_shares)
+            # 计算流通比例
+            total_shares = asset_data.get('total_shares')
+            if total_shares and total_shares > 0:
+                ratio = (circulating_shares / total_shares) * 100
+                circ_delta = f"{ratio:.1f}%流通"
+            else:
+                circ_delta = "股"
         else:
             circulating_shares_display = "N/A"
+            circ_delta = None
 
         st.metric(
             label="流通股本",
-            value=circulating_shares_display
+            value=circulating_shares_display,
+            delta=circ_delta
         )
 
     with col3:
-        # EPS字段后端暂未提供，显示说明
+        # 计算每股收益（如果有市盈率和市值数据）
+        pe_ratio = asset_data.get('pe_ratio')
+        market_cap = asset_data.get('market_cap')
+        total_shares = asset_data.get('total_shares')
+
+        if pe_ratio and market_cap and total_shares and pe_ratio > 0 and total_shares > 0:
+            # 股价 = 市值 / 总股本
+            stock_price = market_cap / total_shares
+            # EPS = 股价 / PE
+            eps = stock_price / pe_ratio
+            eps_value = f"{eps:.2f}"
+            eps_delta = "计算值"
+        else:
+            eps_value = "N/A"
+            eps_delta = "数据不足"
+
         st.metric(
             label="每股收益 (EPS)",
-            value="待完善",
-            help="每股收益数据正在完善中"
+            value=eps_value,
+            delta=eps_delta,
+            help="每股收益 = 股价 / 市盈率（计算值）"
         )
 
     with col4:
-        # BPS字段后端暂未提供，显示说明
+        # 计算每股净资产（如果有市净率和市值数据）
+        pb_ratio = asset_data.get('pb_ratio')
+
+        if pb_ratio and market_cap and total_shares and pb_ratio > 0 and total_shares > 0:
+            # 股价 = 市值 / 总股本
+            stock_price = market_cap / total_shares
+            # BPS = 股价 / PB
+            bps = stock_price / pb_ratio
+            bps_value = f"{bps:.2f}"
+            bps_delta = "计算值"
+        else:
+            bps_value = "N/A"
+            bps_delta = "数据不足"
+
         st.metric(
             label="每股净资产 (BPS)",
-            value="待完善",
-            help="每股净资产数据正在完善中"
+            value=bps_value,
+            delta=bps_delta,
+            help="每股净资产 = 股价 / 市净率（计算值）"
         )
 
 
@@ -635,22 +715,29 @@ def display_data_coverage(symbol: str):
             st.code(str(e))
 
 
-def format_datetime(dt_str):
-    """格式化日期时间字符串"""
-    if not dt_str:
+def format_datetime(dt_obj):
+    """格式化日期时间对象"""
+    if not dt_obj:
         return "N/A"
 
     try:
-        if isinstance(dt_str, str):
+        # 处理datetime对象
+        if hasattr(dt_obj, 'strftime'):
+            return dt_obj.strftime('%Y-%m-%d %H:%M:%S')
+
+        # 处理字符串
+        if isinstance(dt_obj, str):
             # 尝试解析不同的日期格式
             for fmt in ['%Y-%m-%dT%H:%M:%S.%f', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d']:
                 try:
-                    dt = datetime.strptime(dt_str, fmt)
+                    dt = datetime.strptime(dt_obj, fmt)
                     return dt.strftime('%Y-%m-%d %H:%M:%S')
                 except ValueError:
                     continue
-        return str(dt_str)
-    except:
+
+        # 其他情况直接转换为字符串
+        return str(dt_obj)
+    except Exception:
         return "N/A"
 
 
