@@ -1,6 +1,7 @@
 """
-股票数据查询页面 - Cloud版本
-提供股票历史数据查询和图表展示功能，适配Streamlit Cloud单体架构
+Stock Data Query Page - Cloud Version
+Provides stock historical data query and chart display functionality,
+adapted for Streamlit Cloud monolithic architecture
 """
 
 import streamlit as st
@@ -10,14 +11,14 @@ import sys
 import os
 import time
 
-# 添加项目根目录到路径以访问core模块
+# Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(parent_dir)  # 回到QuantDB根目录
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# 导入现有的后端服务（直接调用，不通过HTTP API）
+# Import existing backend services (direct call, not through HTTP API)
 try:
     from core.services import StockDataService, AssetInfoService
     from core.cache import AKShareAdapter
@@ -26,7 +27,7 @@ try:
 except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
 
-# 导入图表工具（尝试从原有版本导入）
+# Import chart tools (try to import from original version)
 try:
     from utils.charts import (
         create_price_chart,
@@ -41,7 +42,7 @@ try:
 except ImportError:
     CHARTS_AVAILABLE = False
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="Stock Data - QuantDB",
     page_icon="📊",
@@ -49,65 +50,65 @@ st.set_page_config(
 )
 
 def validate_stock_code(code: str) -> bool:
-    """验证股票代码格式 - 支持A股和港股"""
+    """Validate stock code format - supports A-shares and HK stocks"""
     if not code:
         return False
 
-    # 去除空格
+    # Remove spaces
     code = code.strip()
 
-    # 港股验证: 5位数字 (00700, 09988, 01810等)
+    # HK stock validation: 5 digits (00700, 09988, 01810, etc.)
     if len(code) == 5 and code.isdigit():
         return True
 
-    # A股验证: 6位数字
+    # A-share validation: 6 digits
     if len(code) == 6 and code.isdigit():
-        # 检查是否为有效的A股代码
-        if code.startswith(('000', '001', '002', '003', '300')):  # 深交所
+        # Check if it's a valid A-share code
+        if code.startswith(('000', '001', '002', '003', '300')):  # Shenzhen Stock Exchange
             return True
-        elif code.startswith('6'):  # 上交所
+        elif code.startswith('6'):  # Shanghai Stock Exchange
             return True
-        elif code.startswith('688'):  # 科创板
+        elif code.startswith('688'):  # STAR Market
             return True
 
     return False
 
 @st.cache_resource
 def init_services():
-    """初始化后端服务"""
+    """Initialize backend services"""
     try:
-        # 获取数据库会话
+        # Get database session
         db_session = next(get_db())
 
-        # 初始化AKShare适配器
+        # Initialize AKShare adapter
         akshare_adapter = AKShareAdapter()
 
-        # 初始化服务
+        # Initialize services
         stock_service = StockDataService(db_session, akshare_adapter)
         asset_service = AssetInfoService(db_session)
 
-        # 初始化查询服务
+        # Initialize query service
         from core.services import QueryService
         query_service = QueryService(db_session)
 
         return stock_service, asset_service, query_service
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None, None, None
 
 def main():
-    """主页面函数"""
+    """Main page function"""
 
-    # 检查后端服务是否可用
+    # Check if backend services are available
     if not BACKEND_SERVICES_AVAILABLE:
         st.warning("Backend services unavailable - Demo mode")
         st.info("In demo mode, you can view the interface layout and functionality")
 
-        # 在演示模式下仍然显示界面
+        # Still show interface in demo mode
         show_demo_interface()
         return
 
-    # 初始化后端服务
+    # Initialize backend services
     services = init_services()
     if len(services) != 3 or not all(services):
         st.error("Service initialization failed - Please refresh the page")
@@ -115,8 +116,8 @@ def main():
 
     stock_service, asset_service, query_service = services
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
     # 右侧查询面板
     with col_query:
@@ -139,13 +140,13 @@ def main():
                     help="Supports A-share codes (6 digits) and Hong Kong stock codes (5 digits)"
                 )
             else:
-                # 浏览已有股票
+                # Browse existing stocks
                 symbol = display_stock_browser(query_service)
 
-            # 日期范围选择
+            # Date range selection
             st.markdown("#### Date Range")
 
-            # 快速选择按钮
+            # Quick selection buttons
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Last 7 Days", use_container_width=True):
@@ -156,7 +157,7 @@ def main():
                     st.session_state.start_date = date.today() - timedelta(days=30)
                     st.session_state.end_date = date.today()
 
-            # 日期选择器
+            # Date selectors
             start_date = st.date_input(
                 "Start Date",
                 value=st.session_state.get('start_date', date.today() - timedelta(days=7)),
@@ -171,7 +172,7 @@ def main():
                 key='end_date'
             )
 
-            # 复权选择
+            # Adjustment selection
             adjust_type = st.selectbox(
                 "Adjustment Type",
                 options=["None", "Forward", "Backward"],
@@ -179,14 +180,14 @@ def main():
                 help="Forward: Adjust based on current price\nBackward: Adjust based on listing price"
             )
 
-            # 转换复权参数
+            # Convert adjustment parameters
             adjust_map = {"None": "", "Forward": "qfq", "Backward": "hfq"}
             adjust = adjust_map[adjust_type]
 
-            # 查询按钮
+            # Query button
             query_button = st.button("Query Data", type="primary", use_container_width=True)
 
-            # 显示最近查询
+            # Display recent queries
             display_recent_stock_queries()
 
     # 检查是否有自动查询请求
