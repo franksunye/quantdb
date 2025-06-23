@@ -303,25 +303,51 @@ class AssetInfoService:
                 # For Hong Kong stocks, try to get real data from AKShare
                 logger.info(f"Processing Hong Kong stock {symbol}")
 
-                # Try to get HK stock info from AKShare
+                # Try to get HK stock info from AKShare - use comprehensive EM data
                 try:
-                    hk_spot_data = ak.stock_hk_spot()
-                    if not hk_spot_data.empty:
-                        # Look for the symbol in the spot data
-                        symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
+                    # First try the comprehensive EM data (4468 stocks)
+                    logger.info(f"Trying stock_hk_spot_em for comprehensive HK data")
+                    hk_em_data = ak.stock_hk_spot_em()
+                    if not hk_em_data.empty and '代码' in hk_em_data.columns and '名称' in hk_em_data.columns:
+                        # Look for the symbol in the EM data
+                        symbol_data = hk_em_data[hk_em_data['代码'] == symbol]
                         if not symbol_data.empty:
-                            asset_info['name'] = symbol_data.iloc[0]['name']
-                            logger.info(f"Found HK stock info from AKShare for {symbol}: {asset_info['name']}")
+                            asset_info['name'] = symbol_data.iloc[0]['名称']
+                            logger.info(f"Found HK stock info from EM data for {symbol}: {asset_info['name']}")
                         else:
-                            # If not found in spot data, use default
-                            asset_info['name'] = self._get_default_hk_name(symbol)
-                            logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
+                            # Fallback to limited spot data
+                            logger.info(f"HK stock {symbol} not found in EM data, trying spot data")
+                            hk_spot_data = ak.stock_hk_spot()
+                            if not hk_spot_data.empty:
+                                symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
+                                if not symbol_data.empty:
+                                    asset_info['name'] = symbol_data.iloc[0]['name']
+                                    logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
+                                else:
+                                    # Use default as last resort
+                                    asset_info['name'] = self._get_default_hk_name(symbol)
+                                    logger.info(f"HK stock {symbol} not found in any API data, using default: {asset_info['name']}")
+                            else:
+                                asset_info['name'] = self._get_default_hk_name(symbol)
+                                logger.warning(f"HK spot data is empty, using default for {symbol}")
                     else:
-                        asset_info['name'] = self._get_default_hk_name(symbol)
-                        logger.warning(f"HK spot data is empty, using default for {symbol}")
+                        # Fallback to spot data if EM data fails
+                        logger.warning(f"EM data unavailable, trying spot data for {symbol}")
+                        hk_spot_data = ak.stock_hk_spot()
+                        if not hk_spot_data.empty:
+                            symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
+                            if not symbol_data.empty:
+                                asset_info['name'] = symbol_data.iloc[0]['name']
+                                logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
+                            else:
+                                asset_info['name'] = self._get_default_hk_name(symbol)
+                                logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
+                        else:
+                            asset_info['name'] = self._get_default_hk_name(symbol)
+                            logger.warning(f"All HK data sources failed, using default for {symbol}")
 
                 except Exception as e:
-                    logger.warning(f"Error fetching HK spot data for {symbol}: {e}")
+                    logger.warning(f"Error fetching HK data for {symbol}: {e}")
                     asset_info['name'] = self._get_default_hk_name(symbol)
 
                 asset_info['exchange'] = 'HKEX'
