@@ -1,6 +1,6 @@
 """
-系统状态页面
-展示系统健康状态、数据库信息和性能指标
+System Status Page
+Display system health status, database information and performance metrics
 """
 
 import streamlit as st
@@ -11,41 +11,41 @@ import os
 from pathlib import Path
 import time
 
-# 添加项目根目录到Python路径以访问core模块
+# Add project root directory to Python path to access core modules
 current_dir = Path(__file__).parent.parent
 project_root = current_dir.parent  # 回到QuantDB根目录
 sys.path.insert(0, str(project_root))
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="System Status - QuantDB",
     page_icon="📊",
     layout="wide"
 )
 
-# 初始化服务
+# Initialize services
 @st.cache_resource
 def init_services():
-    """初始化服务实例"""
+    """Initialize service instances"""
     try:
         from core.services import DatabaseCache
         from core.database import get_db
-        
+
         db_session = next(get_db())
         return DatabaseCache(db_session)
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None
 
 def get_database_info():
-    """获取数据库信息"""
+    """Get database information"""
     try:
         from core.database import get_db
         from core.models import Asset, DailyStockData
 
         db_session = next(get_db())
 
-        # 数据库查询
+        # Database queries
         try:
             asset_count = db_session.query(Asset).count()
         except Exception:
@@ -56,7 +56,7 @@ def get_database_info():
         except Exception:
             daily_data_count = 0
 
-        # 获取最新数据日期
+        # Get latest data date
         try:
             latest_data = db_session.query(DailyStockData.trade_date).order_by(
                 DailyStockData.trade_date.desc()
@@ -65,7 +65,7 @@ def get_database_info():
         except Exception:
             latest_date = None
 
-        # 获取数据库文件大小
+        # Get database file size
         db_path = current_dir / "database" / "stock_data.db"
         db_size_mb = 0
         if db_path.exists():
@@ -81,13 +81,13 @@ def get_database_info():
             'db_size_mb': db_size_mb
         }
     except Exception as e:
-        st.error(f"获取数据库信息失败: {e}")
+        st.error(f"Failed to get database information: {e}")
         return None
 
 def test_system_performance():
-    """测试系统性能"""
+    """Test system performance"""
     try:
-        # 确保数据库表存在
+        # Ensure database tables exist
         from core.database import engine, Base, get_db
         from core.models import Asset
 
@@ -95,7 +95,7 @@ def test_system_performance():
 
         db_session = next(get_db())
 
-        # 测试数据库查询性能
+        # Test database query performance
         start_time = time.time()
         try:
             assets = db_session.query(Asset).limit(10).all()
@@ -104,7 +104,7 @@ def test_system_performance():
             assets_count = 0
         db_query_time = (time.time() - start_time) * 1000
 
-        # 测试缓存服务
+        # Test cache service
         cache_service = init_services()
         if cache_service:
             start_time = time.time()
@@ -124,165 +124,165 @@ def test_system_performance():
             'assets_sample': assets_count
         }
     except Exception as e:
-        st.error(f"性能测试失败: {e}")
+        st.error(f"Performance test failed: {e}")
         return None
 
 def main():
-    """主页面"""
-    
-    st.title("⚡ 系统状态")
-    st.markdown("监控系统健康状态、数据库信息和性能指标")
+    """Main page"""
+
+    st.title("⚡ System Status")
+    st.markdown("Monitor system health status, database information and performance metrics")
     st.markdown("---")
-    
-    # 系统健康检查
-    st.markdown("### 🏥 系统健康检查")
+
+    # System health check
+    st.markdown("### 🏥 System Health Check")
     
     col1, col2, col3, col4 = st.columns(4)
     
-    # 检查服务状态
+    # Check service status
     cache_service = init_services()
-    service_status = "正常" if cache_service else "异常"
+    service_status = "Normal" if cache_service else "Error"
     service_color = "normal" if cache_service else "inverse"
-    
+
     with col1:
-        st.metric("服务状态", service_status, delta="运行中" if cache_service else "需要检查")
-    
-    # 检查数据库连接
+        st.metric("Service Status", service_status, delta="Running" if cache_service else "Needs Check")
+
+    # Check database connection
     db_info = get_database_info()
-    db_status = "正常" if db_info else "异常"
-    
+    db_status = "Normal" if db_info else "Error"
+
     with col2:
-        st.metric("数据库状态", db_status, delta="SQLite连接正常" if db_info else "连接失败")
-    
-    # 检查数据完整性
+        st.metric("Database Status", db_status, delta="SQLite Connected" if db_info else "Connection Failed")
+
+    # Check data integrity
     if db_info:
-        data_integrity = "良好" if db_info['asset_count'] > 0 and db_info['daily_data_count'] > 0 else "需要数据"
+        data_integrity = "Good" if db_info['asset_count'] > 0 and db_info['daily_data_count'] > 0 else "Needs Data"
         with col3:
-            st.metric("数据完整性", data_integrity, delta=f"{db_info['asset_count']}个资产")
+            st.metric("Data Integrity", data_integrity, delta=f"{db_info['asset_count']} Assets")
     else:
         with col3:
-            st.metric("数据完整性", "未知", delta="无法检查")
+            st.metric("Data Integrity", "Unknown", delta="Cannot Check")
     
-    # 系统响应时间
+    # System response time
     start_time = time.time()
-    # 简单的系统响应测试
+    # Simple system response test
     test_response = True
     response_time = (time.time() - start_time) * 1000
-    
+
     with col4:
-        st.metric("系统响应", f"{response_time:.1f}ms", delta="正常" if response_time < 100 else "较慢")
-    
+        st.metric("System Response", f"{response_time:.1f}ms", delta="Normal" if response_time < 100 else "Slow")
+
     st.markdown("---")
-    
-    # 数据库信息
-    st.markdown("### 🗄️ 数据库信息")
-    
+
+    # Database information
+    st.markdown("### 🗄️ Database Information")
+
     if db_info:
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
-            st.metric("资产数量", f"{db_info['asset_count']:,}个")
-        
+            st.metric("Asset Count", f"{db_info['asset_count']:,}")
+
         with col2:
-            st.metric("数据记录", f"{db_info['daily_data_count']:,}条")
-        
+            st.metric("Data Records", f"{db_info['daily_data_count']:,}")
+
         with col3:
             latest_date = db_info['latest_date'].strftime('%Y-%m-%d') if db_info['latest_date'] else "N/A"
-            st.metric("最新数据", latest_date)
-        
+            st.metric("Latest Data", latest_date)
+
         with col4:
-            st.metric("数据库大小", f"{db_info['db_size_mb']:.2f}MB")
+            st.metric("Database Size", f"{db_info['db_size_mb']:.2f}MB")
     else:
-        st.error("❌ 无法获取数据库信息")
+        st.error("❌ Unable to get database information")
     
     st.markdown("---")
     
-    # 性能测试
-    st.markdown("### 🚀 性能测试")
-    
-    if st.button("🧪 运行性能测试"):
-        with st.spinner("正在运行性能测试..."):
+    # Performance testing
+    st.markdown("### 🚀 Performance Testing")
+
+    if st.button("🧪 Run Performance Test"):
+        with st.spinner("Running performance test..."):
             perf_results = test_system_performance()
-            
+
             if perf_results:
                 col1, col2, col3, col4 = st.columns(4)
-                
+
                 with col1:
-                    st.metric("数据库查询", f"{perf_results['db_query_time']:.1f}ms")
-                
+                    st.metric("Database Query", f"{perf_results['db_query_time']:.1f}ms")
+
                 with col2:
-                    st.metric("缓存查询", f"{perf_results['cache_query_time']:.1f}ms")
-                
+                    st.metric("Cache Query", f"{perf_results['cache_query_time']:.1f}ms")
+
                 with col3:
-                    st.metric("样本数据", f"{perf_results['assets_sample']}条")
-                
+                    st.metric("Sample Data", f"{perf_results['assets_sample']} records")
+
                 with col4:
                     total_time = perf_results['db_query_time'] + perf_results['cache_query_time']
-                    st.metric("总响应时间", f"{total_time:.1f}ms")
-                
-                # 缓存统计
+                    st.metric("Total Response Time", f"{total_time:.1f}ms")
+
+                # Cache statistics
                 cache_stats = perf_results.get('cache_stats', {})
                 if cache_stats:
-                    st.markdown("#### 📊 缓存统计")
-                    
+                    st.markdown("#### 📊 Cache Statistics")
+
                     cache_col1, cache_col2, cache_col3 = st.columns(3)
-                    
+
                     with cache_col1:
                         hit_rate = cache_stats.get('hit_rate', 0)
-                        st.metric("缓存命中率", f"{hit_rate:.1f}%")
-                    
+                        st.metric("Cache Hit Rate", f"{hit_rate:.1f}%")
+
                     with cache_col2:
                         total_requests = cache_stats.get('total_requests', 0)
-                        st.metric("总请求数", f"{total_requests:,}")
-                    
+                        st.metric("Total Requests", f"{total_requests:,}")
+
                     with cache_col3:
                         cache_size = cache_stats.get('cache_size', 0)
-                        st.metric("缓存大小", f"{cache_size:,}条")
+                        st.metric("Cache Size", f"{cache_size:,} records")
             else:
-                st.error("❌ 性能测试失败")
+                st.error("❌ Performance test failed")
     
     st.markdown("---")
     
-    # 系统信息
-    st.markdown("### 📋 系统信息")
-    
-    with st.expander("🔧 技术信息", expanded=False):
+    # System information
+    st.markdown("### 📋 System Information")
+
+    with st.expander("🔧 Technical Information", expanded=False):
         col1, col2 = st.columns(2)
-        
+
         with col1:
             st.markdown("""
-            **架构信息**:
-            - 应用类型: Streamlit Cloud单体应用
-            - 数据库: SQLite (持久化)
-            - 数据源: AKShare
-            - 缓存策略: 数据库缓存
+            **Architecture Information**:
+            - Application Type: Streamlit Cloud Monolithic App
+            - Database: SQLite (Persistent)
+            - Data Source: AKShare
+            - Cache Strategy: Database Cache
             """)
-        
+
         with col2:
             st.markdown("""
-            **版本信息**:
-            - 应用版本: v1.1.0-cloud
-            - Python版本: 3.8+
-            - Streamlit版本: 1.28+
-            - 部署平台: Streamlit Community Cloud
+            **Version Information**:
+            - Application Version: v1.1.0-cloud
+            - Python Version: 3.8+
+            - Streamlit Version: 1.28+
+            - Deployment Platform: Streamlit Community Cloud
             """)
-    
-    with st.expander("📊 数据库详情", expanded=False):
+
+    with st.expander("📊 Database Details", expanded=False):
         if db_info:
             st.markdown(f"""
-            **数据库统计**:
-            - 数据库文件: stock_data.db
-            - 文件大小: {db_info['db_size_mb']:.2f} MB
-            - 资产表记录: {db_info['asset_count']:,} 条
-            - 日线数据记录: {db_info['daily_data_count']:,} 条
-            - 最新数据日期: {db_info['latest_date'].strftime('%Y-%m-%d') if db_info['latest_date'] else 'N/A'}
+            **Database Statistics**:
+            - Database File: stock_data.db
+            - File Size: {db_info['db_size_mb']:.2f} MB
+            - Asset Table Records: {db_info['asset_count']:,} records
+            - Daily Data Records: {db_info['daily_data_count']:,} records
+            - Latest Data Date: {db_info['latest_date'].strftime('%Y-%m-%d') if db_info['latest_date'] else 'N/A'}
             """)
         else:
-            st.error("无法获取数据库详情")
-    
-    # 刷新按钮
+            st.error("Unable to get database details")
+
+    # Refresh button
     st.markdown("---")
-    if st.button("🔄 刷新系统状态"):
+    if st.button("🔄 Refresh System Status"):
         st.rerun()
 
 if __name__ == "__main__":
