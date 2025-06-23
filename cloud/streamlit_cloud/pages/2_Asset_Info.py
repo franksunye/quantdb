@@ -171,17 +171,36 @@ def main():
             st.info(f"正在查询股票 {symbol} 的资产信息...")
 
             # 查询数据
-            with st.spinner("资产信息查询中..."):
+            with st.spinner("资产信息查询中..." if query_button else "强制刷新资产数据中..."):
                 try:
                     if use_backend_services and asset_service:
-                        # 使用后端服务直接查询
-                        asset_result = asset_service.get_or_create_asset(symbol)
+                        # 根据按钮类型选择不同的处理方式
+                        if refresh_button:
+                            # 刷新按钮：强制更新资产信息
+                            st.info("🔄 正在强制从AKShare获取最新资产信息...")
+                            asset_obj = asset_service.update_asset_info(symbol)
+                            metadata = {
+                                'cache_info': {
+                                    'cache_hit': False,
+                                    'akshare_called': True,
+                                    'force_refresh': True,
+                                    'response_time_ms': 0  # 实际时间由服务层记录
+                                }
+                            }
 
-                        if isinstance(asset_result, tuple):
-                            asset_obj, metadata = asset_result
+                            if not asset_obj:
+                                st.error(f"❌ 无法更新资产 {symbol}，可能是无效的股票代码或AKShare服务异常")
+                                return
+
                         else:
-                            asset_obj = asset_result
-                            metadata = {}
+                            # 查询按钮：正常查询（优先使用缓存）
+                            asset_result = asset_service.get_or_create_asset(symbol)
+
+                            if isinstance(asset_result, tuple):
+                                asset_obj, metadata = asset_result
+                            else:
+                                asset_obj = asset_result
+                                metadata = {}
 
                         # 调试信息：显示Asset对象的实际属性
                         st.info(f"🔍 Asset对象属性: {[attr for attr in dir(asset_obj) if not attr.startswith('_')]}")
