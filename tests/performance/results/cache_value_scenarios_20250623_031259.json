@@ -1,0 +1,26 @@
+{
+  "repeated_access": [
+    {
+      "scenario": "重复访问",
+      "access_count": 5,
+      "quantdb_first_ms": 754.8072338104248,
+      "quantdb_cached_avg_ms": 39.341866970062256,
+      "akshare_avg_ms": 664.6320819854736,
+      "total_quantdb_time_ms": 912.1747016906738,
+      "total_akshare_time_ms": 3323.160409927368,
+      "time_saved_ms": 2410.9857082366943,
+      "efficiency_improvement": 72.55098794010337
+    }
+  ],
+  "bulk_requests": [
+    {
+      "scenario": "批量请求",
+      "request_count": 3,
+      "quantdb_total_ms": 120.37396430969238,
+      "akshare_total_ms": 1974.4908809661865,
+      "time_saved_ms": 1854.1169166564941,
+      "efficiency_improvement": 93.90354417586425
+    }
+  ],
+  "api_reliability": []
+}

@@ -60,7 +60,7 @@ st.set_page_config(
         'About': """
         # QuantDB Cloud Edition
         
-        **版本**: v1.1.0-cloud
+        **版本**: v2.0.0-streamlit-cloud
         
         高性能股票数据查询平台，专为Streamlit Cloud优化。
         

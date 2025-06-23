@@ -47,6 +47,12 @@ app.add_middleware(
 # Register exception handlers
 register_exception_handlers(app)
 
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint."""
+    return {"message": "Welcome to QuantDB API", "version": "2.0.0-streamlit-cloud"}
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
