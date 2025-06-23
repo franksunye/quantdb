@@ -426,56 +426,56 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
                 st.info("No volume data available")
 
         with chart_tabs[3]:
-            st.markdown("#### 收益率分析")
+            st.markdown("#### Returns Analysis")
             if 'close' in df.columns and len(df) > 1:
-                returns_chart = create_returns_distribution(df, f"股票 {symbol} 收益率分布")
+                returns_chart = create_returns_distribution(df, f"Stock {symbol} Returns Distribution")
                 st.plotly_chart(returns_chart, use_container_width=True)
 
-                # 收益率统计
+                # Returns statistics
                 returns = df['close'].pct_change().dropna() * 100
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("平均日收益率", f"{returns.mean():.2f}%")
+                    st.metric("Average Daily Return", f"{returns.mean():.2f}%")
                 with col2:
-                    st.metric("收益率标准差", f"{returns.std():.2f}%")
+                    st.metric("Return Std Dev", f"{returns.std():.2f}%")
                 with col3:
-                    st.metric("最大单日涨幅", f"{returns.max():.2f}%")
+                    st.metric("Max Daily Gain", f"{returns.max():.2f}%")
             else:
-                st.info("数据不足，无法计算收益率分析")
+                st.info("Insufficient data for returns analysis")
 
         with chart_tabs[4]:
-            st.markdown("#### 性能对比")
+            st.markdown("#### Performance Comparison")
             if metadata.get('response_time_ms') is not None:
                 cache_time = metadata.get('response_time_ms', 0)
-                # 模拟AKShare直接调用时间（基于是否缓存命中）
+                # Simulate AKShare direct call time (based on cache hit)
                 akshare_time = 1075.2 if metadata.get('cache_hit') else cache_time
 
                 if cache_time != akshare_time:
                     perf_chart = create_performance_comparison_chart(cache_time, akshare_time)
                     st.plotly_chart(perf_chart, use_container_width=True)
 
-                    # 性能提升说明
+                    # Performance improvement explanation
                     improvement = ((akshare_time - cache_time) / akshare_time * 100) if akshare_time > 0 else 0
-                    st.success(f"🚀 QuantDB缓存比AKShare直接调用快 {improvement:.1f}%")
+                    st.success(f"🚀 QuantDB cache is {improvement:.1f}% faster than direct AKShare calls")
                 else:
-                    st.info("首次查询，暂无性能对比数据")
+                    st.info("First query, no performance comparison data available")
             else:
-                st.info("暂无性能数据")
+                st.info("No performance data available")
     else:
-        # 简单的图表显示
-        st.info("📊 图表功能需要完整的后端服务支持")
+        # Simple chart display
+        st.info("📊 Chart functionality requires complete backend service support")
 
-        # 显示简单的价格趋势
-        st.markdown("#### 价格数据")
+        # Display simple price trend
+        st.markdown("#### Price Data")
         st.line_chart(df.set_index('date')['close'] if 'date' in df.columns else df['close'])
 
-    # 数据表格
+    # Data table
     st.subheader("Detailed Data")
 
-    # 数据处理和格式化
+    # Data processing and formatting
     display_df = df.copy()
 
-    # 格式化数值列
+    # Format numeric columns
     numeric_columns = ['open', 'high', 'low', 'close', 'volume']
     for col in numeric_columns:
         if col in display_df.columns:
@@ -484,116 +484,116 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
             else:
                 display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else "")
 
-    # 重命名列
+    # Rename columns
     column_names = {
-        'date': '日期',
-        'trade_date': '交易日期',
-        'open': '开盘价',
-        'high': '最高价',
-        'low': '最低价',
-        'close': '收盘价',
-        'volume': '成交量',
-        'amount': '成交额'
+        'date': 'Date',
+        'trade_date': 'Trade Date',
+        'open': 'Open',
+        'high': 'High',
+        'low': 'Low',
+        'close': 'Close',
+        'volume': 'Volume',
+        'amount': 'Amount'
     }
 
     display_df = display_df.rename(columns=column_names)
 
-    # 显示表格
+    # Display table
     st.dataframe(
         display_df,
         use_container_width=True,
         hide_index=True
     )
 
-    # 数据统计
-    with st.expander("📈 数据统计"):
+    # Data statistics
+    with st.expander("📈 Data Statistics"):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("**价格统计**")
-            st.write(f"- 最新价格: ¥{metrics.get('latest_price', 0):.2f}")
-            st.write(f"- 最高价格: ¥{metrics.get('high_price', 0):.2f}")
-            st.write(f"- 最低价格: ¥{metrics.get('low_price', 0):.2f}")
-            st.write(f"- 平均价格: ¥{metrics.get('avg_price', 0):.2f}")
-            st.write(f"- 价格波动率: {metrics.get('volatility', 0):.2f}")
+            st.markdown("**Price Statistics**")
+            st.write(f"- Latest Price: ¥{metrics.get('latest_price', 0):.2f}")
+            st.write(f"- Highest Price: ¥{metrics.get('high_price', 0):.2f}")
+            st.write(f"- Lowest Price: ¥{metrics.get('low_price', 0):.2f}")
+            st.write(f"- Average Price: ¥{metrics.get('avg_price', 0):.2f}")
+            st.write(f"- Price Volatility: {metrics.get('volatility', 0):.2f}")
 
         with col2:
-            st.markdown("**查询信息**")
-            st.write(f"- 数据记录数: {len(df)}")
-            st.write(f"- 缓存命中: {'是' if metadata.get('cache_hit') else '否'}")
-            st.write(f"- AKShare调用: {'是' if metadata.get('akshare_called') else '否'}")
-            st.write(f"- 响应时间: {metadata.get('response_time_ms', 0):.1f}ms")
+            st.markdown("**Query Information**")
+            st.write(f"- Data Records: {len(df)}")
+            st.write(f"- Cache Hit: {'Yes' if metadata.get('cache_hit') else 'No'}")
+            st.write(f"- AKShare Called: {'Yes' if metadata.get('akshare_called') else 'No'}")
+            st.write(f"- Response Time: {metadata.get('response_time_ms', 0):.1f}ms")
             if 'total_volume' in metrics:
-                st.write(f"- 总成交量: {metrics['total_volume']:,.0f}")
+                st.write(f"- Total Volume: {metrics['total_volume']:,.0f}")
 
 def show_demo_interface():
-    """显示演示界面"""
+    """Display demo interface"""
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
-    # 右侧查询面板
+    # Right query panel
     with col_query:
         with st.container():
-            st.markdown("### 🔍 股票数据查询")
+            st.markdown("### 🔍 Stock Data Query")
 
-            # 查询方式选择
+            # Query method selection
             query_mode = st.radio(
-                "查询方式",
-                ["手动输入", "浏览已有股票"],
-                help="选择查询方式：手动输入股票代码或从已有股票中选择"
+                "Query Method",
+                ["Manual Input", "Browse Existing"],
+                help="Choose query method: manual input or select from existing stocks"
             )
 
-            if query_mode == "手动输入":
-                # 股票代码输入
+            if query_mode == "Manual Input":
+                # Stock code input
                 symbol = st.text_input(
-                    "股票代码",
+                    "Stock Code",
                     value="600000",
-                    placeholder="A股: 600000 | 港股: 02171",
-                    help="支持A股代码(6位数字)和港股代码(5位数字)"
+                    placeholder="A-shares: 600000 | HK: 02171",
+                    help="Supports A-share codes (6 digits) and HK stock codes (5 digits)"
                 )
             else:
-                # 浏览已有股票
-                st.selectbox("选择股票", ["600000 - 浦发银行", "000001 - 平安银行"])
+                # Browse existing stocks
+                st.selectbox("Select Stock", ["600000 - SPDB", "000001 - PAB"])
 
-            # 日期范围选择
-            st.markdown("#### 📅 日期范围")
+            # Date range selection
+            st.markdown("#### 📅 Date Range")
 
-            # 快速选择按钮
+            # Quick selection buttons
             col1, col2 = st.columns(2)
             with col1:
-                st.button("最近7天", use_container_width=True)
+                st.button("Last 7 Days", use_container_width=True)
             with col2:
-                st.button("最近30天", use_container_width=True)
+                st.button("Last 30 Days", use_container_width=True)
 
-            # 日期选择器
+            # Date selectors
             start_date = st.date_input(
-                "开始日期",
+                "Start Date",
                 value=date.today() - timedelta(days=7),
                 max_value=date.today()
             )
 
             end_date = st.date_input(
-                "结束日期",
+                "End Date",
                 value=date.today(),
                 max_value=date.today()
             )
 
-            # 复权选择
+            # Adjustment selection
             adjust_type = st.selectbox(
-                "复权类型",
-                options=["不复权", "前复权", "后复权"],
+                "Adjustment Type",
+                options=["None", "Forward", "Backward"],
                 index=0,
-                help="前复权(qfq): 以当前价为基准向前复权\n后复权(hfq): 以上市价为基准向后复权"
+                help="Forward: Adjust based on current price\nBackward: Adjust based on listing price"
             )
 
-            # 查询按钮
-            query_button = st.button("🔍 查询数据", type="primary", use_container_width=True)
+            # Query button
+            query_button = st.button("🔍 Query Data", type="primary", use_container_width=True)
 
-            # 显示最近查询
+            # Display recent queries
             st.markdown("---")
-            st.markdown("**🕒 最近查询**")
-            st.caption("暂无最近查询记录")
+            st.markdown("**🕒 Recent Queries**")
+            st.caption("No recent query records")
 
     # 左侧主内容区域
     with col_main:
