@@ -210,7 +210,7 @@ def main():
 
                     # 可选的数据覆盖信息（使用expander避免页面重新加载）
                     st.markdown("---")
-                    with st.expander("📈 数据覆盖情况", expanded=False):
+                    with st.expander("Data Coverage Analysis", expanded=False):
                         display_data_coverage(symbol)
 
                 except Exception as e:
@@ -665,18 +665,18 @@ def display_data_coverage(symbol: str):
 
             data_count = db_session.query(func.count(DailyStockData.id)).filter(
                 DailyStockData.asset_id == asset.asset_id,
-                DailyStockData.date >= start_date,
-                DailyStockData.date <= end_date
+                DailyStockData.trade_date >= start_date,
+                DailyStockData.trade_date <= end_date
             ).scalar()
 
             # 获取数据范围
             first_record = db_session.query(DailyStockData).filter(
                 DailyStockData.asset_id == asset.asset_id
-            ).order_by(DailyStockData.date.asc()).first()
+            ).order_by(DailyStockData.trade_date.asc()).first()
 
             last_record = db_session.query(DailyStockData).filter(
                 DailyStockData.asset_id == asset.asset_id
-            ).order_by(DailyStockData.date.desc()).first()
+            ).order_by(DailyStockData.trade_date.desc()).first()
 
             col1, col2, col3, col4 = st.columns(4)
 
@@ -685,19 +685,19 @@ def display_data_coverage(symbol: str):
 
             with col2:
                 if first_record:
-                    st.metric("数据起始", first_record.date.strftime('%Y-%m-%d'))
+                    st.metric("数据起始", first_record.trade_date.strftime('%Y-%m-%d'))
                 else:
                     st.metric("数据起始", "N/A")
 
             with col3:
                 if last_record:
-                    st.metric("数据截止", last_record.date.strftime('%Y-%m-%d'))
+                    st.metric("数据截止", last_record.trade_date.strftime('%Y-%m-%d'))
                 else:
                     st.metric("数据截止", "N/A")
 
             with col4:
                 if first_record and last_record:
-                    days_span = (last_record.date - first_record.date).days
+                    days_span = (last_record.trade_date - first_record.trade_date).days
                     st.metric("数据跨度", f"{days_span}天")
                 else:
                     st.metric("数据跨度", "N/A")
