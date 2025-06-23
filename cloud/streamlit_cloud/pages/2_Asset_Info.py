@@ -376,19 +376,19 @@ def display_asset_info(asset_data: dict, symbol: str):
             help="Market Cap = Stock Price × Total Shares"
         )
 
-    # 第二行财务指标
+    # Second row financial metrics
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         total_shares = asset_data.get('total_shares')
         if total_shares and total_shares > 0:
             total_shares_display = format_large_number(total_shares)
-            shares_delta = "股"
+            shares_delta = "Shares"
         else:
             total_shares_display = "N/A"
             shares_delta = None
         st.metric(
-            label="总股本",
+            label="Total Shares",
             value=total_shares_display,
             delta=shares_delta
         )
@@ -397,67 +397,67 @@ def display_asset_info(asset_data: dict, symbol: str):
         circulating_shares = asset_data.get('circulating_shares')
         if circulating_shares and circulating_shares > 0:
             circulating_shares_display = format_large_number(circulating_shares)
-            # 计算流通比例
+            # Calculate circulation ratio
             total_shares = asset_data.get('total_shares')
             if total_shares and total_shares > 0:
                 ratio = (circulating_shares / total_shares) * 100
-                circ_delta = f"{ratio:.1f}%流通"
+                circ_delta = f"{ratio:.1f}% Float"
             else:
-                circ_delta = "股"
+                circ_delta = "Shares"
         else:
             circulating_shares_display = "N/A"
             circ_delta = None
 
         st.metric(
-            label="流通股本",
+            label="Circulating Shares",
             value=circulating_shares_display,
             delta=circ_delta
         )
 
     with col3:
-        # 计算每股收益（如果有市盈率和市值数据）
+        # Calculate earnings per share (if P/E ratio and market cap data available)
         pe_ratio = asset_data.get('pe_ratio')
         market_cap = asset_data.get('market_cap')
         total_shares = asset_data.get('total_shares')
 
         if pe_ratio and market_cap and total_shares and pe_ratio > 0 and total_shares > 0:
-            # 股价 = 市值 / 总股本
+            # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
-            # EPS = 股价 / PE
+            # EPS = Stock price / PE
             eps = stock_price / pe_ratio
             eps_value = f"{eps:.2f}"
-            eps_delta = "计算值"
+            eps_delta = "Calculated"
         else:
             eps_value = "N/A"
-            eps_delta = "数据不足"
+            eps_delta = "Insufficient Data"
 
         st.metric(
-            label="每股收益 (EPS)",
+            label="Earnings Per Share (EPS)",
             value=eps_value,
             delta=eps_delta,
-            help="每股收益 = 股价 / 市盈率（计算值）"
+            help="EPS = Stock Price / P/E Ratio (Calculated)"
         )
 
     with col4:
-        # 计算每股净资产（如果有市净率和市值数据）
+        # Calculate book value per share (if P/B ratio and market cap data available)
         pb_ratio = asset_data.get('pb_ratio')
 
         if pb_ratio and market_cap and total_shares and pb_ratio > 0 and total_shares > 0:
-            # 股价 = 市值 / 总股本
+            # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
-            # BPS = 股价 / PB
+            # BPS = Stock price / PB
             bps = stock_price / pb_ratio
             bps_value = f"{bps:.2f}"
-            bps_delta = "计算值"
+            bps_delta = "Calculated"
         else:
             bps_value = "N/A"
-            bps_delta = "数据不足"
+            bps_delta = "Insufficient Data"
 
         st.metric(
-            label="每股净资产 (BPS)",
+            label="Book Value Per Share (BPS)",
             value=bps_value,
             delta=bps_delta,
-            help="每股净资产 = 股价 / 市净率（计算值）"
+            help="BPS = Stock Price / P/B Ratio (Calculated)"
         )
 
 
@@ -787,16 +787,16 @@ def format_datetime(dt_obj):
 
 
 def format_large_number(num):
-    """格式化大数字显示"""
+    """Format large number display"""
     if not num or num == 0:
         return "N/A"
 
     try:
         num = float(num)
         if num >= 1e8:
-            return f"{num/1e8:.2f}亿"
+            return f"{num/1e8:.2f}B"  # Billion
         elif num >= 1e4:
-            return f"{num/1e4:.2f}万"
+            return f"{num/1e4:.2f}W"  # Wan (10,000)
         else:
             return f"{num:.2f}"
     except:
