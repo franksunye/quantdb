@@ -49,24 +49,26 @@ st.set_page_config(
 )
 
 def validate_stock_code(code: str) -> bool:
-    """验证股票代码格式"""
+    """验证股票代码格式 - 支持A股和港股"""
     if not code:
         return False
 
     # 去除空格
     code = code.strip()
 
-    # 检查是否为6位数字
-    if len(code) != 6 or not code.isdigit():
-        return False
+    # 港股验证: 5位数字 (00700, 09988, 01810等)
+    if len(code) == 5 and code.isdigit():
+        return True
 
-    # 检查是否为有效的A股代码
-    if code.startswith(('000', '001', '002', '003', '300')):  # 深交所
-        return True
-    elif code.startswith('6'):  # 上交所
-        return True
-    elif code.startswith('688'):  # 科创板
-        return True
+    # A股验证: 6位数字
+    if len(code) == 6 and code.isdigit():
+        # 检查是否为有效的A股代码
+        if code.startswith(('000', '001', '002', '003', '300')):  # 深交所
+            return True
+        elif code.startswith('6'):  # 上交所
+            return True
+        elif code.startswith('688'):  # 科创板
+            return True
 
     return False
 
@@ -228,7 +230,7 @@ def main():
 
             # 验证股票代码格式
             if not validate_stock_code(symbol):
-                st.error("❌ 请输入有效的6位股票代码（如：600000、000001、300001）")
+                st.error("❌ 请输入有效的股票代码（A股6位数字如：600000、000001，港股5位数字如：00700、09988）")
                 return
 
             # 保存当前查询状态
@@ -272,6 +274,9 @@ def main():
 
                         # 提供快速替代选项
                         st.markdown("**🚀 快速尝试活跃股票：**")
+
+                        # A股推荐
+                        st.markdown("**A股推荐：**")
                         col1, col2, col3 = st.columns(3)
 
                         with col1:
@@ -295,6 +300,34 @@ def main():
                                 st.session_state.update({
                                     'suggested_symbol': '600519',
                                     'suggested_name': '贵州茅台'
+                                })
+                                st.rerun()
+
+                        # 港股推荐
+                        st.markdown("**🇭🇰 港股推荐：**")
+                        col4, col5, col6 = st.columns(3)
+
+                        with col4:
+                            if st.button("腾讯控股(00700)", key="suggest_00700"):
+                                st.session_state.update({
+                                    'suggested_symbol': '00700',
+                                    'suggested_name': '腾讯控股'
+                                })
+                                st.rerun()
+
+                        with col5:
+                            if st.button("阿里巴巴(09988)", key="suggest_09988"):
+                                st.session_state.update({
+                                    'suggested_symbol': '09988',
+                                    'suggested_name': '阿里巴巴-SW'
+                                })
+                                st.rerun()
+
+                        with col6:
+                            if st.button("小米集团(01810)", key="suggest_01810"):
+                                st.session_state.update({
+                                    'suggested_symbol': '01810',
+                                    'suggested_name': '小米集团-W'
                                 })
                                 st.rerun()
 
