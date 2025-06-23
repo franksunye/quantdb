@@ -12,6 +12,7 @@ from pathlib import Path
 import time
 
 # 尝试添加项目根目录到Python路径以访问core模块
+PATH_ERROR = None
 try:
     current_dir = Path(__file__).parent
     project_root = current_dir.parent.parent  # 回到QuantDB根目录
@@ -22,16 +23,17 @@ try:
     if src_dir.exists():
         sys.path.insert(0, str(src_dir))
 except Exception as path_error:
-    st.warning(f"路径设置警告: {path_error}")
+    PATH_ERROR = str(path_error)
 
 # 设置云端模式标志 - 更智能的检测
 CLOUD_MODE = True
+ENVIRONMENT_INFO = None
 try:
     # 检测是否在Streamlit Cloud环境
     import os
     if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
         CLOUD_MODE = True
-        st.info("🌐 检测到Streamlit Cloud环境，使用云端模式")
+        ENVIRONMENT_INFO = "Streamlit Cloud environment detected, using cloud mode"
     else:
         # 测试是否可以完整导入和初始化core模块
         from core.services import StockDataService, AssetInfoService, DatabaseCache
@@ -43,10 +45,10 @@ try:
         db_session.close()
 
         CLOUD_MODE = False
-        st.info("🖥️ 检测到本地完整环境，使用完整模式")
+        ENVIRONMENT_INFO = "Local complete environment detected, using full mode"
 except Exception as e:
     CLOUD_MODE = True
-    st.info(f"🌐 环境检测失败，使用云端模式: {str(e)[:100]}...")
+    ENVIRONMENT_INFO = f"Environment detection failed, using cloud mode: {str(e)[:100]}..."
 
 # 页面配置
 st.set_page_config(
@@ -94,9 +96,19 @@ def verify_database():
         current_dir = Path(__file__).parent
         db_path = current_dir / "database" / "stock_data.db"
 
+        result = {
+            'db_exists': db_path.exists(),
+            'db_path': str(db_path),
+            'tables': [],
+            'asset_count': 0,
+            'status': 'unknown',
+            'message': ''
+        }
+
         if not db_path.exists():
-            st.warning(f"数据库文件不存在: {db_path}")
-            return False
+            result['status'] = 'error'
+            result['message'] = f"数据库文件不存在: {db_path}"
+            return result
 
         # 测试SQLite连接
         conn = sqlite3.connect(str(db_path))
@@ -105,29 +117,39 @@ def verify_database():
         # 检查表是否存在
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [row[0] for row in cursor.fetchall()]
+        result['tables'] = tables
 
         expected_tables = ['assets', 'daily_stock_data', 'intraday_stock_data', 'request_logs', 'data_coverage', 'system_metrics']
         existing_tables = [table for table in expected_tables if table in tables]
         missing_tables = [table for table in expected_tables if table not in tables]
 
-        if missing_tables:
-            st.warning(f"缺少数据库表: {missing_tables}")
-
-        if existing_tables:
-            st.success(f"数据库验证成功，找到表: {existing_tables}")
-
         # 测试基本查询
         if 'assets' in tables:
             cursor.execute("SELECT COUNT(*) FROM assets")
-            asset_count = cursor.fetchone()[0]
-            st.info(f"资产表中有 {asset_count} 条记录")
+            result['asset_count'] = cursor.fetchone()[0]
 
         conn.close()
-        return len(existing_tables) > 0
+
+        if len(existing_tables) > 0:
+            result['status'] = 'success'
+            result['message'] = f"数据库验证成功，找到表: {existing_tables}"
+            if missing_tables:
+                result['message'] += f"，缺少表: {missing_tables}"
+        else:
+            result['status'] = 'error'
+            result['message'] = "未找到预期的数据库表"
+
+        return result
 
     except Exception as e:
-        st.error(f"数据库验证失败: {e}")
-        return False
+        return {
+            'db_exists': False,
+            'db_path': '',
+            'tables': [],
+            'asset_count': 0,
+            'status': 'error',
+            'message': f"数据库验证失败: {e}"
+        }
 
 # 条件化的服务初始化
 @st.cache_resource
@@ -259,6 +281,17 @@ def show_initialization_status():
     else:
         st.error("❌ 服务初始化失败")
 
+    # 显示数据库验证结果
+    db_result = verify_database()
+    if db_result['status'] == 'success':
+        st.success(f"✅ {db_result['message']}")
+        if db_result['asset_count'] > 0:
+            st.info(f"📊 资产表中有 {db_result['asset_count']} 条记录")
+    elif db_result['status'] == 'error':
+        st.error(f"❌ {db_result['message']}")
+    else:
+        st.warning(f"⚠️ {db_result['message']}")
+
 def get_system_status():
     """获取系统状态"""
     try:
@@ -326,14 +359,13 @@ def get_system_status():
                         if hasattr(services['cache_service'], 'get_stats'):
                             cache_stats = services['cache_service'].get_stats()
                         else:
-                            st.warning("DatabaseCache对象缺少get_stats方法")
+                            # 记录错误但不显示，避免在页面配置前调用streamlit
                             cache_stats = {'error': 'get_stats method not found'}
                 except Exception as full_query_error:
-                    st.error(f"完整模式查询错误: {full_query_error}")
-                    st.error(f"错误类型: {type(full_query_error).__name__}")
+                    # 记录错误但不显示，避免在页面配置前调用streamlit
                     # 强制切换到云端模式查询
                     asset_count = 0
-                    cache_stats = {'error': str(full_query_error)}
+                    cache_stats = {'error': str(full_query_error), 'error_type': type(full_query_error).__name__}
 
             elif services.get('mode') == 'cloud':
                 # 云端模式：使用SQLite直连查询
@@ -361,7 +393,7 @@ def get_system_status():
                         conn.close()
 
                 except Exception as cloud_query_error:
-                    st.warning(f"云端模式查询错误: {cloud_query_error}")
+                    # 记录错误但不显示，避免在页面配置前调用streamlit
                     asset_count = 0
                     cache_stats = {
                         'database_type': 'SQLite',
@@ -387,17 +419,27 @@ def get_system_status():
             }
         }
     except Exception as e:
-        st.error(f"获取系统状态失败: {e}")
+        # 记录错误但不显示，避免在页面配置前调用streamlit
         return {
             'api_status': 'error',
             'api_response_time': 0,
             'asset_count': 0,
             'cache_stats': {},
-            'debug_info': {'error': str(e)}
+            'debug_info': {'error': str(e), 'function': 'get_system_status'}
         }
 
 def main():
     """主页面"""
+    # 显示环境信息（如果有的话）
+    if PATH_ERROR:
+        st.warning(f"Path setup warning: {PATH_ERROR}")
+
+    if ENVIRONMENT_INFO:
+        if "cloud mode" in ENVIRONMENT_INFO.lower():
+            st.info(f"🌐 {ENVIRONMENT_INFO}")
+        else:
+            st.info(f"🖥️ {ENVIRONMENT_INFO}")
+
     st.markdown("# QuantDB Professional Platform")
     st.markdown("### Financial Data Analytics & Market Intelligence")
     st.markdown("---")
