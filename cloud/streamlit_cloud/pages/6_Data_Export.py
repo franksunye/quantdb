@@ -40,8 +40,8 @@ except ImportError:
 
 # 页面配置
 st.set_page_config(
-    page_title="数据导出 - QuantDB Cloud",
-    page_icon="📤",
+    page_title="Data Export - QuantDB",
+    page_icon="📊",
     layout="wide"
 )
 

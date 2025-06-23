@@ -50,7 +50,7 @@ except Exception as e:
 
 # 页面配置
 st.set_page_config(
-    page_title="QuantDB - 量化数据平台",
+    page_title="QuantDB - Professional Data Platform",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -58,27 +58,27 @@ st.set_page_config(
         'Get Help': 'https://github.com/franksunye/quantdb',
         'Report a bug': 'https://github.com/franksunye/quantdb/issues',
         'About': """
-        # QuantDB Cloud Edition
-        
-        **版本**: v2.0.0-streamlit-cloud
-        
-        高性能股票数据查询平台，专为Streamlit Cloud优化。
-        
-        ## 核心功能
-        - 📈 股票数据查询和图表展示
-        - 📊 资产信息和财务指标
-        - ⚡ 智能缓存和性能监控
-        
-        ## 技术特点
-        - 🚀 SQLite数据库持久化
-        - 🏢 真实公司名称和财务数据
-        - 📊 专业的数据可视化
-        - ☁️ 云端部署，随时访问
-        
+        # QuantDB Professional Platform
+
+        **Version**: v2.1.0
+
+        Professional financial data platform with advanced analytics capabilities.
+
+        ## Core Features
+        - Stock data query and analysis
+        - Asset information and financial metrics
+        - Performance monitoring and caching
+        - Multi-market support (A-shares and Hong Kong stocks)
+
+        ## Technical Highlights
+        - SQLite database persistence
+        - Real-time data processing
+        - Professional data visualization
+        - Cloud deployment ready
+
         ---
-        
+
         **GitHub**: https://github.com/franksunye/quantdb
-        **维护者**: frank
         """
     }
 )
@@ -398,27 +398,28 @@ def get_system_status():
 
 def main():
     """主页面"""
-    st.markdown("### 🌟 云端版本 - 随时随地访问股票数据")
+    st.markdown("# QuantDB Professional Platform")
+    st.markdown("### Financial Data Analytics & Market Intelligence")
     st.markdown("---")
-    
+
     st.markdown("""
-    这是QuantDB的云端版本，专为Streamlit Cloud优化，提供：
-    
-    **🚀 核心优势**:
-    - ⚡ **智能缓存**: SQLite数据库缓存，98.1%性能提升
-    - 🏢 **真实数据**: 显示真实公司名称和财务指标
-    - 📊 **专业图表**: 基于Plotly的交互式数据可视化
-    - ☁️ **云端访问**: 无需安装，浏览器直接使用
-    - 🔍 **简单易用**: 输入股票代码即可获取完整分析
+    **Professional financial data platform** designed for institutional-grade analysis and research.
+
+    **Core Capabilities**:
+    - **High-Performance Data Access**: SQLite caching with 98.1% performance improvement
+    - **Real-Time Market Data**: Live company information and financial metrics
+    - **Advanced Analytics**: Interactive data visualization and technical analysis
+    - **Multi-Market Coverage**: A-shares and Hong Kong stock markets
+    - **Enterprise Ready**: Cloud deployment with professional-grade reliability
     """)
-    
+
     st.markdown("---")
 
     # 显示初始化状态
     show_initialization_status()
 
     # 系统状态概览
-    st.markdown("### 📊 系统状态概览")
+    st.markdown("### System Status Overview")
     
     system_status = get_system_status()
     
@@ -427,24 +428,24 @@ def main():
         
         with col1:
             st.metric(
-                label="API状态",
-                value="运行中" if system_status['api_status'] == 'running' else "异常",
-                delta="正常" if system_status['api_status'] == 'running' else "需要检查"
+                label="API Status",
+                value="Running" if system_status['api_status'] == 'running' else "Error",
+                delta="Normal" if system_status['api_status'] == 'running' else "Check Required"
             )
-        
+
         with col2:
             st.metric(
-                label="响应时间",
+                label="Response Time",
                 value=f"{system_status['api_response_time']:.1f}ms",
-                delta="极快" if system_status['api_response_time'] < 100 else "正常"
+                delta="Excellent" if system_status['api_response_time'] < 100 else "Normal"
             )
-        
+
         with col3:
             asset_count = system_status['asset_count']
             st.metric(
-                label="资产数量",
-                value=f"{asset_count}个",
-                delta="数据库正常" if asset_count > 0 else "需要数据"
+                label="Assets",
+                value=f"{asset_count}",
+                delta="Database OK" if asset_count > 0 else "No Data"
             )
         
         with col4:
@@ -467,7 +468,7 @@ def main():
                 cache_delta = "请稍候"
 
             st.metric(
-                label="缓存状态",
+                label="Cache Status",
                 value=cache_efficiency,
                 delta=cache_delta
             )

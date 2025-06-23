@@ -18,8 +18,8 @@ sys.path.insert(0, str(project_root))
 
 # 页面配置
 st.set_page_config(
-    page_title="系统状态 - QuantDB",
-    page_icon="⚡",
+    page_title="System Status - QuantDB",
+    page_icon="📊",
     layout="wide"
 )
 

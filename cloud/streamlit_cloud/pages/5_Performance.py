@@ -40,8 +40,8 @@ except Exception:
 
 # 页面配置
 st.set_page_config(
-    page_title="性能监控 - QuantDB Cloud",
-    page_icon="⚡",
+    page_title="Performance - QuantDB",
+    page_icon="📊",
     layout="wide"
 )
 

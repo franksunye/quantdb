@@ -43,8 +43,8 @@ except ImportError:
 
 # 页面配置
 st.set_page_config(
-    page_title="股票数据查询 - QuantDB",
-    page_icon="📈",
+    page_title="Stock Data - QuantDB",
+    page_icon="📊",
     layout="wide"
 )
 
@@ -100,8 +100,8 @@ def main():
 
     # 检查后端服务是否可用
     if not BACKEND_SERVICES_AVAILABLE:
-        st.warning("⚠️ 后端服务不可用，显示演示模式")
-        st.info("💡 在演示模式下，您可以查看界面布局和功能说明")
+        st.warning("Backend services unavailable - Demo mode")
+        st.info("In demo mode, you can view the interface layout and functionality")
 
         # 在演示模式下仍然显示界面
         show_demo_interface()
@@ -110,7 +110,7 @@ def main():
     # 初始化后端服务
     services = init_services()
     if len(services) != 3 or not all(services):
-        st.error("❌ 服务初始化失败，请刷新页面重试")
+        st.error("Service initialization failed - Please refresh the page")
         return
 
     stock_service, asset_service, query_service = services
@@ -121,51 +121,51 @@ def main():
     # 右侧查询面板
     with col_query:
         with st.container():
-            st.markdown("### 🔍 股票数据查询")
+            st.markdown("### Stock Data Query")
 
             # 查询方式选择
             query_mode = st.radio(
-                "查询方式",
-                ["手动输入", "浏览已有股票"],
-                help="选择查询方式：手动输入股票代码或从已有股票中选择"
+                "Query Method",
+                ["Manual Input", "Browse Existing"],
+                help="Choose query method: manual input or select from existing stocks"
             )
 
-            if query_mode == "手动输入":
+            if query_mode == "Manual Input":
                 # 股票代码输入
                 symbol = st.text_input(
-                    "股票代码",
+                    "Stock Code",
                     value="600000",
-                    placeholder="A股: 600000 | 港股: 02171",
-                    help="支持A股代码(6位数字)和港股代码(5位数字)"
+                    placeholder="A-shares: 600000 | HK: 00700",
+                    help="Supports A-share codes (6 digits) and Hong Kong stock codes (5 digits)"
                 )
             else:
                 # 浏览已有股票
                 symbol = display_stock_browser(query_service)
 
             # 日期范围选择
-            st.markdown("#### 📅 日期范围")
+            st.markdown("#### Date Range")
 
             # 快速选择按钮
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("最近7天", use_container_width=True):
+                if st.button("Last 7 Days", use_container_width=True):
                     st.session_state.start_date = date.today() - timedelta(days=7)
                     st.session_state.end_date = date.today()
             with col2:
-                if st.button("最近30天", use_container_width=True):
+                if st.button("Last 30 Days", use_container_width=True):
                     st.session_state.start_date = date.today() - timedelta(days=30)
                     st.session_state.end_date = date.today()
 
             # 日期选择器
             start_date = st.date_input(
-                "开始日期",
+                "Start Date",
                 value=st.session_state.get('start_date', date.today() - timedelta(days=7)),
                 max_value=date.today(),
                 key='start_date'
             )
 
             end_date = st.date_input(
-                "结束日期",
+                "End Date",
                 value=st.session_state.get('end_date', date.today()),
                 max_value=date.today(),
                 key='end_date'
@@ -173,18 +173,18 @@ def main():
 
             # 复权选择
             adjust_type = st.selectbox(
-                "复权类型",
-                options=["不复权", "前复权", "后复权"],
+                "Adjustment Type",
+                options=["None", "Forward", "Backward"],
                 index=0,
-                help="前复权(qfq): 以当前价为基准向前复权\n后复权(hfq): 以上市价为基准向后复权"
+                help="Forward: Adjust based on current price\nBackward: Adjust based on listing price"
             )
 
             # 转换复权参数
-            adjust_map = {"不复权": "", "前复权": "qfq", "后复权": "hfq"}
+            adjust_map = {"None": "", "Forward": "qfq", "Backward": "hfq"}
             adjust = adjust_map[adjust_type]
 
             # 查询按钮
-            query_button = st.button("🔍 查询数据", type="primary", use_container_width=True)
+            query_button = st.button("Query Data", type="primary", use_container_width=True)
 
             # 显示最近查询
             display_recent_stock_queries()
@@ -221,16 +221,16 @@ def main():
 
             # 验证输入
             if not symbol:
-                st.error("请输入股票代码")
+                st.error("Please enter a stock code")
                 return
 
             if start_date >= end_date:
-                st.error("开始日期必须早于结束日期")
+                st.error("Start date must be earlier than end date")
                 return
 
             # 验证股票代码格式
             if not validate_stock_code(symbol):
-                st.error("❌ 请输入有效的股票代码（A股6位数字如：600000、000001，港股5位数字如：00700、09988）")
+                st.error("Please enter a valid stock code (A-shares: 6 digits, HK stocks: 5 digits)")
                 return
 
             # 保存当前查询状态
@@ -240,10 +240,10 @@ def main():
             st.session_state.current_adjust = adjust
 
             # 显示查询信息
-            st.info(f"正在查询股票 {symbol} 从 {start_date} 到 {end_date} 的数据...")
+            st.info(f"Querying stock {symbol} data from {start_date} to {end_date}...")
 
             # 查询数据
-            with st.spinner("数据查询中..."):
+            with st.spinner("Querying data..."):
                 try:
                     # 调用后端服务获取股票数据
                     result = stock_service.get_stock_data(
@@ -339,11 +339,11 @@ def main():
                     # 显示成功信息
                     col1, col2, col3 = st.columns(3)
                     with col1:
-                        st.success(f"✅ 成功获取 {len(df)} 条记录")
+                        st.success(f"Retrieved {len(df)} records")
                     with col2:
-                        st.info("🌐 数据来自后端服务")
+                        st.info("Data from backend service")
                     with col3:
-                        st.info(f"⏱️ 响应时间: 快速")
+                        st.info("Response time: Fast")
 
                     # 添加到最近查询列表
                     add_to_recent_stock_queries(symbol, f"Stock {symbol}")
@@ -375,33 +375,33 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
         metrics = calculate_basic_metrics(df)
 
         # 显示指标仪表板
-        st.subheader("📊 关键指标")
+        st.subheader("Key Metrics")
         create_metrics_dashboard(metrics)
     else:
         # 简单的指标显示
-        st.subheader("📊 关键指标")
+        st.subheader("Key Metrics")
         col1, col2, col3, col4 = st.columns(4)
 
         with col1:
-            st.metric("最新价格", f"¥{df['close'].iloc[-1]:.2f}")
+            st.metric("Latest Price", f"¥{df['close'].iloc[-1]:.2f}")
         with col2:
-            st.metric("最高价", f"¥{df['high'].max():.2f}")
+            st.metric("High", f"¥{df['high'].max():.2f}")
         with col3:
-            st.metric("最低价", f"¥{df['low'].min():.2f}")
+            st.metric("Low", f"¥{df['low'].min():.2f}")
         with col4:
             if len(df) > 1:
                 change = (df['close'].iloc[-1] - df['close'].iloc[0]) / df['close'].iloc[0] * 100
-                st.metric("期间涨跌", f"{change:.2f}%")
+                st.metric("Period Change", f"{change:.2f}%")
             else:
-                st.metric("期间涨跌", "N/A")
+                st.metric("Period Change", "N/A")
 
     st.markdown("---")
 
     # 图表选择
-    st.subheader("📊 数据可视化")
+    st.subheader("Data Visualization")
 
     if CHARTS_AVAILABLE:
-        chart_tabs = st.tabs(["📈 价格趋势", "🕯️ K线图", "📊 成交量", "📉 收益率分析", "⚡ 性能对比"])
+        chart_tabs = st.tabs(["Price Trend", "Candlestick", "Volume", "Returns Analysis", "Performance"])
 
         with chart_tabs[0]:
             st.markdown("#### 价格趋势图")
@@ -469,7 +469,7 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
         st.line_chart(df.set_index('date')['close'] if 'date' in df.columns else df['close'])
 
     # 数据表格
-    st.subheader("📋 详细数据")
+    st.subheader("Detailed Data")
 
     # 数据处理和格式化
     display_df = df.copy()
