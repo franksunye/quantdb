@@ -11,22 +11,32 @@ import time
 import sys
 from pathlib import Path
 
-# 添加src目录到Python路径
-current_dir = Path(__file__).parent.parent
-src_dir = current_dir / "src"
-sys.path.insert(0, str(src_dir))
+# 添加项目根目录到Python路径以访问core模块
+current_dir = Path(__file__).parent
+project_root = current_dir.parent.parent  # 回到QuantDB根目录
+sys.path.insert(0, str(project_root))
 
 # 导入工具组件
 try:
-    from utils.charts import (
-        create_performance_comparison_chart,
-        create_cache_hit_pie_chart,
-        create_data_coverage_timeline
-    )
-    from utils.config import config
+    import plotly.graph_objects as go
+    import plotly.express as px
     ADVANCED_FEATURES = True
 except ImportError:
     ADVANCED_FEATURES = False
+
+# 检测运行环境
+CLOUD_MODE = True
+try:
+    # 检测是否在Streamlit Cloud环境
+    import os
+    if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
+        CLOUD_MODE = True
+    else:
+        # 测试是否可以导入core模块
+        from core.services import StockDataService
+        CLOUD_MODE = False
+except Exception:
+    CLOUD_MODE = True
 
 # 页面配置
 st.set_page_config(
@@ -37,24 +47,69 @@ st.set_page_config(
 
 @st.cache_resource
 def init_services():
-    """初始化服务实例"""
+    """初始化服务实例 - 云端优化版本"""
     try:
-        from services.stock_data_service import StockDataService
-        from services.database_cache import DatabaseCache
-        from cache.akshare_adapter import AKShareAdapter
-        from api.database import get_db
+        if not CLOUD_MODE:
+            # 完整模式：使用core模块
+            from core.services import StockDataService, DatabaseCache
+            from core.cache import AKShareAdapter
+            from core.database import get_db
 
-        db_session = next(get_db())
-        akshare_adapter = AKShareAdapter()
-        
-        return {
-            'stock_service': StockDataService(db_session, akshare_adapter),
-            'cache_service': DatabaseCache(db_session),
-            'db_session': db_session
-        }
+            db_session = next(get_db())
+            akshare_adapter = AKShareAdapter()
+
+            return {
+                'stock_service': StockDataService(db_session, akshare_adapter),
+                'cache_service': DatabaseCache(db_session),
+                'db_session': db_session,
+                'mode': 'full'
+            }
+        else:
+            # 云端模式：简化的服务初始化
+            import sqlite3
+            from pathlib import Path
+
+            current_dir = Path(__file__).parent
+            db_path = current_dir / "database" / "stock_data.db"
+
+            # 测试SQLite连接
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+
+            # 获取基本统计信息
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = [row[0] for row in cursor.fetchall()]
+
+            # 获取资产数量
+            asset_count = 0
+            data_count = 0
+            if 'assets' in tables:
+                cursor.execute("SELECT COUNT(*) FROM assets")
+                asset_count = cursor.fetchone()[0]
+
+            if 'daily_stock_data' in tables:
+                cursor.execute("SELECT COUNT(*) FROM daily_stock_data")
+                data_count = cursor.fetchone()[0]
+
+            conn.close()
+
+            return {
+                'db_path': str(db_path),
+                'tables': tables,
+                'asset_count': asset_count,
+                'data_count': data_count,
+                'mode': 'cloud'
+            }
+
     except Exception as e:
         st.error(f"服务初始化失败: {e}")
-        return None
+        # 返回一个最小的服务对象以避免页面崩溃
+        return {
+            'mode': 'minimal',
+            'error': str(e),
+            'asset_count': 0,
+            'data_count': 0
+        }
 
 def main():
     """主页面函数"""
@@ -69,6 +124,16 @@ def main():
     if not services:
         st.error("❌ 服务初始化失败，请刷新页面重试")
         return
+
+    # 显示运行模式
+    mode = services.get('mode', 'unknown')
+    if mode == 'full':
+        st.info("🖥️ 运行模式: 完整模式 (使用core服务)")
+    elif mode == 'cloud':
+        st.info("☁️ 运行模式: 云端模式 (SQLite直连)")
+    elif mode == 'minimal':
+        st.warning("⚠️ 运行模式: 最小模式 (功能受限)")
+        st.error(f"初始化错误: {services.get('error', '未知错误')}")
     
     # 控制面板
     col1, col2, col3 = st.columns([2, 1, 1])
@@ -95,11 +160,51 @@ def main():
 
 def display_performance_monitoring(services):
     """显示性能监控数据"""
-    
+
     try:
+        mode = services.get('mode', 'unknown')
+
         # 获取缓存统计
         with st.spinner("获取性能数据..."):
-            cache_stats = services['cache_service'].get_stats()
+            if mode == 'full':
+                # 完整模式：使用cache_service
+                cache_stats = services['cache_service'].get_stats()
+            elif mode == 'cloud':
+                # 云端模式：构造统计数据
+                cache_stats = {
+                    'total_assets': services.get('asset_count', 0),
+                    'total_data_points': services.get('data_count', 0),
+                    'date_range': {'min_date': 'N/A', 'max_date': 'N/A'},
+                    'top_assets': []
+                }
+
+                # 尝试获取更详细的统计信息
+                try:
+                    import sqlite3
+                    conn = sqlite3.connect(services['db_path'])
+                    cursor = conn.cursor()
+
+                    # 获取日期范围
+                    if 'daily_stock_data' in services.get('tables', []):
+                        cursor.execute("SELECT MIN(date), MAX(date) FROM daily_stock_data")
+                        date_range = cursor.fetchone()
+                        if date_range[0] and date_range[1]:
+                            cache_stats['date_range'] = {
+                                'min_date': str(date_range[0]),
+                                'max_date': str(date_range[1])
+                            }
+
+                    conn.close()
+                except Exception as e:
+                    st.warning(f"获取详细统计信息失败: {e}")
+            else:
+                # 最小模式：使用默认值
+                cache_stats = {
+                    'total_assets': 0,
+                    'total_data_points': 0,
+                    'date_range': {'min_date': 'N/A', 'max_date': 'N/A'},
+                    'top_assets': []
+                }
         
         # 核心性能指标
         st.subheader("🚀 核心性能指标")
@@ -107,16 +212,30 @@ def display_performance_monitoring(services):
         col1, col2, col3, col4 = st.columns(4)
         
         with col1:
-            # 模拟缓存响应时间（基于实际数据库查询）
-            from sqlalchemy import text
+            # 测试数据库响应时间
             start_time = time.time()
-            test_query = services['db_session'].execute(text("SELECT COUNT(*) FROM assets")).scalar()
+
+            if mode == 'full':
+                # 完整模式：使用SQLAlchemy
+                from sqlalchemy import text
+                test_query = services['db_session'].execute(text("SELECT COUNT(*) FROM assets")).scalar()
+            elif mode == 'cloud':
+                # 云端模式：使用SQLite直连
+                import sqlite3
+                conn = sqlite3.connect(services['db_path'])
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) FROM assets")
+                test_query = cursor.fetchone()[0]
+                conn.close()
+            else:
+                test_query = 0
+
             cache_response_time = (time.time() - start_time) * 1000
-            
+
             st.metric(
                 label="数据库响应时间",
                 value=f"{cache_response_time:.1f}ms",
-                delta="极快",
+                delta="极快" if cache_response_time < 50 else "快速",
                 help="从SQLite数据库获取数据的响应时间"
             )
         
@@ -157,14 +276,14 @@ def display_performance_monitoring(services):
         # 性能对比图表
         if ADVANCED_FEATURES:
             st.subheader("📊 性能对比分析")
-            
+
             col1, col2 = st.columns(2)
-            
+
             with col1:
                 st.markdown("#### 响应时间对比")
                 perf_chart = create_performance_comparison_chart(cache_response_time, akshare_response_time)
                 st.plotly_chart(perf_chart, use_container_width=True)
-            
+
             with col2:
                 st.markdown("#### 数据覆盖分布")
                 # 模拟缓存命中率
@@ -172,6 +291,8 @@ def display_performance_monitoring(services):
                 cache_misses = 100 - cache_hits
                 cache_pie = create_cache_hit_pie_chart(cache_hits, cache_misses)
                 st.plotly_chart(cache_pie, use_container_width=True)
+        else:
+            st.info("📊 图表功能需要plotly支持，当前使用简化显示模式")
         
         # 系统资源监控
         st.markdown("---")
@@ -261,21 +382,37 @@ def test_database_performance(services):
     """测试数据库查询性能"""
     with st.spinner("测试数据库查询性能..."):
         try:
-            # 进行多次测试取平均值
-            from sqlalchemy import text
+            mode = services.get('mode', 'unknown')
             times = []
+
+            # 进行多次测试取平均值
             for i in range(5):
                 start_time = time.time()
-                result = services['db_session'].execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
+
+                if mode == 'full':
+                    # 完整模式：使用SQLAlchemy
+                    from sqlalchemy import text
+                    result = services['db_session'].execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
+                elif mode == 'cloud':
+                    # 云端模式：使用SQLite直连
+                    import sqlite3
+                    conn = sqlite3.connect(services['db_path'])
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT COUNT(*) FROM daily_stock_data")
+                    result = cursor.fetchone()[0]
+                    conn.close()
+                else:
+                    result = 0
+
                 end_time = time.time()
                 times.append((end_time - start_time) * 1000)
-            
+
             avg_time = sum(times) / len(times)
             min_time = min(times)
             max_time = max(times)
-            
+
             st.success("✅ 数据库查询性能测试完成")
-            
+
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("平均响应时间", f"{avg_time:.1f}ms")
@@ -283,62 +420,97 @@ def test_database_performance(services):
                 st.metric("最快响应时间", f"{min_time:.1f}ms")
             with col3:
                 st.metric("最慢响应时间", f"{max_time:.1f}ms")
-            
+
         except Exception as e:
             st.error(f"数据库查询测试失败: {str(e)}")
+            with st.expander("🔍 错误详情"):
+                st.code(str(e))
 
 def test_data_query_performance(services):
     """测试数据查询性能"""
     with st.spinner("测试数据查询性能..."):
         try:
-            # 测试股票数据查询
+            mode = services.get('mode', 'unknown')
             start_time = time.time()
-            stock_data = services['stock_service'].get_stock_data("600000", "20240101", "20240105")
+
+            if mode == 'full':
+                # 完整模式：使用stock_service
+                stock_data = services['stock_service'].get_stock_data("600000", "20240101", "20240105")
+                record_count = len(stock_data) if stock_data is not None and not stock_data.empty else 0
+            elif mode == 'cloud':
+                # 云端模式：直接查询数据库
+                import sqlite3
+                conn = sqlite3.connect(services['db_path'])
+                cursor = conn.cursor()
+
+                # 查询600000的数据
+                cursor.execute("""
+                    SELECT COUNT(*) FROM daily_stock_data d
+                    JOIN assets a ON d.asset_id = a.asset_id
+                    WHERE a.symbol = '600000' AND d.date BETWEEN '2024-01-01' AND '2024-01-05'
+                """)
+                record_count = cursor.fetchone()[0]
+                conn.close()
+            else:
+                record_count = 0
+
             end_time = time.time()
-            
             response_time = (end_time - start_time) * 1000
-            
-            if stock_data is not None and not stock_data.empty:
-                record_count = len(stock_data)
-                
-                st.success("✅ 数据查询性能测试完成")
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("响应时间", f"{response_time:.1f}ms")
-                with col2:
-                    st.metric("数据记录数", f"{record_count}")
-                with col3:
-                    status = "优秀" if response_time < 100 else "良好" if response_time < 1000 else "需优化"
-                    st.metric("性能等级", status)
-            
+
+            st.success("✅ 数据查询性能测试完成")
+
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("响应时间", f"{response_time:.1f}ms")
+            with col2:
+                st.metric("数据记录数", f"{record_count}")
+            with col3:
+                status = "优秀" if response_time < 100 else "良好" if response_time < 1000 else "需优化"
+                st.metric("性能等级", status)
+
         except Exception as e:
             st.error(f"数据查询测试失败: {str(e)}")
+            with st.expander("🔍 错误详情"):
+                st.code(str(e))
 
 def test_cache_performance(services):
     """测试缓存性能"""
     with st.spinner("测试缓存性能..."):
         try:
-            # 连续查询同一数据，测试缓存效果
+            mode = services.get('mode', 'unknown')
             symbol = "600000"
-            start_date = "20240101"
-            end_date = "20240105"
-            
             times = []
-            
+
             for i in range(3):
                 start_time = time.time()
-                stock_data = services['stock_service'].get_stock_data(symbol, start_date, end_date)
+
+                if mode == 'full':
+                    # 完整模式：使用stock_service
+                    stock_data = services['stock_service'].get_stock_data(symbol, "20240101", "20240105")
+                elif mode == 'cloud':
+                    # 云端模式：SQLite查询（本身就是缓存）
+                    import sqlite3
+                    conn = sqlite3.connect(services['db_path'])
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT COUNT(*) FROM daily_stock_data d
+                        JOIN assets a ON d.asset_id = a.asset_id
+                        WHERE a.symbol = ? AND d.date BETWEEN '2024-01-01' AND '2024-01-05'
+                    """, (symbol,))
+                    result = cursor.fetchone()[0]
+                    conn.close()
+                else:
+                    result = 0
+
                 end_time = time.time()
-                
                 response_time = (end_time - start_time) * 1000
                 times.append(response_time)
-            
+
             avg_time = sum(times) / len(times)
             improvement = ((times[0] - times[-1]) / times[0] * 100) if times[0] > 0 else 0
-            
+
             st.success("✅ 缓存性能测试完成")
-            
+
             col1, col2, col3 = st.columns(3)
             with col1:
                 st.metric("平均响应时间", f"{avg_time:.1f}ms")
@@ -346,12 +518,65 @@ def test_cache_performance(services):
                 st.metric("首次查询", f"{times[0]:.1f}ms")
             with col3:
                 st.metric("后续查询", f"{times[-1]:.1f}ms")
-            
+
             if improvement > 0:
                 st.info(f"🚀 缓存效果: 性能提升 {improvement:.1f}%")
-            
+            elif mode == 'cloud':
+                st.info("💾 SQLite数据库本身提供了高效的数据缓存")
+
         except Exception as e:
             st.error(f"缓存性能测试失败: {str(e)}")
+            with st.expander("🔍 错误详情"):
+                st.code(str(e))
+
+# 简化的图表创建函数
+def create_performance_comparison_chart(cache_time, akshare_time):
+    """创建性能对比图表"""
+    if not ADVANCED_FEATURES:
+        return None
+
+    try:
+        import plotly.graph_objects as go
+
+        fig = go.Figure(data=[
+            go.Bar(name='SQLite缓存', x=['响应时间'], y=[cache_time], marker_color='lightblue'),
+            go.Bar(name='AKShare直连', x=['响应时间'], y=[akshare_time], marker_color='lightcoral')
+        ])
+
+        fig.update_layout(
+            title='响应时间对比 (毫秒)',
+            yaxis_title='响应时间 (ms)',
+            barmode='group',
+            height=400
+        )
+
+        return fig
+    except Exception:
+        return None
+
+def create_cache_hit_pie_chart(hits, misses):
+    """创建缓存命中率饼图"""
+    if not ADVANCED_FEATURES:
+        return None
+
+    try:
+        import plotly.graph_objects as go
+
+        fig = go.Figure(data=[go.Pie(
+            labels=['数据覆盖', '待补充'],
+            values=[hits, misses],
+            hole=.3,
+            marker_colors=['lightgreen', 'lightgray']
+        )])
+
+        fig.update_layout(
+            title='数据覆盖分布',
+            height=400
+        )
+
+        return fig
+    except Exception:
+        return None
 
 if __name__ == "__main__":
     main()
