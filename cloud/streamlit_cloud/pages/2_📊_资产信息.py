@@ -131,14 +131,19 @@ def main():
                 st.error("请输入股票代码")
                 return
 
-            # 验证股票代码格式 - 使用新的港股支持验证
-            from utils.config import config
-            if not config.validate_symbol(symbol):
-                st.error(config.ERROR_MESSAGES["invalid_symbol"])
+            # 验证股票代码格式 - 简化的验证逻辑
+            if not symbol or len(symbol) < 5 or len(symbol) > 6 or not symbol.isdigit():
+                st.error("请输入有效的股票代码（5-6位数字）")
                 return
 
-            # 标准化股票代码
-            symbol = config.normalize_symbol(symbol)
+            # 标准化股票代码（确保6位，前面补0）
+            if len(symbol) == 5:
+                symbol = symbol  # 港股保持5位
+            elif len(symbol) == 6:
+                symbol = symbol  # A股保持6位
+            else:
+                st.error("股票代码长度不正确")
+                return
 
             # 显示查询信息
             st.info(f"正在查询股票 {symbol} 的资产信息...")
@@ -146,42 +151,70 @@ def main():
             # 查询数据
             with st.spinner("资产信息查询中..."):
                 try:
-                    from utils.api_client import get_api_client
-                    client = get_api_client()
+                    if use_backend_services and asset_service:
+                        # 使用后端服务直接查询
+                        asset_result = asset_service.get_or_create_asset(symbol)
 
-                    # 调用API获取资产信息
-                    asset_response = client.get_asset_info(symbol)
+                        if isinstance(asset_result, tuple):
+                            asset_obj, metadata = asset_result
+                        else:
+                            asset_obj = asset_result
+                            metadata = {}
 
-                    if asset_response:
-                        # 新的API响应格式: {asset: {...}, metadata: {...}}
-                        asset_data = asset_response.get('asset', asset_response)  # 兼容旧格式
-                        asset_metadata = asset_response.get('metadata', {})
+                        # 转换为字典格式
+                        asset_data = {
+                            'symbol': asset_obj.symbol,
+                            'name': asset_obj.name,
+                            'asset_type': asset_obj.asset_type,
+                            'exchange': asset_obj.exchange,
+                            'industry': asset_obj.industry,
+                            'concept': asset_obj.concept,
+                            'area': asset_obj.area,
+                            'market': asset_obj.market,
+                            'list_date': asset_obj.list_date,
+                            'pe_ratio': asset_obj.pe_ratio,
+                            'pb_ratio': asset_obj.pb_ratio,
+                            'roe': asset_obj.roe,
+                            'market_cap': asset_obj.market_cap,
+                            'total_shares': asset_obj.total_shares,
+                            'circulating_shares': asset_obj.circulating_shares,
+                            'created_at': asset_obj.created_at,
+                            'updated_at': asset_obj.updated_at,
+                            'last_accessed': asset_obj.last_accessed
+                        }
 
-                        # 保存当前查询的资产信息到session state（用于保持页面状态）
-                        st.session_state.current_asset_symbol = symbol
-                        st.session_state.current_asset_data = asset_data
-                        st.session_state.current_asset_metadata = asset_metadata
-
-                        # 添加到最近查询列表
-                        add_to_recent_queries(symbol, asset_data.get('name', f'Stock {symbol}'))
-
-                        # 显示资产信息
-                        display_asset_info(asset_data, symbol)
-
-                        # 显示资产信息的缓存状态
-                        display_asset_cache_info(asset_metadata)
-
-                        # 可选的数据覆盖信息（使用expander避免页面重新加载）
-                        st.markdown("---")
-                        with st.expander("📈 数据覆盖情况", expanded=False):
-                            display_data_coverage(symbol)
+                        asset_metadata = metadata
 
                     else:
-                        st.error("❌ 未能获取资产信息，请检查股票代码或稍后重试")
+                        # 降级到API模式（不应该在云端版本中使用）
+                        st.error("❌ 后端服务不可用，云端版本不支持API模式")
+                        return
+
+                    # 保存当前查询的资产信息到session state（用于保持页面状态）
+                    st.session_state.current_asset_symbol = symbol
+                    st.session_state.current_asset_data = asset_data
+                    st.session_state.current_asset_metadata = asset_metadata
+
+                    # 添加到最近查询列表
+                    add_to_recent_queries(symbol, asset_data.get('name', f'Stock {symbol}'))
+
+                    # 显示资产信息
+                    display_asset_info(asset_data, symbol)
+
+                    # 显示资产信息的缓存状态
+                    display_asset_cache_info(asset_metadata)
+
+                    # 可选的数据覆盖信息（使用expander避免页面重新加载）
+                    st.markdown("---")
+                    with st.expander("📈 数据覆盖情况", expanded=False):
+                        display_data_coverage(symbol)
 
                 except Exception as e:
                     st.error(f"❌ 查询过程中出现错误: {str(e)}")
-                    st.info("请检查网络连接或稍后重试")
+                    st.info("请检查服务状态或稍后重试")
+                    # 显示详细错误信息用于调试
+                    with st.expander("🔍 错误详情", expanded=False):
+                        st.code(str(e))
         else:
             # 显示使用指南
             show_usage_guide()
@@ -346,19 +379,10 @@ def display_asset_browser(query_service):
             st.caption(f"📊 数据库中共有 {total_count} 只股票")
 
         else:
-            # 后端服务不可用，使用API模式
-            from utils.api_client import get_api_client
-            client = get_api_client()
-
-            # 获取资产列表
-            with st.spinner("加载资产列表..."):
-                assets = client.get_assets_list(limit=50)  # 限制50个以提高性能
-
-            if not assets:
-                st.warning("暂无已有资产数据")
-                return "", False, False
-
-            asset_list = assets
+            # 后端服务不可用，显示错误信息
+            st.error("❌ 后端服务不可用，无法加载资产列表")
+            st.info("云端版本需要后端服务支持，请检查服务初始化状态")
+            return "", False, False
 
         # 按行业分组
         industry_groups = {}
@@ -539,44 +563,76 @@ def display_data_coverage(symbol: str):
     """显示数据覆盖情况"""
 
     try:
-        from utils.api_client import get_api_client
-        client = get_api_client()
-
-        # 获取简单的历史数据来检查覆盖情况
+        # 使用后端服务直接查询数据库
+        from core.database import get_db
+        from core.models import DailyStockData, Asset
         from datetime import date, timedelta
-        end_date = date.today()
-        start_date = end_date - timedelta(days=30)  # 检查最近30天
+        from sqlalchemy import func
 
-        start_date_str = start_date.strftime('%Y%m%d')
-        end_date_str = end_date.strftime('%Y%m%d')
+        # 获取数据库会话
+        db_session = next(get_db())
 
-        stock_data = client.get_stock_data(symbol, start_date_str, end_date_str)
+        try:
+            # 查找资产
+            asset = db_session.query(Asset).filter(Asset.symbol == symbol).first()
+            if not asset:
+                st.info("📝 暂无资产信息，请先查询该股票")
+                return
 
-        if stock_data and stock_data.get('data'):
-            data_records = stock_data['data']
+            # 查询最近30天的数据覆盖情况
+            end_date = date.today()
+            start_date = end_date - timedelta(days=30)
+
+            data_count = db_session.query(func.count(DailyStockData.id)).filter(
+                DailyStockData.asset_id == asset.asset_id,
+                DailyStockData.date >= start_date,
+                DailyStockData.date <= end_date
+            ).scalar()
+
+            # 获取数据范围
+            first_record = db_session.query(DailyStockData).filter(
+                DailyStockData.asset_id == asset.asset_id
+            ).order_by(DailyStockData.date.asc()).first()
+
+            last_record = db_session.query(DailyStockData).filter(
+                DailyStockData.asset_id == asset.asset_id
+            ).order_by(DailyStockData.date.desc()).first()
 
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.metric("数据记录数", f"{len(data_records):,}条")
+                st.metric("最近30天数据", f"{data_count:,}条")
 
             with col2:
-                if data_records:
-                    first_date = data_records[0].get('date', 'N/A')
-                    st.metric("数据起始", first_date)
+                if first_record:
+                    st.metric("数据起始", first_record.date.strftime('%Y-%m-%d'))
+                else:
+                    st.metric("数据起始", "N/A")
 
             with col3:
-                if data_records:
-                    last_date = data_records[-1].get('date', 'N/A')
-                    st.metric("数据截止", last_date)
+                if last_record:
+                    st.metric("数据截止", last_record.date.strftime('%Y-%m-%d'))
+                else:
+                    st.metric("数据截止", "N/A")
 
             with col4:
-                st.metric("数据跨度", f"{len(data_records)}天")
-        else:
-            st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
+                if first_record and last_record:
+                    days_span = (last_record.date - first_record.date).days
+                    st.metric("数据跨度", f"{days_span}天")
+                else:
+                    st.metric("数据跨度", "N/A")
+
+            if data_count == 0:
+                st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
+
+        finally:
+            db_session.close()
 
     except Exception as e:
         st.warning(f"⚠️ 获取数据覆盖信息失败: {str(e)}")
+        # 显示详细错误信息用于调试
+        with st.expander("🔍 错误详情", expanded=False):
+            st.code(str(e))
 
 
 def format_datetime(dt_str):
