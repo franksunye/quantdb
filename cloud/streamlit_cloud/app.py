@@ -285,34 +285,19 @@ def get_system_status():
 
 def main():
     """主页面"""
-    
-    # 页面标题
-    st.title("📊 QuantDB - 量化数据平台")
     st.markdown("### 🌟 云端版本 - 随时随地访问股票数据")
     st.markdown("---")
     
-    # 欢迎信息
-    col1, col2 = st.columns([2, 1])
+    st.markdown("""
+    这是QuantDB的云端版本，专为Streamlit Cloud优化，提供：
     
-    with col1:
-        st.markdown("""
-        ### 🎯 欢迎使用 QuantDB Cloud
-        
-        这是QuantDB的云端版本，专为Streamlit Cloud优化，提供：
-        
-        **🚀 核心优势**:
-        - ⚡ **智能缓存**: SQLite数据库缓存，98.1%性能提升
-        - 🏢 **真实数据**: 显示真实公司名称和财务指标
-        - 📊 **专业图表**: 基于Plotly的交互式数据可视化
-        - ☁️ **云端访问**: 无需安装，浏览器直接使用
-        - 🔍 **简单易用**: 输入股票代码即可获取完整分析
-        """)
-    
-    with col2:
-        st.markdown("### 📈")
-        st.markdown("### 数据")
-        st.markdown("### 驱动")
-        st.markdown("### 决策")
+    **🚀 核心优势**:
+    - ⚡ **智能缓存**: SQLite数据库缓存，98.1%性能提升
+    - 🏢 **真实数据**: 显示真实公司名称和财务指标
+    - 📊 **专业图表**: 基于Plotly的交互式数据可视化
+    - ☁️ **云端访问**: 无需安装，浏览器直接使用
+    - 🔍 **简单易用**: 输入股票代码即可获取完整分析
+    """)
     
     st.markdown("---")
     
