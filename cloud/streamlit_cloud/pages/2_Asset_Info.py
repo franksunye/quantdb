@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-QuantDB Cloud - 资产信息页面
+QuantDB Cloud - Asset Information Page
 
-提供股票资产信息查询功能，支持手动输入和浏览已有资产。
+Provides stock asset information query functionality,
+supports manual input and browsing existing assets.
 """
 
 import streamlit as st
@@ -12,14 +13,14 @@ import os
 from datetime import datetime
 from typing import Dict, List, Any
 
-# 添加项目根目录到路径以访问core模块
+# Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(parent_dir)  # 回到QuantDB根目录
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# 导入现有的后端服务（直接调用，不通过HTTP API）
+# Import existing backend services (direct call, not through HTTP API)
 try:
     from core.services import AssetInfoService, QueryService
     from core.database import get_db
@@ -27,151 +28,151 @@ try:
 except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
 
-# 设置页面配置
+# Set page configuration
 st.set_page_config(
-    page_title="资产信息 - QuantDB",
+    page_title="Asset Information - QuantDB",
     page_icon="📊",
     layout="wide"
 )
 
 @st.cache_resource
 def init_services():
-    """初始化后端服务"""
+    """Initialize backend services"""
     try:
-        # 获取数据库会话
+        # Get database session
         db_session = next(get_db())
 
-        # 初始化服务
+        # Initialize services
         asset_service = AssetInfoService(db_session)
         query_service = QueryService(db_session)
 
         return asset_service, query_service
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None, None
 
 def main():
-    """主页面函数"""
+    """Main page function"""
 
-    # 页面标题
-    st.title("📊 资产信息")
-    st.markdown("查看股票的详细资产信息，包括基本面数据、财务指标和市场表现。")
+    # Page title
+    st.title("📊 Asset Information")
+    st.markdown("View detailed asset information for stocks, including fundamental data, financial metrics, and market performance.")
     st.markdown("---")
 
-    # 检查后端服务是否可用
+    # Check if backend services are available
     if not BACKEND_SERVICES_AVAILABLE:
-        st.warning("⚠️ 后端服务不可用，使用API模式")
+        st.warning("⚠️ Backend services unavailable, using API mode")
         use_backend_services = False
         asset_service, query_service = None, None
     else:
-        # 初始化后端服务
+        # Initialize backend services
         services = init_services()
         if services and all(services):
             asset_service, query_service = services
             use_backend_services = True
         else:
-            st.warning("⚠️ 后端服务初始化失败，使用API模式")
+            st.warning("⚠️ Backend service initialization failed, using API mode")
             use_backend_services = False
             asset_service, query_service = None, None
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
-    # 右侧查询面板
+    # Right query panel
     with col_query:
         with st.container():
-            st.markdown("### 🔍 资产查询")
+            st.markdown("### 🔍 Asset Query")
 
-            # 查询方式选择
+            # Query method selection
             query_mode = st.radio(
-                "查询方式",
-                ["手动输入", "浏览已有资产"],
-                help="选择查询方式：手动输入股票代码或从已有资产中选择"
+                "Query Method",
+                ["Manual Input", "Browse Existing"],
+                help="Choose query method: manual input or select from existing assets"
             )
 
-            if query_mode == "手动输入":
-                # 股票代码输入
+            if query_mode == "Manual Input":
+                # Stock code input
                 symbol = st.text_input(
-                    "股票代码",
+                    "Stock Code",
                     value="600000",
-                    placeholder="如: 600000 或 00700",
-                    help="支持A股(6位)和港股(5位)代码"
+                    placeholder="e.g.: 600000 or 00700",
+                    help="Supports A-share (6 digits) and HK stock (5 digits) codes"
                 )
 
-                # 查询按钮
-                query_button = st.button("🔍 查询资产信息", type="primary", use_container_width=True)
+                # Query button
+                query_button = st.button("🔍 Query Asset Info", type="primary", use_container_width=True)
 
-                # 刷新按钮 - 添加详细说明
+                # Refresh button - add detailed description
                 refresh_button = st.button(
-                    "🔄 强制刷新资产数据",
+                    "🔄 Force Refresh Asset Data",
                     use_container_width=True,
-                    help="强制从AKShare获取最新资产信息，包括公司名称、财务指标等"
+                    help="Force fetch latest asset information from AKShare, including company name, financial metrics, etc."
                 )
 
-                # 添加刷新说明
-                with st.expander("ℹ️ 刷新数据说明", expanded=False):
+                # Add refresh explanation
+                with st.expander("ℹ️ Data Refresh Instructions", expanded=False):
                     st.markdown("""
-                    **🔄 强制刷新功能：**
+                    **🔄 Force Refresh Function:**
 
-                    - **作用**: 强制从AKShare重新获取最新的资产信息
-                    - **更新内容**: 公司名称、行业分类、财务指标(PE/PB/ROE)、市值数据等
-                    - **使用场景**:
-                      - 发现公司名称显示不正确时（如"HK Stock 02171"）
-                      - 需要最新财务指标时
-                      - 数据显示异常时
-                    - **注意**: 刷新会调用外部API，可能需要几秒钟时间
+                    - **Purpose**: Force re-fetch latest asset information from AKShare
+                    - **Update Content**: Company name, industry classification, financial metrics (PE/PB/ROE), market cap data, etc.
+                    - **Use Cases**:
+                      - When company name displays incorrectly (e.g., "HK Stock 02171")
+                      - When latest financial metrics are needed
+                      - When data displays abnormally
+                    - **Note**: Refresh calls external API, may take a few seconds
 
-                    **与普通查询的区别：**
-                    - 🔍 **普通查询**：优先使用缓存数据（1天内有效）
-                    - 🔄 **强制刷新**：忽略缓存，直接调用AKShare获取最新数据
+                    **Difference from Normal Query:**
+                    - 🔍 **Normal Query**: Prioritizes cached data (valid within 1 day)
+                    - 🔄 **Force Refresh**: Ignores cache, directly calls AKShare for latest data
                     """)
 
             else:
-                # 浏览已有资产
+                # Browse existing assets
                 symbol, query_button, refresh_button = display_asset_browser(query_service)
 
-            # 显示最近查询
+            # Display recent queries
             display_recent_queries()
 
-    # 检查是否有自动查询请求
+    # Check for automatic query requests
     if st.session_state.get('auto_query_asset'):
         symbol = st.session_state.get('symbol', '600000')
         query_button = True
         st.session_state.auto_query_asset = False
 
-    # 检查是否有保存的查询状态（用于保持页面状态）
+    # Check for saved query state (to maintain page state)
     if not query_button and not refresh_button and st.session_state.get('current_asset_symbol'):
         symbol = st.session_state.get('current_asset_symbol')
-        query_button = True  # 自动重新显示之前查询的资产信息
+        query_button = True  # Automatically redisplay previously queried asset information
 
-    # 左侧主内容区域
+    # Left main content area
     with col_main:
         if query_button or refresh_button or st.session_state.get('auto_query_asset', False):
 
-            # 验证输入
+            # Validate input
             if not symbol:
-                st.error("请输入股票代码")
+                st.error("Please enter a stock code")
                 return
 
-            # 验证股票代码格式 - 简化的验证逻辑
+            # Validate stock code format - simplified validation logic
             if not symbol or len(symbol) < 5 or len(symbol) > 6 or not symbol.isdigit():
-                st.error("请输入有效的股票代码（5-6位数字）")
+                st.error("Please enter a valid stock code (5-6 digits)")
                 return
 
-            # 标准化股票代码（确保6位，前面补0）
+            # Normalize stock code
             if len(symbol) == 5:
-                symbol = symbol  # 港股保持5位
+                symbol = symbol  # Keep HK stock as 5 digits
             elif len(symbol) == 6:
-                symbol = symbol  # A股保持6位
+                symbol = symbol  # Keep A-share as 6 digits
             else:
-                st.error("股票代码长度不正确")
+                st.error("Incorrect stock code length")
                 return
 
-            # 显示查询信息
-            st.info(f"正在查询股票 {symbol} 的资产信息...")
+            # Display query information
+            st.info(f"Querying asset information for stock {symbol}...")
 
-            # 查询数据
-            with st.spinner("资产信息查询中..." if query_button else "强制刷新资产数据中..."):
+            # Query data
+            with st.spinner("Querying asset information..." if query_button else "Force refreshing asset data..."):
                 try:
                     if use_backend_services and asset_service:
                         # 根据按钮类型选择不同的处理方式
