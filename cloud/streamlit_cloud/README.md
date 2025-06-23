@@ -93,7 +93,6 @@ cloud/streamlit_cloud/
 ├── requirements.txt               # 依赖文件
 ├── .streamlit/
 │   └── config.toml               # Streamlit配置
-├── test_migration.py              # 迁移测试脚本
 └── README.md                     # 使用说明
 ```
 
