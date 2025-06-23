@@ -37,14 +37,36 @@ uvicorn src.api.main:app --reload
 
 **蓄水池状态监控**:
 ```bash
-# 查看当前蓄水池状态 (显示真实数据)
-python tools/monitoring/water_pool_monitor.py
+# 方式1: 访问 Streamlit Cloud 系统状态页面
+# http://localhost:8501/System_Status (本地运行)
+# 或访问云端部署地址
+
+# 方式2: 直接调用监控服务
+python -c "
+from core.services.monitoring_service import MonitoringService
+from core.database import get_db
+db = next(get_db())
+monitor = MonitoringService(db)
+status = monitor.get_water_pool_status()
+print(status)
+"
 ```
 
 **系统性能监控**:
 ```bash
-# 完整性能基准测试 (端到端验证)
-python tools/monitoring/system_performance_monitor.py
+# 方式1: 访问 Streamlit Cloud 性能监控页面
+# http://localhost:8501/Performance (本地运行)
+# 或访问云端部署地址
+
+# 方式2: 直接调用监控服务
+python -c "
+from core.services.monitoring_service import MonitoringService
+from core.database import get_db
+db = next(get_db())
+monitor = MonitoringService(db)
+trends = monitor.get_performance_trends()
+print(trends)
+"
 ```
 
 **实时监控指标**:

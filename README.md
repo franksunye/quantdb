@@ -160,7 +160,6 @@ quantdb/
 │   ├── e2e/                       # 端到端测试
 │   └── performance/               # 性能测试
 ├── docs/                          # 项目文档
-├── tools/                         # 开发工具
 └── scripts/                       # 管理脚本
 ```
 
