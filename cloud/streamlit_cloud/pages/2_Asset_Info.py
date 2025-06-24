@@ -263,11 +263,69 @@ def main():
                         display_data_coverage(symbol)
 
                 except Exception as e:
-                    st.error(f"❌ Error occurred during query: {str(e)}")
-                    st.info("Please check service status or try again later")
+                    error_msg = str(e)
+
+                    # 特殊处理只读数据库错误
+                    if "readonly database" in error_msg.lower() or "attempt to write a readonly database" in error_msg.lower():
+                        st.error("❌ Database is in read-only mode")
+                        st.info("🔍 Cloud environment detected - using read-only database mode")
+                        st.markdown("""
+                        **💡 In read-only mode:**
+                        - Asset information is retrieved from existing database records
+                        - New assets cannot be created or updated
+                        - If the asset doesn't exist in database, default information will be used
+                        - This is normal behavior in cloud deployment
+                        """)
+
+                        # 尝试使用默认信息显示
+                        try:
+                            if asset_service and hasattr(asset_service, '_get_default_hk_name'):
+                                default_name = asset_service._get_default_hk_name(symbol)
+                                st.info(f"📋 Using default information for {symbol}: {default_name}")
+
+                                # 创建基本的资产信息显示
+                                basic_asset_data = {
+                                    'symbol': symbol,
+                                    'name': default_name,
+                                    'asset_type': 'stock',
+                                    'exchange': 'HKEX' if len(symbol) == 5 else ('SHSE' if symbol.startswith('6') else 'SZSE'),
+                                    'currency': 'HKD' if len(symbol) == 5 else 'CNY',
+                                    'industry': 'N/A',
+                                    'concept': 'N/A',
+                                    'area': 'Hong Kong' if len(symbol) == 5 else 'China',
+                                    'market': 'HK Stock' if len(symbol) == 5 else 'A-Share',
+                                    'list_date': None,
+                                    'pe_ratio': None,
+                                    'pb_ratio': None,
+                                    'roe': None,
+                                    'market_cap': None,
+                                    'total_shares': None,
+                                    'circulating_shares': None,
+                                    'updated_at': None
+                                }
+
+                                display_asset_info(basic_asset_data, symbol)
+
+                                # 显示只读模式的缓存信息
+                                readonly_metadata = {
+                                    'cache_info': {
+                                        'cache_hit': False,
+                                        'akshare_called': False,
+                                        'readonly_mode': True,
+                                        'response_time_ms': 0
+                                    }
+                                }
+                                display_asset_cache_info(readonly_metadata)
+
+                        except Exception as fallback_error:
+                            st.error(f"❌ Fallback display also failed: {str(fallback_error)}")
+                    else:
+                        st.error(f"❌ Error occurred during query: {error_msg}")
+                        st.info("Please check service status or try again later")
+
                     # Display detailed error information for debugging
                     with st.expander("🔍 Error Details", expanded=False):
-                        st.code(str(e))
+                        st.code(error_msg)
         else:
             # Display usage guide
             show_usage_guide()
@@ -684,12 +742,31 @@ def display_asset_cache_info(metadata: dict):
         )
 
     with col3:
-        response_time = cache_info.get('response_time_ms', 0)
-        st.metric(
-            label="Response Time",
-            value=f"{response_time:.1f}ms",
-            help="API response time"
-        )
+        readonly_mode = cache_info.get('readonly_mode', False)
+        if readonly_mode:
+            st.metric(
+                label="Database Mode",
+                value="Read-Only",
+                help="Database is in read-only mode (cloud environment)"
+            )
+        else:
+            response_time = cache_info.get('response_time_ms', 0)
+            st.metric(
+                label="Response Time",
+                value=f"{response_time:.1f}ms",
+                help="API response time"
+            )
+
+    # 如果是只读模式，显示特殊说明
+    if cache_info.get('readonly_mode'):
+        st.info("🔒 **Read-Only Mode**: Database is in read-only mode, suitable for cloud deployment")
+        st.markdown("""
+        **Features in read-only mode:**
+        - ✅ Query existing asset information from database
+        - ✅ Display cached stock data
+        - ❌ Cannot create new assets
+        - ❌ Cannot update existing asset information
+        """)
 
     # Display detailed information
     if cache_info:
