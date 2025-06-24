@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-QuantDB Cloud - 资产信息页面
+QuantDB Cloud - Asset Information Page
 
-提供股票资产信息查询功能，支持手动输入和浏览已有资产。
+Provides stock asset information query functionality,
+supports manual input and browsing existing assets.
 """
 
 import streamlit as st
@@ -12,14 +13,14 @@ import os
 from datetime import datetime
 from typing import Dict, List, Any
 
-# 添加项目根目录到路径以访问core模块
+# Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(parent_dir)  # 回到QuantDB根目录
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# 导入现有的后端服务（直接调用，不通过HTTP API）
+# Import existing backend services (direct call, not through HTTP API)
 try:
     from core.services import AssetInfoService, QueryService
     from core.database import get_db
@@ -27,173 +28,173 @@ try:
 except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
 
-# 设置页面配置
+# Set page configuration
 st.set_page_config(
-    page_title="资产信息 - QuantDB",
+    page_title="Asset Information - QuantDB",
     page_icon="📊",
     layout="wide"
 )
 
 @st.cache_resource
 def init_services():
-    """初始化后端服务"""
+    """Initialize backend services"""
     try:
-        # 获取数据库会话
+        # Get database session
         db_session = next(get_db())
 
-        # 初始化服务
+        # Initialize services
         asset_service = AssetInfoService(db_session)
         query_service = QueryService(db_session)
 
         return asset_service, query_service
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None, None
 
 def main():
-    """主页面函数"""
+    """Main page function"""
 
-    # 页面标题
-    st.title("📊 资产信息")
-    st.markdown("查看股票的详细资产信息，包括基本面数据、财务指标和市场表现。")
+    # Page title
+    st.title("📊 Asset Information")
+    st.markdown("View detailed asset information for stocks, including fundamental data, financial metrics, and market performance.")
     st.markdown("---")
 
-    # 检查后端服务是否可用
+    # Check if backend services are available
     if not BACKEND_SERVICES_AVAILABLE:
-        st.warning("⚠️ 后端服务不可用，使用API模式")
+        st.warning("⚠️ Backend services unavailable, using API mode")
         use_backend_services = False
         asset_service, query_service = None, None
     else:
-        # 初始化后端服务
+        # Initialize backend services
         services = init_services()
         if services and all(services):
             asset_service, query_service = services
             use_backend_services = True
         else:
-            st.warning("⚠️ 后端服务初始化失败，使用API模式")
+            st.warning("⚠️ Backend service initialization failed, using API mode")
             use_backend_services = False
             asset_service, query_service = None, None
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
-    # 右侧查询面板
+    # Right query panel
     with col_query:
         with st.container():
-            st.markdown("### 🔍 资产查询")
+            st.markdown("### 🔍 Asset Query")
 
-            # 查询方式选择
+            # Query method selection
             query_mode = st.radio(
-                "查询方式",
-                ["手动输入", "浏览已有资产"],
-                help="选择查询方式：手动输入股票代码或从已有资产中选择"
+                "Query Method",
+                ["Manual Input", "Browse Existing"],
+                help="Choose query method: manual input or select from existing assets"
             )
 
-            if query_mode == "手动输入":
-                # 股票代码输入
+            if query_mode == "Manual Input":
+                # Stock code input
                 symbol = st.text_input(
-                    "股票代码",
+                    "Stock Code",
                     value="600000",
-                    placeholder="如: 600000 或 00700",
-                    help="支持A股(6位)和港股(5位)代码"
+                    placeholder="e.g.: 600000 or 00700",
+                    help="Supports A-share (6 digits) and HK stock (5 digits) codes"
                 )
 
-                # 查询按钮
-                query_button = st.button("🔍 查询资产信息", type="primary", use_container_width=True)
+                # Query button
+                query_button = st.button("🔍 Query Asset Info", type="primary", use_container_width=True)
 
-                # 刷新按钮 - 添加详细说明
+                # Refresh button - add detailed description
                 refresh_button = st.button(
-                    "🔄 强制刷新资产数据",
+                    "🔄 Force Refresh Asset Data",
                     use_container_width=True,
-                    help="强制从AKShare获取最新资产信息，包括公司名称、财务指标等"
+                    help="Force fetch latest asset information from AKShare, including company name, financial metrics, etc."
                 )
 
-                # 添加刷新说明
-                with st.expander("ℹ️ 刷新数据说明", expanded=False):
+                # Add refresh explanation
+                with st.expander("ℹ️ Data Refresh Instructions", expanded=False):
                     st.markdown("""
-                    **🔄 强制刷新功能：**
+                    **🔄 Force Refresh Function:**
 
-                    - **作用**: 强制从AKShare重新获取最新的资产信息
-                    - **更新内容**: 公司名称、行业分类、财务指标(PE/PB/ROE)、市值数据等
-                    - **使用场景**:
-                      - 发现公司名称显示不正确时（如"HK Stock 02171"）
-                      - 需要最新财务指标时
-                      - 数据显示异常时
-                    - **注意**: 刷新会调用外部API，可能需要几秒钟时间
+                    - **Purpose**: Force re-fetch latest asset information from AKShare
+                    - **Update Content**: Company name, industry classification, financial metrics (PE/PB/ROE), market cap data, etc.
+                    - **Use Cases**:
+                      - When company name displays incorrectly (e.g., "HK Stock 02171")
+                      - When latest financial metrics are needed
+                      - When data displays abnormally
+                    - **Note**: Refresh calls external API, may take a few seconds
 
-                    **与普通查询的区别：**
-                    - 🔍 **普通查询**：优先使用缓存数据（1天内有效）
-                    - 🔄 **强制刷新**：忽略缓存，直接调用AKShare获取最新数据
+                    **Difference from Normal Query:**
+                    - 🔍 **Normal Query**: Prioritizes cached data (valid within 1 day)
+                    - 🔄 **Force Refresh**: Ignores cache, directly calls AKShare for latest data
                     """)
 
             else:
-                # 浏览已有资产
+                # Browse existing assets
                 symbol, query_button, refresh_button = display_asset_browser(query_service)
 
-            # 显示最近查询
+            # Display recent queries
             display_recent_queries()
 
-    # 检查是否有自动查询请求
+    # Check for automatic query requests
     if st.session_state.get('auto_query_asset'):
         symbol = st.session_state.get('symbol', '600000')
         query_button = True
         st.session_state.auto_query_asset = False
 
-    # 检查是否有保存的查询状态（用于保持页面状态）
+    # Check for saved query state (to maintain page state)
     if not query_button and not refresh_button and st.session_state.get('current_asset_symbol'):
         symbol = st.session_state.get('current_asset_symbol')
-        query_button = True  # 自动重新显示之前查询的资产信息
+        query_button = True  # Automatically redisplay previously queried asset information
 
-    # 左侧主内容区域
+    # Left main content area
     with col_main:
         if query_button or refresh_button or st.session_state.get('auto_query_asset', False):
 
-            # 验证输入
+            # Validate input
             if not symbol:
-                st.error("请输入股票代码")
+                st.error("Please enter a stock code")
                 return
 
-            # 验证股票代码格式 - 简化的验证逻辑
+            # Validate stock code format - simplified validation logic
             if not symbol or len(symbol) < 5 or len(symbol) > 6 or not symbol.isdigit():
-                st.error("请输入有效的股票代码（5-6位数字）")
+                st.error("Please enter a valid stock code (5-6 digits)")
                 return
 
-            # 标准化股票代码（确保6位，前面补0）
+            # Normalize stock code
             if len(symbol) == 5:
-                symbol = symbol  # 港股保持5位
+                symbol = symbol  # Keep HK stock as 5 digits
             elif len(symbol) == 6:
-                symbol = symbol  # A股保持6位
+                symbol = symbol  # Keep A-share as 6 digits
             else:
-                st.error("股票代码长度不正确")
+                st.error("Incorrect stock code length")
                 return
 
-            # 显示查询信息
-            st.info(f"正在查询股票 {symbol} 的资产信息...")
+            # Display query information
+            st.info(f"Querying asset information for stock {symbol}...")
 
-            # 查询数据
-            with st.spinner("资产信息查询中..." if query_button else "强制刷新资产数据中..."):
+            # Query data
+            with st.spinner("Querying asset information..." if query_button else "Force refreshing asset data..."):
                 try:
                     if use_backend_services and asset_service:
-                        # 根据按钮类型选择不同的处理方式
+                        # Choose different processing methods based on button type
                         if refresh_button:
-                            # 刷新按钮：强制更新资产信息
-                            st.info("🔄 正在强制从AKShare获取最新资产信息...")
+                            # Refresh button: force update asset information
+                            st.info("🔄 Force fetching latest asset information from AKShare...")
                             asset_obj = asset_service.update_asset_info(symbol)
                             metadata = {
                                 'cache_info': {
                                     'cache_hit': False,
                                     'akshare_called': True,
                                     'force_refresh': True,
-                                    'response_time_ms': 0  # 实际时间由服务层记录
+                                    'response_time_ms': 0  # Actual time recorded by service layer
                                 }
                             }
 
                             if not asset_obj:
-                                st.error(f"❌ 无法更新资产 {symbol}，可能是无效的股票代码或AKShare服务异常")
+                                st.error(f"❌ Unable to update asset {symbol}, may be invalid stock code or AKShare service exception")
                                 return
 
                         else:
-                            # 查询按钮：正常查询（优先使用缓存）
+                            # Query button: normal query (prioritize cache)
                             asset_result = asset_service.get_or_create_asset(symbol)
 
                             if isinstance(asset_result, tuple):
@@ -202,10 +203,10 @@ def main():
                                 asset_obj = asset_result
                                 metadata = {}
 
-                        # 调试信息：显示Asset对象的实际属性
-                        st.info(f"🔍 Asset对象属性: {[attr for attr in dir(asset_obj) if not attr.startswith('_')]}")
+                        # Debug information: display actual Asset object attributes
+                        st.info(f"🔍 Asset object attributes: {[attr for attr in dir(asset_obj) if not attr.startswith('_')]}")
 
-                        # 转换为字典格式，使用实际的Asset模型字段
+                        # Convert to dictionary format using actual Asset model fields
                         asset_data = {
                             'symbol': asset_obj.symbol,
                             'name': asset_obj.name,
@@ -214,180 +215,180 @@ def main():
                             'currency': getattr(asset_obj, 'currency', 'CNY'),
                             'industry': asset_obj.industry,
                             'concept': asset_obj.concept,
-                            'area': '中国',  # Asset模型中没有area字段，使用默认值
-                            'market': 'A股' if len(asset_obj.symbol) == 6 else '港股',  # 根据代码长度判断市场
-                            'list_date': getattr(asset_obj, 'listing_date', None),  # 使用正确的字段名
+                            'area': 'China',  # No area field in Asset model, use default value
+                            'market': 'A-Share' if len(asset_obj.symbol) == 6 else 'HK Stock',  # Determine market by code length
+                            'list_date': getattr(asset_obj, 'listing_date', None),  # Use correct field name
                             'pe_ratio': asset_obj.pe_ratio,
                             'pb_ratio': asset_obj.pb_ratio,
                             'roe': asset_obj.roe,
                             'market_cap': asset_obj.market_cap,
                             'total_shares': asset_obj.total_shares,
                             'circulating_shares': asset_obj.circulating_shares,
-                            'created_at': None,  # Asset模型中没有created_at字段
-                            'updated_at': getattr(asset_obj, 'last_updated', None),  # 使用正确的字段名
-                            'last_accessed': None  # Asset模型中没有last_accessed字段
+                            'created_at': None,  # No created_at field in Asset model
+                            'updated_at': getattr(asset_obj, 'last_updated', None),  # Use correct field name
+                            'last_accessed': None  # No last_accessed field in Asset model
                         }
 
                         asset_metadata = metadata
 
                     else:
-                        # 降级到API模式（不应该在云端版本中使用）
-                        st.error("❌ 后端服务不可用，云端版本不支持API模式")
+                        # Fallback to API mode (should not be used in cloud version)
+                        st.error("❌ Backend services unavailable, cloud version does not support API mode")
                         return
 
-                    # 保存当前查询的资产信息到session state（用于保持页面状态）
+                    # Save current queried asset information to session state (to maintain page state)
                     st.session_state.current_asset_symbol = symbol
                     st.session_state.current_asset_data = asset_data
                     st.session_state.current_asset_metadata = asset_metadata
 
-                    # 添加到最近查询列表
+                    # Add to recent query list
                     add_to_recent_queries(symbol, asset_data.get('name', f'Stock {symbol}'))
 
-                    # 显示资产信息
+                    # Display asset information
                     display_asset_info(asset_data, symbol)
 
-                    # 显示资产信息的缓存状态
+                    # Display asset information cache status
                     display_asset_cache_info(asset_metadata)
 
-                    # 可选的数据覆盖信息（使用expander避免页面重新加载）
+                    # Optional data coverage information (use expander to avoid page reload)
                     st.markdown("---")
                     with st.expander("Data Coverage Analysis", expanded=False):
                         display_data_coverage(symbol)
 
                 except Exception as e:
-                    st.error(f"❌ 查询过程中出现错误: {str(e)}")
-                    st.info("请检查服务状态或稍后重试")
-                    # 显示详细错误信息用于调试
-                    with st.expander("🔍 错误详情", expanded=False):
+                    st.error(f"❌ Error occurred during query: {str(e)}")
+                    st.info("Please check service status or try again later")
+                    # Display detailed error information for debugging
+                    with st.expander("🔍 Error Details", expanded=False):
                         st.code(str(e))
         else:
-            # 显示使用指南
+            # Display usage guide
             show_usage_guide()
 
 
 def display_asset_info(asset_data: dict, symbol: str):
-    """显示资产信息"""
-    
-    st.success(f"✅ 成功获取股票 {symbol} 的资产信息")
-    
-    # 基本信息卡片
-    st.subheader("🏢 基本信息")
-    
+    """Display asset information"""
+
+    st.success(f"✅ Successfully retrieved asset information for stock {symbol}")
+
+    # Basic information cards
+    st.subheader("🏢 Basic Information")
+
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
-        st.markdown("### 📋 公司信息")
-        st.write(f"**股票代码**: {asset_data.get('symbol', 'N/A')}")
-        st.write(f"**公司名称**: {asset_data.get('name', 'N/A')}")
-        st.write(f"**资产类型**: {asset_data.get('asset_type', 'N/A')}")
-        st.write(f"**交易所**: {asset_data.get('exchange', 'N/A')}")
-    
+        st.markdown("### 📋 Company Information")
+        st.write(f"**Stock Code**: {asset_data.get('symbol', 'N/A')}")
+        st.write(f"**Company Name**: {asset_data.get('name', 'N/A')}")
+        st.write(f"**Asset Type**: {asset_data.get('asset_type', 'N/A')}")
+        st.write(f"**Exchange**: {asset_data.get('exchange', 'N/A')}")
+
     with col2:
-        st.markdown("### 🏭 分类信息")
-        st.write(f"**行业**: {asset_data.get('industry') or 'N/A'}")
-        st.write(f"**概念**: {asset_data.get('concept') or 'N/A'}")
-        st.write(f"**地区**: {asset_data.get('area') or 'N/A'}")
-        st.write(f"**市场**: {asset_data.get('market') or 'N/A'}")
-        st.write(f"**货币**: {asset_data.get('currency') or 'N/A'}")
-    
+        st.markdown("### 🏭 Classification Information")
+        st.write(f"**Industry**: {asset_data.get('industry') or 'N/A'}")
+        st.write(f"**Concept**: {asset_data.get('concept') or 'N/A'}")
+        st.write(f"**Region**: {asset_data.get('area') or 'N/A'}")
+        st.write(f"**Market**: {asset_data.get('market') or 'N/A'}")
+        st.write(f"**Currency**: {asset_data.get('currency') or 'N/A'}")
+
     with col3:
-        st.markdown("### 📅 时间信息")
+        st.markdown("### 📅 Time Information")
         list_date = asset_data.get('list_date')
         if list_date:
             list_date_str = list_date.strftime('%Y-%m-%d') if hasattr(list_date, 'strftime') else str(list_date)
         else:
             list_date_str = 'N/A'
-        st.write(f"**上市日期**: {list_date_str}")
-        st.write(f"**数据来源**: AKShare")
-        st.write(f"**更新时间**: {format_datetime(asset_data.get('updated_at'))}")
-        st.write(f"**数据状态**: 已缓存")
+        st.write(f"**Listing Date**: {list_date_str}")
+        st.write(f"**Data Source**: AKShare")
+        st.write(f"**Update Time**: {format_datetime(asset_data.get('updated_at'))}")
+        st.write(f"**Data Status**: Cached")
     
     st.markdown("---")
-    
-    # 财务指标
-    st.subheader("💰 财务指标")
-    
-    # 使用st.metric展示关键财务指标
+
+    # Financial metrics
+    st.subheader("💰 Financial Metrics")
+
+    # Use st.metric to display key financial metrics
     col1, col2, col3, col4 = st.columns(4)
-    
+
     with col1:
         pe_ratio = asset_data.get('pe_ratio')
         if pe_ratio is not None and pe_ratio > 0:
             pe_value = f"{pe_ratio:.2f}"
-            pe_delta = "合理" if 10 <= pe_ratio <= 30 else ("偏低" if pe_ratio < 10 else "偏高")
+            pe_delta = "Reasonable" if 10 <= pe_ratio <= 30 else ("Low" if pe_ratio < 10 else "High")
         else:
             pe_value = "N/A"
             pe_delta = None
         st.metric(
-            label="市盈率 (PE)",
+            label="P/E Ratio",
             value=pe_value,
             delta=pe_delta,
-            help="市盈率 = 股价 / 每股收益"
+            help="P/E Ratio = Stock Price / Earnings Per Share"
         )
 
     with col2:
         pb_ratio = asset_data.get('pb_ratio')
         if pb_ratio is not None and pb_ratio > 0:
             pb_value = f"{pb_ratio:.2f}"
-            pb_delta = "合理" if 1 <= pb_ratio <= 3 else ("偏低" if pb_ratio < 1 else "偏高")
+            pb_delta = "Reasonable" if 1 <= pb_ratio <= 3 else ("Low" if pb_ratio < 1 else "High")
         else:
             pb_value = "N/A"
             pb_delta = None
         st.metric(
-            label="市净率 (PB)",
+            label="P/B Ratio",
             value=pb_value,
             delta=pb_delta,
-            help="市净率 = 股价 / 每股净资产"
+            help="P/B Ratio = Stock Price / Book Value Per Share"
         )
 
     with col3:
         roe = asset_data.get('roe')
         if roe is not None and roe > 0:
             roe_value = f"{roe:.2f}%"
-            roe_delta = "优秀" if roe >= 15 else ("良好" if roe >= 10 else "一般")
+            roe_delta = "Excellent" if roe >= 15 else ("Good" if roe >= 10 else "Average")
         else:
             roe_value = "N/A"
             roe_delta = None
         st.metric(
-            label="净资产收益率 (ROE)",
+            label="Return on Equity (ROE)",
             value=roe_value,
             delta=roe_delta,
-            help="净资产收益率 = 净利润 / 净资产"
+            help="ROE = Net Income / Shareholders' Equity"
         )
 
     with col4:
         market_cap = asset_data.get('market_cap')
         if market_cap and market_cap > 0:
             market_cap_display = format_large_number(market_cap)
-            if market_cap >= 1000e8:  # 1000亿以上
-                cap_delta = "大盘股"
-            elif market_cap >= 100e8:  # 100-1000亿
-                cap_delta = "中盘股"
-            else:  # 100亿以下
-                cap_delta = "小盘股"
+            if market_cap >= 1000e8:  # Above 100 billion
+                cap_delta = "Large Cap"
+            elif market_cap >= 100e8:  # 10-100 billion
+                cap_delta = "Mid Cap"
+            else:  # Below 10 billion
+                cap_delta = "Small Cap"
         else:
             market_cap_display = "N/A"
             cap_delta = None
         st.metric(
-            label="总市值",
+            label="Market Cap",
             value=market_cap_display,
             delta=cap_delta,
-            help="总市值 = 股价 × 总股本"
+            help="Market Cap = Stock Price × Total Shares"
         )
 
-    # 第二行财务指标
+    # Second row financial metrics
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         total_shares = asset_data.get('total_shares')
         if total_shares and total_shares > 0:
             total_shares_display = format_large_number(total_shares)
-            shares_delta = "股"
+            shares_delta = "Shares"
         else:
             total_shares_display = "N/A"
             shares_delta = None
         st.metric(
-            label="总股本",
+            label="Total Shares",
             value=total_shares_display,
             delta=shares_delta
         )
@@ -396,67 +397,67 @@ def display_asset_info(asset_data: dict, symbol: str):
         circulating_shares = asset_data.get('circulating_shares')
         if circulating_shares and circulating_shares > 0:
             circulating_shares_display = format_large_number(circulating_shares)
-            # 计算流通比例
+            # Calculate circulation ratio
             total_shares = asset_data.get('total_shares')
             if total_shares and total_shares > 0:
                 ratio = (circulating_shares / total_shares) * 100
-                circ_delta = f"{ratio:.1f}%流通"
+                circ_delta = f"{ratio:.1f}% Float"
             else:
-                circ_delta = "股"
+                circ_delta = "Shares"
         else:
             circulating_shares_display = "N/A"
             circ_delta = None
 
         st.metric(
-            label="流通股本",
+            label="Circulating Shares",
             value=circulating_shares_display,
             delta=circ_delta
         )
 
     with col3:
-        # 计算每股收益（如果有市盈率和市值数据）
+        # Calculate earnings per share (if P/E ratio and market cap data available)
         pe_ratio = asset_data.get('pe_ratio')
         market_cap = asset_data.get('market_cap')
         total_shares = asset_data.get('total_shares')
 
         if pe_ratio and market_cap and total_shares and pe_ratio > 0 and total_shares > 0:
-            # 股价 = 市值 / 总股本
+            # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
-            # EPS = 股价 / PE
+            # EPS = Stock price / PE
             eps = stock_price / pe_ratio
             eps_value = f"{eps:.2f}"
-            eps_delta = "计算值"
+            eps_delta = "Calculated"
         else:
             eps_value = "N/A"
-            eps_delta = "数据不足"
+            eps_delta = "Insufficient Data"
 
         st.metric(
-            label="每股收益 (EPS)",
+            label="Earnings Per Share (EPS)",
             value=eps_value,
             delta=eps_delta,
-            help="每股收益 = 股价 / 市盈率（计算值）"
+            help="EPS = Stock Price / P/E Ratio (Calculated)"
         )
 
     with col4:
-        # 计算每股净资产（如果有市净率和市值数据）
+        # Calculate book value per share (if P/B ratio and market cap data available)
         pb_ratio = asset_data.get('pb_ratio')
 
         if pb_ratio and market_cap and total_shares and pb_ratio > 0 and total_shares > 0:
-            # 股价 = 市值 / 总股本
+            # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
-            # BPS = 股价 / PB
+            # BPS = Stock price / PB
             bps = stock_price / pb_ratio
             bps_value = f"{bps:.2f}"
-            bps_delta = "计算值"
+            bps_delta = "Calculated"
         else:
             bps_value = "N/A"
-            bps_delta = "数据不足"
+            bps_delta = "Insufficient Data"
 
         st.metric(
-            label="每股净资产 (BPS)",
+            label="Book Value Per Share (BPS)",
             value=bps_value,
             delta=bps_delta,
-            help="每股净资产 = 股价 / 市净率（计算值）"
+            help="BPS = Stock Price / P/B Ratio (Calculated)"
         )
 
 
@@ -786,16 +787,16 @@ def format_datetime(dt_obj):
 
 
 def format_large_number(num):
-    """格式化大数字显示"""
+    """Format large number display"""
     if not num or num == 0:
         return "N/A"
 
     try:
         num = float(num)
         if num >= 1e8:
-            return f"{num/1e8:.2f}亿"
+            return f"{num/1e8:.2f}B"  # Billion
         elif num >= 1e4:
-            return f"{num/1e4:.2f}万"
+            return f"{num/1e4:.2f}W"  # Wan (10,000)
         else:
             return f"{num:.2f}"
     except:

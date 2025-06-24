@@ -1,6 +1,7 @@
 """
-股票数据查询页面 - Cloud版本
-提供股票历史数据查询和图表展示功能，适配Streamlit Cloud单体架构
+Stock Data Query Page - Cloud Version
+Provides stock historical data query and chart display functionality,
+adapted for Streamlit Cloud monolithic architecture
 """
 
 import streamlit as st
@@ -10,14 +11,14 @@ import sys
 import os
 import time
 
-# 添加项目根目录到路径以访问core模块
+# Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 project_root = os.path.dirname(parent_dir)  # 回到QuantDB根目录
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-# 导入现有的后端服务（直接调用，不通过HTTP API）
+# Import existing backend services (direct call, not through HTTP API)
 try:
     from core.services import StockDataService, AssetInfoService
     from core.cache import AKShareAdapter
@@ -26,7 +27,7 @@ try:
 except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
 
-# 导入图表工具（尝试从原有版本导入）
+# Import chart tools (try to import from original version)
 try:
     from utils.charts import (
         create_price_chart,
@@ -41,7 +42,7 @@ try:
 except ImportError:
     CHARTS_AVAILABLE = False
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="Stock Data - QuantDB",
     page_icon="📊",
@@ -49,65 +50,65 @@ st.set_page_config(
 )
 
 def validate_stock_code(code: str) -> bool:
-    """验证股票代码格式 - 支持A股和港股"""
+    """Validate stock code format - supports A-shares and HK stocks"""
     if not code:
         return False
 
-    # 去除空格
+    # Remove spaces
     code = code.strip()
 
-    # 港股验证: 5位数字 (00700, 09988, 01810等)
+    # HK stock validation: 5 digits (00700, 09988, 01810, etc.)
     if len(code) == 5 and code.isdigit():
         return True
 
-    # A股验证: 6位数字
+    # A-share validation: 6 digits
     if len(code) == 6 and code.isdigit():
-        # 检查是否为有效的A股代码
-        if code.startswith(('000', '001', '002', '003', '300')):  # 深交所
+        # Check if it's a valid A-share code
+        if code.startswith(('000', '001', '002', '003', '300')):  # Shenzhen Stock Exchange
             return True
-        elif code.startswith('6'):  # 上交所
+        elif code.startswith('6'):  # Shanghai Stock Exchange
             return True
-        elif code.startswith('688'):  # 科创板
+        elif code.startswith('688'):  # STAR Market
             return True
 
     return False
 
 @st.cache_resource
 def init_services():
-    """初始化后端服务"""
+    """Initialize backend services"""
     try:
-        # 获取数据库会话
+        # Get database session
         db_session = next(get_db())
 
-        # 初始化AKShare适配器
+        # Initialize AKShare adapter
         akshare_adapter = AKShareAdapter()
 
-        # 初始化服务
+        # Initialize services
         stock_service = StockDataService(db_session, akshare_adapter)
         asset_service = AssetInfoService(db_session)
 
-        # 初始化查询服务
+        # Initialize query service
         from core.services import QueryService
         query_service = QueryService(db_session)
 
         return stock_service, asset_service, query_service
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None, None, None
 
 def main():
-    """主页面函数"""
+    """Main page function"""
 
-    # 检查后端服务是否可用
+    # Check if backend services are available
     if not BACKEND_SERVICES_AVAILABLE:
         st.warning("Backend services unavailable - Demo mode")
         st.info("In demo mode, you can view the interface layout and functionality")
 
-        # 在演示模式下仍然显示界面
+        # Still show interface in demo mode
         show_demo_interface()
         return
 
-    # 初始化后端服务
+    # Initialize backend services
     services = init_services()
     if len(services) != 3 or not all(services):
         st.error("Service initialization failed - Please refresh the page")
@@ -115,8 +116,8 @@ def main():
 
     stock_service, asset_service, query_service = services
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
     # 右侧查询面板
     with col_query:
@@ -139,13 +140,13 @@ def main():
                     help="Supports A-share codes (6 digits) and Hong Kong stock codes (5 digits)"
                 )
             else:
-                # 浏览已有股票
+                # Browse existing stocks
                 symbol = display_stock_browser(query_service)
 
-            # 日期范围选择
+            # Date range selection
             st.markdown("#### Date Range")
 
-            # 快速选择按钮
+            # Quick selection buttons
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Last 7 Days", use_container_width=True):
@@ -156,7 +157,7 @@ def main():
                     st.session_state.start_date = date.today() - timedelta(days=30)
                     st.session_state.end_date = date.today()
 
-            # 日期选择器
+            # Date selectors
             start_date = st.date_input(
                 "Start Date",
                 value=st.session_state.get('start_date', date.today() - timedelta(days=7)),
@@ -171,7 +172,7 @@ def main():
                 key='end_date'
             )
 
-            # 复权选择
+            # Adjustment selection
             adjust_type = st.selectbox(
                 "Adjustment Type",
                 options=["None", "Forward", "Backward"],
@@ -179,47 +180,47 @@ def main():
                 help="Forward: Adjust based on current price\nBackward: Adjust based on listing price"
             )
 
-            # 转换复权参数
+            # Convert adjustment parameters
             adjust_map = {"None": "", "Forward": "qfq", "Backward": "hfq"}
             adjust = adjust_map[adjust_type]
 
-            # 查询按钮
+            # Query button
             query_button = st.button("Query Data", type="primary", use_container_width=True)
 
-            # 显示最近查询
+            # Display recent queries
             display_recent_stock_queries()
 
-    # 检查是否有自动查询请求
+    # Check for automatic query requests
     if st.session_state.get('auto_query_stock'):
         symbol = st.session_state.get('symbol', '600000')
         query_button = True
         st.session_state.auto_query_stock = False
 
-    # 检查是否有保存的查询状态（用于保持页面状态）
+    # Check for saved query state (to maintain page state)
     if not query_button and st.session_state.get('current_stock_symbol'):
         symbol = st.session_state.get('current_stock_symbol')
         start_date = st.session_state.get('current_start_date', date.today() - timedelta(days=7))
         end_date = st.session_state.get('current_end_date', date.today())
         adjust = st.session_state.get('current_adjust', "")
-        query_button = True  # 自动重新显示之前查询的股票数据
+        query_button = True  # Automatically redisplay previously queried stock data
 
-    # 处理建议股票的查询
+    # Handle suggested stock queries
     if st.session_state.get('suggested_symbol'):
         suggested_symbol = st.session_state.pop('suggested_symbol')
         suggested_name = st.session_state.pop('suggested_name', '')
 
-        # 自动设置参数并查询
+        # Automatically set parameters and query
         symbol = suggested_symbol
-        start_date = date.today() - timedelta(days=7)  # 使用7天范围，提升性能
+        start_date = date.today() - timedelta(days=7)  # Use 7-day range for better performance
         end_date = date.today()
         adjust = ""
         query_button = True
 
-    # 左侧主内容区域
+    # Left main content area
     with col_main:
         if query_button or st.session_state.get('auto_query', False):
 
-            # 验证输入
+            # Validate input
             if not symbol:
                 st.error("Please enter a stock code")
                 return
@@ -228,24 +229,24 @@ def main():
                 st.error("Start date must be earlier than end date")
                 return
 
-            # 验证股票代码格式
+            # Validate stock code format
             if not validate_stock_code(symbol):
                 st.error("Please enter a valid stock code (A-shares: 6 digits, HK stocks: 5 digits)")
                 return
 
-            # 保存当前查询状态
+            # Save current query state
             st.session_state.current_stock_symbol = symbol
             st.session_state.current_start_date = start_date
             st.session_state.current_end_date = end_date
             st.session_state.current_adjust = adjust
 
-            # 显示查询信息
+            # Display query information
             st.info(f"Querying stock {symbol} data from {start_date} to {end_date}...")
 
-            # 查询数据
+            # Query data
             with st.spinner("Querying data..."):
                 try:
-                    # 调用后端服务获取股票数据
+                    # Call backend service to get stock data
                     result = stock_service.get_stock_data(
                         symbol=symbol,
                         start_date=start_date.strftime('%Y%m%d'),
@@ -254,89 +255,89 @@ def main():
                     )
 
                     if result is None or (isinstance(result, pd.DataFrame) and result.empty):
-                        st.warning("未找到指定时间范围内的数据")
+                        st.warning("No data found for the specified time range")
 
-                        # 提供基本的错误信息和解决方案
-                        with st.expander("🔍 可能的原因和解决方案"):
+                        # Provide basic error information and solutions
+                        with st.expander("🔍 Possible Causes and Solutions"):
                             st.markdown("""
-                            **可能的原因：**
-                            1. 📅 **时间范围问题**：选择的日期范围内可能没有交易日（周末、节假日）
-                            2. 📈 **股票状态问题**：该股票可能已停牌、退市或长期停牌
-                            3. 🌐 **数据源问题**：AKShare暂时无法获取该股票的数据
-                            4. ⏰ **数据延迟**：最新数据可能还未更新
+                            **Possible Causes:**
+                            1. 📅 **Date Range Issue**: No trading days in the selected date range (weekends, holidays)
+                            2. 📈 **Stock Status Issue**: The stock may be suspended, delisted, or long-term suspended
+                            3. 🌐 **Data Source Issue**: AKShare temporarily unable to retrieve data for this stock
+                            4. ⏰ **Data Delay**: Latest data may not be updated yet
 
-                            **建议的解决方案：**
-                            - 🔄 **扩大时间范围**：尝试查询最近30天或更长时间
-                            - 📊 **更换股票代码**：尝试查询活跃股票如：600000(浦发银行)、000001(平安银行)
-                            - 📅 **检查交易日**：避免选择周末或节假日
-                            - 🔍 **验证股票代码**：确认股票代码是否正确且仍在交易
+                            **Suggested Solutions:**
+                            - 🔄 **Expand Time Range**: Try querying the last 30 days or longer period
+                            - 📊 **Change Stock Code**: Try active stocks like: 600000(SPDB), 000001(PAB)
+                            - 📅 **Check Trading Days**: Avoid selecting weekends or holidays
+                            - 🔍 **Verify Stock Code**: Confirm the stock code is correct and still trading
                             """)
 
-                        # 提供快速替代选项
-                        st.markdown("**🚀 快速尝试活跃股票：**")
+                        # Provide quick alternative options
+                        st.markdown("**🚀 Quick Try Active Stocks:**")
 
-                        # A股推荐
-                        st.markdown("**A股推荐：**")
+                        # A-share recommendations
+                        st.markdown("**A-Share Recommendations:**")
                         col1, col2, col3 = st.columns(3)
 
                         with col1:
-                            if st.button("浦发银行(600000)", key="suggest_600000"):
+                            if st.button("SPDB(600000)", key="suggest_600000"):
                                 st.session_state.update({
                                     'suggested_symbol': '600000',
-                                    'suggested_name': '浦发银行'
+                                    'suggested_name': 'SPDB'
                                 })
                                 st.rerun()
 
                         with col2:
-                            if st.button("平安银行(000001)", key="suggest_000001"):
+                            if st.button("PAB(000001)", key="suggest_000001"):
                                 st.session_state.update({
                                     'suggested_symbol': '000001',
-                                    'suggested_name': '平安银行'
+                                    'suggested_name': 'PAB'
                                 })
                                 st.rerun()
 
                         with col3:
-                            if st.button("贵州茅台(600519)", key="suggest_600519"):
+                            if st.button("Kweichow Moutai(600519)", key="suggest_600519"):
                                 st.session_state.update({
                                     'suggested_symbol': '600519',
-                                    'suggested_name': '贵州茅台'
+                                    'suggested_name': 'Kweichow Moutai'
                                 })
                                 st.rerun()
 
-                        # 港股推荐
-                        st.markdown("**🇭🇰 港股推荐：**")
+                        # HK stock recommendations
+                        st.markdown("**🇭🇰 HK Stock Recommendations:**")
                         col4, col5, col6 = st.columns(3)
 
                         with col4:
-                            if st.button("腾讯控股(00700)", key="suggest_00700"):
+                            if st.button("Tencent(00700)", key="suggest_00700"):
                                 st.session_state.update({
                                     'suggested_symbol': '00700',
-                                    'suggested_name': '腾讯控股'
+                                    'suggested_name': 'Tencent'
                                 })
                                 st.rerun()
 
                         with col5:
-                            if st.button("阿里巴巴(09988)", key="suggest_09988"):
+                            if st.button("Alibaba(09988)", key="suggest_09988"):
                                 st.session_state.update({
                                     'suggested_symbol': '09988',
-                                    'suggested_name': '阿里巴巴-SW'
+                                    'suggested_name': 'Alibaba-SW'
                                 })
                                 st.rerun()
 
                         with col6:
-                            if st.button("小米集团(01810)", key="suggest_01810"):
+                            if st.button("Xiaomi(01810)", key="suggest_01810"):
                                 st.session_state.update({
                                     'suggested_symbol': '01810',
-                                    'suggested_name': '小米集团-W'
+                                    'suggested_name': 'Xiaomi-W'
                                 })
                                 st.rerun()
 
                         return
 
-                    # 转换为DataFrame
+                    # Convert to DataFrame
                     df = pd.DataFrame(result) if not isinstance(result, pd.DataFrame) else result
 
-                    # 显示成功信息
+                    # Display success information
                     col1, col2, col3 = st.columns(3)
                     with col1:
                         st.success(f"Retrieved {len(df)} records")
@@ -345,10 +346,10 @@ def main():
                     with col3:
                         st.info("Response time: Fast")
 
-                    # 添加到最近查询列表
+                    # Add to recent query list
                     add_to_recent_stock_queries(symbol, f"Stock {symbol}")
 
-                    # 显示数据
+                    # Display data
                     display_stock_data(df, symbol, {
                         'cache_hit': False,
                         'response_time_ms': 100,
@@ -356,11 +357,11 @@ def main():
                     })
 
                 except Exception as e:
-                    st.error(f"查询失败: {str(e)}")
+                    st.error(f"Query failed: {str(e)}")
                     st.exception(e)
 
         else:
-            # 显示使用说明
+            # Display usage guide
             show_usage_guide()
 
 
@@ -368,17 +369,17 @@ def main():
 
 
 def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
-    """显示股票数据"""
+    """Display stock data"""
 
-    # 计算基础指标
+    # Calculate basic metrics
     if CHARTS_AVAILABLE:
         metrics = calculate_basic_metrics(df)
 
-        # 显示指标仪表板
+        # Display metrics dashboard
         st.subheader("Key Metrics")
         create_metrics_dashboard(metrics)
     else:
-        # 简单的指标显示
+        # Simple metrics display
         st.subheader("Key Metrics")
         col1, col2, col3, col4 = st.columns(4)
 
@@ -397,84 +398,84 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
 
     st.markdown("---")
 
-    # 图表选择
+    # Chart selection
     st.subheader("Data Visualization")
 
     if CHARTS_AVAILABLE:
         chart_tabs = st.tabs(["Price Trend", "Candlestick", "Volume", "Returns Analysis", "Performance"])
 
         with chart_tabs[0]:
-            st.markdown("#### 价格趋势图")
-            price_chart = create_price_chart(df, f"股票 {symbol} 价格趋势")
+            st.markdown("#### Price Trend Chart")
+            price_chart = create_price_chart(df, f"Stock {symbol} Price Trend")
             st.plotly_chart(price_chart, use_container_width=True)
 
         with chart_tabs[1]:
-            st.markdown("#### K线图")
+            st.markdown("#### Candlestick Chart")
             if all(col in df.columns for col in ['open', 'high', 'low', 'close']):
-                candlestick_chart = create_candlestick_chart(df, f"股票 {symbol} K线图")
+                candlestick_chart = create_candlestick_chart(df, f"Stock {symbol} Candlestick Chart")
                 st.plotly_chart(candlestick_chart, use_container_width=True)
             else:
-                st.info("暂无完整的OHLC数据，无法显示K线图")
+                st.info("No complete OHLC data available, cannot display candlestick chart")
 
         with chart_tabs[2]:
-            st.markdown("#### 成交量")
+            st.markdown("#### Volume")
             if 'volume' in df.columns:
-                volume_chart = create_volume_chart(df, f"股票 {symbol} 成交量")
+                volume_chart = create_volume_chart(df, f"Stock {symbol} Volume")
                 st.plotly_chart(volume_chart, use_container_width=True)
             else:
-                st.info("暂无成交量数据")
+                st.info("No volume data available")
 
         with chart_tabs[3]:
-            st.markdown("#### 收益率分析")
+            st.markdown("#### Returns Analysis")
             if 'close' in df.columns and len(df) > 1:
-                returns_chart = create_returns_distribution(df, f"股票 {symbol} 收益率分布")
+                returns_chart = create_returns_distribution(df, f"Stock {symbol} Returns Distribution")
                 st.plotly_chart(returns_chart, use_container_width=True)
 
-                # 收益率统计
+                # Returns statistics
                 returns = df['close'].pct_change().dropna() * 100
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("平均日收益率", f"{returns.mean():.2f}%")
+                    st.metric("Average Daily Return", f"{returns.mean():.2f}%")
                 with col2:
-                    st.metric("收益率标准差", f"{returns.std():.2f}%")
+                    st.metric("Return Std Dev", f"{returns.std():.2f}%")
                 with col3:
-                    st.metric("最大单日涨幅", f"{returns.max():.2f}%")
+                    st.metric("Max Daily Gain", f"{returns.max():.2f}%")
             else:
-                st.info("数据不足，无法计算收益率分析")
+                st.info("Insufficient data for returns analysis")
 
         with chart_tabs[4]:
-            st.markdown("#### 性能对比")
+            st.markdown("#### Performance Comparison")
             if metadata.get('response_time_ms') is not None:
                 cache_time = metadata.get('response_time_ms', 0)
-                # 模拟AKShare直接调用时间（基于是否缓存命中）
+                # Simulate AKShare direct call time (based on cache hit)
                 akshare_time = 1075.2 if metadata.get('cache_hit') else cache_time
 
                 if cache_time != akshare_time:
                     perf_chart = create_performance_comparison_chart(cache_time, akshare_time)
                     st.plotly_chart(perf_chart, use_container_width=True)
 
-                    # 性能提升说明
+                    # Performance improvement explanation
                     improvement = ((akshare_time - cache_time) / akshare_time * 100) if akshare_time > 0 else 0
-                    st.success(f"🚀 QuantDB缓存比AKShare直接调用快 {improvement:.1f}%")
+                    st.success(f"🚀 QuantDB cache is {improvement:.1f}% faster than direct AKShare calls")
                 else:
-                    st.info("首次查询，暂无性能对比数据")
+                    st.info("First query, no performance comparison data available")
             else:
-                st.info("暂无性能数据")
+                st.info("No performance data available")
     else:
-        # 简单的图表显示
-        st.info("📊 图表功能需要完整的后端服务支持")
+        # Simple chart display
+        st.info("📊 Chart functionality requires complete backend service support")
 
-        # 显示简单的价格趋势
-        st.markdown("#### 价格数据")
+        # Display simple price trend
+        st.markdown("#### Price Data")
         st.line_chart(df.set_index('date')['close'] if 'date' in df.columns else df['close'])
 
-    # 数据表格
+    # Data table
     st.subheader("Detailed Data")
 
-    # 数据处理和格式化
+    # Data processing and formatting
     display_df = df.copy()
 
-    # 格式化数值列
+    # Format numeric columns
     numeric_columns = ['open', 'high', 'low', 'close', 'volume']
     for col in numeric_columns:
         if col in display_df.columns:
@@ -483,136 +484,136 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
             else:
                 display_df[col] = display_df[col].apply(lambda x: f"{x:.2f}" if pd.notnull(x) else "")
 
-    # 重命名列
+    # Rename columns
     column_names = {
-        'date': '日期',
-        'trade_date': '交易日期',
-        'open': '开盘价',
-        'high': '最高价',
-        'low': '最低价',
-        'close': '收盘价',
-        'volume': '成交量',
-        'amount': '成交额'
+        'date': 'Date',
+        'trade_date': 'Trade Date',
+        'open': 'Open',
+        'high': 'High',
+        'low': 'Low',
+        'close': 'Close',
+        'volume': 'Volume',
+        'amount': 'Amount'
     }
 
     display_df = display_df.rename(columns=column_names)
 
-    # 显示表格
+    # Display table
     st.dataframe(
         display_df,
         use_container_width=True,
         hide_index=True
     )
 
-    # 数据统计
-    with st.expander("📈 数据统计"):
+    # Data statistics
+    with st.expander("📈 Data Statistics"):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("**价格统计**")
-            st.write(f"- 最新价格: ¥{metrics.get('latest_price', 0):.2f}")
-            st.write(f"- 最高价格: ¥{metrics.get('high_price', 0):.2f}")
-            st.write(f"- 最低价格: ¥{metrics.get('low_price', 0):.2f}")
-            st.write(f"- 平均价格: ¥{metrics.get('avg_price', 0):.2f}")
-            st.write(f"- 价格波动率: {metrics.get('volatility', 0):.2f}")
+            st.markdown("**Price Statistics**")
+            st.write(f"- Latest Price: ¥{metrics.get('latest_price', 0):.2f}")
+            st.write(f"- Highest Price: ¥{metrics.get('high_price', 0):.2f}")
+            st.write(f"- Lowest Price: ¥{metrics.get('low_price', 0):.2f}")
+            st.write(f"- Average Price: ¥{metrics.get('avg_price', 0):.2f}")
+            st.write(f"- Price Volatility: {metrics.get('volatility', 0):.2f}")
 
         with col2:
-            st.markdown("**查询信息**")
-            st.write(f"- 数据记录数: {len(df)}")
-            st.write(f"- 缓存命中: {'是' if metadata.get('cache_hit') else '否'}")
-            st.write(f"- AKShare调用: {'是' if metadata.get('akshare_called') else '否'}")
-            st.write(f"- 响应时间: {metadata.get('response_time_ms', 0):.1f}ms")
+            st.markdown("**Query Information**")
+            st.write(f"- Data Records: {len(df)}")
+            st.write(f"- Cache Hit: {'Yes' if metadata.get('cache_hit') else 'No'}")
+            st.write(f"- AKShare Called: {'Yes' if metadata.get('akshare_called') else 'No'}")
+            st.write(f"- Response Time: {metadata.get('response_time_ms', 0):.1f}ms")
             if 'total_volume' in metrics:
-                st.write(f"- 总成交量: {metrics['total_volume']:,.0f}")
+                st.write(f"- Total Volume: {metrics['total_volume']:,.0f}")
 
 def show_demo_interface():
-    """显示演示界面"""
+    """Display demo interface"""
 
-    # 主页面布局：左侧内容区 + 右侧查询面板
-    col_main, col_query = st.columns([7, 3])  # 70% + 30% 布局
+    # Main page layout: left content area + right query panel
+    col_main, col_query = st.columns([7, 3])  # 70% + 30% layout
 
-    # 右侧查询面板
+    # Right query panel
     with col_query:
         with st.container():
-            st.markdown("### 🔍 股票数据查询")
+            st.markdown("### 🔍 Stock Data Query")
 
-            # 查询方式选择
+            # Query method selection
             query_mode = st.radio(
-                "查询方式",
-                ["手动输入", "浏览已有股票"],
-                help="选择查询方式：手动输入股票代码或从已有股票中选择"
+                "Query Method",
+                ["Manual Input", "Browse Existing"],
+                help="Choose query method: manual input or select from existing stocks"
             )
 
-            if query_mode == "手动输入":
-                # 股票代码输入
+            if query_mode == "Manual Input":
+                # Stock code input
                 symbol = st.text_input(
-                    "股票代码",
+                    "Stock Code",
                     value="600000",
-                    placeholder="A股: 600000 | 港股: 02171",
-                    help="支持A股代码(6位数字)和港股代码(5位数字)"
+                    placeholder="A-shares: 600000 | HK: 02171",
+                    help="Supports A-share codes (6 digits) and HK stock codes (5 digits)"
                 )
             else:
-                # 浏览已有股票
-                st.selectbox("选择股票", ["600000 - 浦发银行", "000001 - 平安银行"])
+                # Browse existing stocks
+                st.selectbox("Select Stock", ["600000 - SPDB", "000001 - PAB"])
 
-            # 日期范围选择
-            st.markdown("#### 📅 日期范围")
+            # Date range selection
+            st.markdown("#### 📅 Date Range")
 
-            # 快速选择按钮
+            # Quick selection buttons
             col1, col2 = st.columns(2)
             with col1:
-                st.button("最近7天", use_container_width=True)
+                st.button("Last 7 Days", use_container_width=True)
             with col2:
-                st.button("最近30天", use_container_width=True)
+                st.button("Last 30 Days", use_container_width=True)
 
-            # 日期选择器
+            # Date selectors
             start_date = st.date_input(
-                "开始日期",
+                "Start Date",
                 value=date.today() - timedelta(days=7),
                 max_value=date.today()
             )
 
             end_date = st.date_input(
-                "结束日期",
+                "End Date",
                 value=date.today(),
                 max_value=date.today()
             )
 
-            # 复权选择
+            # Adjustment selection
             adjust_type = st.selectbox(
-                "复权类型",
-                options=["不复权", "前复权", "后复权"],
+                "Adjustment Type",
+                options=["None", "Forward", "Backward"],
                 index=0,
-                help="前复权(qfq): 以当前价为基准向前复权\n后复权(hfq): 以上市价为基准向后复权"
+                help="Forward: Adjust based on current price\nBackward: Adjust based on listing price"
             )
 
-            # 查询按钮
-            query_button = st.button("🔍 查询数据", type="primary", use_container_width=True)
+            # Query button
+            query_button = st.button("🔍 Query Data", type="primary", use_container_width=True)
 
-            # 显示最近查询
+            # Display recent queries
             st.markdown("---")
-            st.markdown("**🕒 最近查询**")
-            st.caption("暂无最近查询记录")
+            st.markdown("**🕒 Recent Queries**")
+            st.caption("No recent query records")
 
-    # 左侧主内容区域
+    # Left main content area
     with col_main:
         if query_button:
-            st.info("⚠️ 演示模式：实际查询功能需要完整的后端服务支持")
+            st.info("⚠️ Demo Mode: Actual query functionality requires complete backend service support")
 
-            # 显示模拟的成功信息
+            # Display simulated success information
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.success("✅ 演示数据已加载")
+                st.success("✅ Demo data loaded")
             with col2:
-                st.info("🌐 演示模式")
+                st.info("🌐 Demo Mode")
             with col3:
-                st.info("⏱️ 响应时间: 演示")
+                st.info("⏱️ Response Time: Demo")
 
-            # 显示模拟数据
-            st.markdown("### 📊 演示数据展示")
-            st.info("这里将显示股票数据的图表和统计信息")
+            # Display simulated data
+            st.markdown("### 📊 Demo Data Display")
+            st.info("Stock data charts and statistics will be displayed here")
 
-            # 创建一些模拟数据用于演示
+            # Create some mock data for demonstration
             import numpy as np
             dates = pd.date_range(start=start_date, end=end_date, freq='D')
             mock_data = {
@@ -625,199 +626,199 @@ def show_demo_interface():
             }
             mock_df = pd.DataFrame(mock_data)
 
-            # 显示模拟数据表格
-            st.subheader("📋 演示数据表格")
+            # Display mock data table
+            st.subheader("📋 Demo Data Table")
             st.dataframe(mock_df, use_container_width=True)
 
         else:
-            # 显示使用说明
+            # Display usage guide
             show_usage_guide()
 
 def show_usage_guide():
-    """显示使用指南"""
+    """Display usage guide"""
 
-    st.markdown("### 📖 使用指南")
+    st.markdown("### 📖 User Guide")
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("""
-        #### 🔍 如何查询股票数据
+        #### 🔍 How to Query Stock Data
 
-        1. **选择查询方式**: 手动输入股票代码或浏览已有股票
-        2. **输入股票代码**: 在右侧面板输入股票代码 (A股6位/港股5位)
-        3. **选择日期范围**: 选择查询的开始和结束日期
-        4. **选择复权类型**: 根据需要选择复权方式
-        5. **点击查询**: 点击"查询数据"按钮获取数据
+        1. **Choose Query Method**: Manual input or browse existing stocks
+        2. **Enter Stock Code**: Input stock code in right panel (A-shares: 6 digits / HK: 5 digits)
+        3. **Select Date Range**: Choose start and end dates for query
+        4. **Select Adjustment Type**: Choose adjustment method as needed
+        5. **Click Query**: Click "Query Data" button to retrieve data
 
-        #### 📊 功能特点
+        #### 📊 Key Features
 
-        - **智能缓存**: 重复查询响应极快
-        - **实时数据**: 数据来源于AKShare官方接口
-        - **多种图表**: 价格趋势图、成交量图等
-        - **详细统计**: 提供完整的数据统计信息
+        - **Smart Caching**: Extremely fast response for repeated queries
+        - **Real-time Data**: Data sourced from official AKShare API
+        - **Multiple Charts**: Price trends, volume charts, etc.
+        - **Detailed Statistics**: Complete data statistical information
         """)
 
     with col2:
         st.markdown("""
-        #### 💡 使用技巧
+        #### 💡 Usage Tips
 
-        - **股票代码格式**: A股6位(600000)、港股5位(02171)
-        - **日期范围**: 默认7天，可根据需要调整
-        - **复权选择**: 分析价格趋势时建议使用前复权
-        - **快速选择**: 使用"最近7天"、"最近30天"快速设置
+        - **Stock Code Format**: A-shares: 6 digits (600000), HK: 5 digits (02171)
+        - **Date Range**: Default 7 days, adjustable as needed
+        - **Adjustment Choice**: Forward adjustment recommended for price trend analysis
+        - **Quick Selection**: Use "Last 7 Days", "Last 30 Days" for quick setup
 
-        #### 🎯 推荐股票代码
+        #### 🎯 Recommended Stock Codes
 
-        **A股 (6位)**:
-        - **600000**: 浦发银行 (大盘蓝筹)
-        - **000001**: 平安银行 (深市银行)
-        - **600519**: 贵州茅台 (消费龙头)
+        **A-Shares (6 digits)**:
+        - **600000**: SPDB (Large-cap Blue Chip)
+        - **000001**: PAB (Shenzhen Bank)
+        - **600519**: Kweichow Moutai (Consumer Leader)
 
-        **港股 (5位)**:
-        - **02171**: 科济药业-B (生物医药)
-        - **00700**: 腾讯控股 (科技龙头)
-        - **00981**: 中芯国际 (半导体)
+        **HK Stocks (5 digits)**:
+        - **02171**: CAR-T (Biotech)
+        - **00700**: Tencent (Tech Leader)
+        - **00981**: SMIC (Semiconductor)
         """)
 
-    # 示例查询
-    st.markdown("### 🚀 快速开始")
-    st.markdown("点击下方按钮快速查询热门股票，或使用右侧查询面板自定义查询")
+    # Example queries
+    st.markdown("### 🚀 Quick Start")
+    st.markdown("Click the buttons below to quickly query popular stocks, or use the right query panel for custom queries")
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("查询浦发银行(600000)", use_container_width=True, key="quick_600000"):
+        if st.button("Query SPDB(600000)", use_container_width=True, key="quick_600000"):
             st.session_state.update({
                 'suggested_symbol': '600000',
-                'suggested_name': '浦发银行'
+                'suggested_name': 'SPDB'
             })
             st.rerun()
 
     with col2:
-        if st.button("查询平安银行(000001)", use_container_width=True, key="quick_000001"):
+        if st.button("Query PAB(000001)", use_container_width=True, key="quick_000001"):
             st.session_state.update({
                 'suggested_symbol': '000001',
-                'suggested_name': '平安银行'
+                'suggested_name': 'PAB'
             })
             st.rerun()
 
     with col3:
-        if st.button("查询贵州茅台(600519)", use_container_width=True, key="quick_600519"):
+        if st.button("Query Moutai(600519)", use_container_width=True, key="quick_600519"):
             st.session_state.update({
                 'suggested_symbol': '600519',
-                'suggested_name': '贵州茅台'
+                'suggested_name': 'Kweichow Moutai'
             })
             st.rerun()
 
 def display_stock_browser(query_service):
-    """显示股票浏览器 - 查询数据库中的真实股票数据"""
+    """Display stock browser - query real stock data from database"""
 
-    st.markdown("**📋 浏览已有股票**")
+    st.markdown("**📋 Browse Existing Stocks**")
 
     try:
-        # 查询数据库中的真实股票数据
-        with st.spinner("正在加载股票列表..."):
+        # Query real stock data from database
+        with st.spinner("Loading stock list..."):
             assets, total_count = query_service.query_assets(
                 sort_by="symbol",
                 sort_order="asc",
-                limit=100  # 限制返回数量，避免加载过多数据
+                limit=100  # Limit return quantity to avoid loading too much data
             )
 
         if not assets:
-            # 如果数据库中没有股票数据，显示提示信息
-            st.info("📊 数据库中暂无股票数据")
+            # If no stock data in database, show tips
+            st.info("📊 No stock data in database")
             st.markdown("""
-            **💡 提示：**
-            - 数据库中的股票数据会在您首次查询股票时自动创建
-            - 您可以先使用"手动输入"方式查询一些股票，系统会自动保存股票信息
-            - 推荐先查询：600000(浦发银行)、000001(平安银行)、600519(贵州茅台)
+            **💡 Tips:**
+            - Stock data in database will be automatically created when you first query stocks
+            - You can first use "Manual Input" to query some stocks, system will automatically save stock information
+            - Recommended to query first: 600000(SPDB), 000001(PAB), 600519(Kweichow Moutai)
             """)
             return ""
 
-        # 转换为字典格式，便于处理
+        # Convert to dictionary format for easier processing
         asset_list = []
         for asset in assets:
             asset_dict = {
                 'symbol': asset.symbol,
                 'name': asset.name or f'Stock {asset.symbol}',
-                'industry': asset.industry or '其他'
+                'industry': asset.industry or 'Other'
             }
             asset_list.append(asset_dict)
 
-        # 按行业分组
+        # Group by industry
         industry_groups = {}
         for asset in asset_list:
-            industry = asset.get('industry', '其他')
+            industry = asset.get('industry', 'Other')
             if industry not in industry_groups:
                 industry_groups[industry] = []
             industry_groups[industry].append(asset)
 
-        # 显示统计信息
-        st.caption(f"📊 数据库中共有 {total_count} 只股票")
+        # Display statistics
+        st.caption(f"📊 Total {total_count} stocks in database")
 
-        # 行业筛选
+        # Industry filter
         selected_industry = st.selectbox(
-            "按行业筛选",
-            ["全部"] + sorted(list(industry_groups.keys())),
-            help="选择特定行业查看相关股票"
+            "Filter by Industry",
+            ["All"] + sorted(list(industry_groups.keys())),
+            help="Select specific industry to view related stocks"
         )
 
-        # 筛选股票
-        if selected_industry == "全部":
+        # Filter stocks
+        if selected_industry == "All":
             filtered_assets = asset_list
         else:
             filtered_assets = industry_groups[selected_industry]
 
-        # 股票选择
+        # Stock selection
         asset_options = {}
         for asset in filtered_assets:
             display_name = f"{asset['symbol']} - {asset['name']}"
-            if asset.get('industry') and asset['industry'] != '其他':
+            if asset.get('industry') and asset['industry'] != 'Other':
                 display_name += f" ({asset['industry']})"
             asset_options[display_name] = asset['symbol']
 
         if asset_options:
             selected_display = st.selectbox(
-                "选择股票",
+                "Select Stock",
                 list(asset_options.keys()),
-                help="从列表中选择要查看的股票"
+                help="Select stock to view from the list"
             )
 
             return asset_options[selected_display]
         else:
-            st.info("该行业暂无股票数据")
+            st.info("No stock data available for this industry")
             return ""
 
     except Exception as e:
-        st.error(f"加载股票列表失败: {str(e)}")
-        # 发生错误时，提供一些默认选项
-        st.markdown("**🔄 使用默认股票列表：**")
+        st.error(f"Failed to load stock list: {str(e)}")
+        # Provide default options when error occurs
+        st.markdown("**🔄 Use Default Stock List:**")
         default_options = {
-            "600000 - 浦发银行": "600000",
-            "000001 - 平安银行": "000001",
-            "600519 - 贵州茅台": "600519"
+            "600000 - SPDB": "600000",
+            "000001 - PAB": "000001",
+            "600519 - Kweichow Moutai": "600519"
         }
 
         selected_display = st.selectbox(
-            "选择股票",
+            "Select Stock",
             list(default_options.keys()),
-            help="从默认列表中选择股票"
+            help="Select stock from default list"
         )
 
         return default_options[selected_display]
 
 def display_recent_stock_queries():
-    """显示最近查询的股票"""
+    """Display recent stock queries"""
 
     st.markdown("---")
-    st.markdown("**🕒 最近查询**")
+    st.markdown("**🕒 Recent Queries**")
 
-    # 从session state获取最近查询
+    # Get recent queries from session state
     recent_queries = st.session_state.get('recent_stock_queries', [])
 
     if recent_queries:
-        # 显示最近3个查询
+        # Display last 3 queries
         for i, query in enumerate(recent_queries[:3]):
             symbol = query['symbol']
             name = query.get('name', f'Stock {symbol}')
@@ -826,7 +827,7 @@ def display_recent_stock_queries():
             if st.button(
                 f"{symbol} - {name}",
                 key=f"recent_stock_{i}_{symbol}",
-                help=f"查询时间: {query_time}",
+                help=f"Query time: {query_time}",
                 use_container_width=True
             ):
                 st.session_state.update({
@@ -835,15 +836,15 @@ def display_recent_stock_queries():
                 })
                 st.rerun()
     else:
-        st.caption("暂无最近查询记录")
+        st.caption("No recent query records")
 
 def add_to_recent_stock_queries(symbol: str, name: str):
-    """添加到最近查询列表"""
+    """Add to recent query list"""
 
     if 'recent_stock_queries' not in st.session_state:
         st.session_state.recent_stock_queries = []
 
-    # 创建查询记录
+    # Create query record
     from datetime import datetime
     query_record = {
         'symbol': symbol,
@@ -851,14 +852,14 @@ def add_to_recent_stock_queries(symbol: str, name: str):
         'time': datetime.now().strftime('%Y-%m-%d %H:%M')
     }
 
-    # 移除重复项
+    # Remove duplicates
     recent_queries = st.session_state.recent_stock_queries
     recent_queries = [q for q in recent_queries if q['symbol'] != symbol]
 
-    # 添加到开头
+    # Add to beginning
     recent_queries.insert(0, query_record)
 
-    # 保持最多10个记录
+    # Keep maximum 10 records
     st.session_state.recent_stock_queries = recent_queries[:10]
 
 if __name__ == "__main__":

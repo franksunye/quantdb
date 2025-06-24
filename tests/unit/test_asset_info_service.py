@@ -67,12 +67,12 @@ class TestAssetInfoService(unittest.TestCase):
     def test_get_default_name(self):
         """Test default name mapping"""
         test_cases = [
-            ("600000", "浦发银行"),
-            ("000001", "平安银行"),
-            ("600519", "贵州茅台"),
+            ("600000", "SPDB"),
+            ("000001", "PAB"),
+            ("600519", "Kweichow Moutai"),
             ("999999", "Stock 999999"),  # Unknown symbol
         ]
-        
+
         for symbol, expected in test_cases:
             result = self.service._get_default_name(symbol)
             self.assertEqual(result, expected)
@@ -80,13 +80,13 @@ class TestAssetInfoService(unittest.TestCase):
     def test_get_default_industry(self):
         """Test default industry mapping"""
         test_cases = [
-            ("600000", "银行"),
-            ("000001", "银行"),
-            ("600519", "食品饮料"),
-            ("000002", "房地产"),
-            ("999999", "其他"),  # Unknown symbol
+            ("600000", "Banking"),
+            ("000001", "Banking"),
+            ("600519", "Food & Beverage"),
+            ("000002", "Real Estate"),
+            ("999999", "Other"),  # Unknown symbol
         ]
-        
+
         for symbol, expected in test_cases:
             result = self.service._get_default_industry(symbol)
             self.assertEqual(result, expected)
@@ -94,12 +94,12 @@ class TestAssetInfoService(unittest.TestCase):
     def test_get_default_concept(self):
         """Test default concept mapping"""
         test_cases = [
-            ("600000", "银行股, 上海本地股"),
-            ("000001", "银行股, 深圳本地股"),
-            ("600519", "白酒概念, 消费股"),
-            ("999999", "其他概念"),  # Unknown symbol
+            ("600000", "Banking, Shanghai Local"),
+            ("000001", "Banking, Shenzhen Local"),
+            ("600519", "Liquor, Consumer"),
+            ("999999", "Other Concept"),  # Unknown symbol
         ]
-        
+
         for symbol, expected in test_cases:
             result = self.service._get_default_concept(symbol)
             self.assertEqual(result, expected)
@@ -158,7 +158,7 @@ class TestAssetInfoService(unittest.TestCase):
             result = self.service._fetch_asset_basic_info("600000")
 
             # Verify results (check what's actually returned)
-            self.assertEqual(result['name'], '浦发银行')
+            self.assertEqual(result['name'], 'SPDB')
             # Note: listing_date might not be in the result, check actual implementation
             if 'listing_date' in result:
                 self.assertEqual(result['listing_date'], date(1999, 11, 10))
@@ -178,7 +178,7 @@ class TestAssetInfoService(unittest.TestCase):
         result = self.service._fetch_asset_basic_info("600000")
         
         # Should return default name
-        self.assertEqual(result['name'], '浦发银行')
+        self.assertEqual(result['name'], 'SPDB')
 
     def test_get_or_create_asset_existing_fresh(self):
         """Test getting existing asset with fresh data"""

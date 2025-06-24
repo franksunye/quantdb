@@ -438,41 +438,41 @@ class AssetInfoService:
         """Get default values for known stocks."""
         return {
             '600000': {
-                'name': '浦发银行',
-                'industry': '银行',
-                'concept': '银行股, 上海本地股',
+                'name': 'SPDB',
+                'industry': 'Banking',
+                'concept': 'Banking, Shanghai Local',
                 'pe_ratio': 5.2,
                 'pb_ratio': 0.6,
                 'roe': 0.12
             },
             '000001': {
-                'name': '平安银行',
-                'industry': '银行',
-                'concept': '银行股, 深圳本地股',
+                'name': 'PAB',
+                'industry': 'Banking',
+                'concept': 'Banking, Shenzhen Local',
                 'pe_ratio': 4.8,
                 'pb_ratio': 0.7,
                 'roe': 0.11
             },
             '600519': {
-                'name': '贵州茅台',
-                'industry': '食品饮料',
-                'concept': '白酒概念, 消费股',
+                'name': 'Kweichow Moutai',
+                'industry': 'Food & Beverage',
+                'concept': 'Liquor, Consumer',
                 'pe_ratio': 28.5,
                 'pb_ratio': 12.8,
                 'roe': 0.31
             },
             '000002': {
-                'name': '万科A',
-                'industry': '房地产',
-                'concept': '房地产, 深圳本地股',
+                'name': 'Vanke A',
+                'industry': 'Real Estate',
+                'concept': 'Real Estate, Shenzhen Local',
                 'pe_ratio': 8.2,
                 'pb_ratio': 0.9,
                 'roe': 0.08
             },
             '600036': {
-                'name': '招商银行',
-                'industry': '银行',
-                'concept': '银行股, 招商局概念',
+                'name': 'CMB',
+                'industry': 'Banking',
+                'concept': 'Banking, China Merchants',
                 'pe_ratio': 6.1,
                 'pb_ratio': 0.8,
                 'roe': 0.16
@@ -486,24 +486,24 @@ class AssetInfoService:
     def _get_default_industry(self, symbol: str) -> str:
         """Get default industry for known symbols."""
         industry_mapping = {
-            '600000': '银行',
-            '000001': '银行',
-            '600519': '食品饮料',
-            '000002': '房地产',
-            '600036': '银行'
+            '600000': 'Banking',
+            '000001': 'Banking',
+            '600519': 'Food & Beverage',
+            '000002': 'Real Estate',
+            '600036': 'Banking'
         }
-        return industry_mapping.get(symbol, '其他')
+        return industry_mapping.get(symbol, 'Other')
 
     def _get_default_concept(self, symbol: str) -> str:
         """Get default concept for known symbols."""
         concept_mapping = {
-            '600000': '银行股, 上海本地股',
-            '000001': '银行股, 深圳本地股',
-            '600519': '白酒概念, 消费股',
-            '000002': '房地产, 深圳本地股',
-            '600036': '银行股, 招商局概念'
+            '600000': 'Banking, Shanghai Local',
+            '000001': 'Banking, Shenzhen Local',
+            '600519': 'Liquor, Consumer',
+            '000002': 'Real Estate, Shenzhen Local',
+            '600036': 'Banking, China Merchants'
         }
-        return concept_mapping.get(symbol, '其他概念')
+        return concept_mapping.get(symbol, 'Other Concept')
 
     def _get_default_name(self, symbol: str) -> str:
         """Get default name for known symbols."""
@@ -513,15 +513,15 @@ class AssetInfoService:
     def _get_default_hk_name(self, symbol: str) -> str:
         """Get default name for Hong Kong stocks."""
         hk_names = {
-            '00700': '腾讯控股',
-            '09988': '阿里巴巴-SW',
-            '00941': '中国移动',
-            '01299': '友邦保险',
-            '02318': '中国平安',
-            '02171': '科济药业-B',  # 添加02171的正确名称
-            '01810': '小米集团-W',
-            '03690': '美团-W',
-            '00388': '香港交易所',
-            '01024': '快手-W'
+            '00700': 'Tencent',
+            '09988': 'Alibaba-SW',
+            '00941': 'China Mobile',
+            '01299': 'AIA Group',
+            '02318': 'Ping An',
+            '02171': 'CAR-T',  # Add correct name for 02171
+            '01810': 'Xiaomi-W',
+            '03690': 'Meituan-W',
+            '00388': 'HKEX',
+            '01024': 'Kuaishou-W'
         }
         return hk_names.get(symbol, f'HK Stock {symbol}')

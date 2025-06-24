@@ -1,6 +1,7 @@
 """
-QuantDB Streamlit Cloud Edition - 主应用入口
-适配Streamlit Cloud部署的单体应用架构，保留SQLite数据库和完整功能
+QuantDB Streamlit Cloud Edition - Main Application Entry
+Monolithic application architecture adapted for Streamlit Cloud deployment,
+retaining SQLite database and complete functionality
 """
 
 import streamlit as st
@@ -11,36 +12,36 @@ import os
 from pathlib import Path
 import time
 
-# 尝试添加项目根目录到Python路径以访问core模块
+# Try to add project root directory to Python path to access core modules
 PATH_ERROR = None
 try:
     current_dir = Path(__file__).parent
     project_root = current_dir.parent.parent  # 回到QuantDB根目录
     sys.path.insert(0, str(project_root))
 
-    # 添加本地src目录到路径（云端部署备用）
+    # Add local src directory to path (cloud deployment backup)
     src_dir = current_dir / "src"
     if src_dir.exists():
         sys.path.insert(0, str(src_dir))
 except Exception as path_error:
     PATH_ERROR = str(path_error)
 
-# 设置云端模式标志 - 更智能的检测
+# Set cloud mode flag - smarter detection
 CLOUD_MODE = True
 ENVIRONMENT_INFO = None
 try:
-    # 检测是否在Streamlit Cloud环境
+    # Detect if running in Streamlit Cloud environment
     import os
     if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
         CLOUD_MODE = True
         ENVIRONMENT_INFO = "Streamlit Cloud environment detected, using cloud mode"
     else:
-        # 测试是否可以完整导入和初始化core模块
+        # Test if core modules can be fully imported and initialized
         from core.services import StockDataService, AssetInfoService, DatabaseCache
         from core.cache import AKShareAdapter
         from core.database import get_db
 
-        # 测试是否可以创建数据库会话
+        # Test if database session can be created
         db_session = next(get_db())
         db_session.close()
 
@@ -50,7 +51,7 @@ except Exception as e:
     CLOUD_MODE = True
     ENVIRONMENT_INFO = f"Environment detection failed, using cloud mode: {str(e)[:100]}..."
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="QuantDB - Professional Data Platform",
     page_icon="📊",
@@ -85,10 +86,10 @@ st.set_page_config(
     }
 )
 
-# 简化的数据库验证
+# Simplified database verification
 @st.cache_resource
 def verify_database():
-    """验证数据库连接和表结构 - 简化版本"""
+    """Verify database connection and table structure - simplified version"""
     try:
         import sqlite3
         from pathlib import Path
@@ -109,14 +110,14 @@ def verify_database():
 
         if not db_path.exists():
             result['status'] = 'error'
-            result['message'] = f"数据库文件不存在: {db_path}"
+            result['message'] = f"Database file does not exist: {db_path}"
             return result
 
-        # 测试SQLite连接
+        # Test SQLite connection
         conn = sqlite3.connect(str(db_path))
         cursor = conn.cursor()
 
-        # 检查表是否存在
+        # Check if tables exist
         cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
         tables = [row[0] for row in cursor.fetchall()]
         result['tables'] = tables
@@ -125,7 +126,7 @@ def verify_database():
         existing_tables = [table for table in expected_tables if table in tables]
         missing_tables = [table for table in expected_tables if table not in tables]
 
-        # 测试基本查询
+        # Test basic queries
         if 'assets' in tables:
             cursor.execute("SELECT COUNT(*) FROM assets")
             result['asset_count'] = cursor.fetchone()[0]
@@ -134,12 +135,12 @@ def verify_database():
 
         if len(existing_tables) > 0:
             result['status'] = 'success'
-            result['message'] = f"数据库验证成功，找到表: {existing_tables}"
+            result['message'] = f"Database verification successful, found tables: {existing_tables}"
             if missing_tables:
-                result['message'] += f"，缺少表: {missing_tables}"
+                result['message'] += f", missing tables: {missing_tables}"
         else:
             result['status'] = 'error'
-            result['message'] = "未找到预期的数据库表"
+            result['message'] = "Expected database tables not found"
 
         return result
 
@@ -150,16 +151,16 @@ def verify_database():
             'tables': [],
             'asset_count': 0,
             'status': 'error',
-            'message': f"数据库验证失败: {e}"
+            'message': f"Database verification failed: {e}"
         }
 
-# 条件化的服务初始化
+# Conditional service initialization
 @st.cache_resource
 def init_services():
-    """初始化服务实例 - 支持完整模式和云端模式"""
+    """Initialize service instances - supports full mode and cloud mode"""
 
     try:
-        # 强制检查是否在云端环境
+        # Force check if running in cloud environment
         import os
         is_streamlit_cloud = (
             'STREAMLIT_SHARING' in os.environ or
@@ -168,13 +169,13 @@ def init_services():
         )
 
         if not CLOUD_MODE and not is_streamlit_cloud:
-            # 完整模式：尝试使用core模块（仅在非云端环境）
+            # Full mode: try to use core modules (only in non-cloud environment)
             try:
                 from core.services import StockDataService, AssetInfoService, DatabaseCache
                 from core.cache import AKShareAdapter
                 from core.database import get_db
 
-                # 创建数据库会话
+                # Create database session
                 db_session = next(get_db())
                 akshare_adapter = AKShareAdapter()
 
@@ -186,16 +187,16 @@ def init_services():
                     'db_session': db_session,
                     'mode': 'full',
                     'status': 'success',
-                    'message': '完整服务初始化成功'
+                    'message': 'Full service initialization successful'
                 }
                 return result
 
             except Exception as full_error:
-                # 完整模式失败，继续尝试云端模式
+                # Full mode failed, continue trying cloud mode
                 pass
 
-        # 云端模式：简化的服务初始化
-        # 创建一个简化的服务容器
+        # Cloud mode: simplified service initialization
+        # Create a simplified service container
         services = {
             'stock_service': None,
             'asset_service': None,
@@ -204,10 +205,10 @@ def init_services():
             'db_session': None,
             'mode': 'cloud',
             'status': 'success',
-            'message': '云端服务初始化成功'
+            'message': 'Cloud service initialization successful'
         }
 
-        # 尝试基本的数据库连接
+        # Try basic database connection
         try:
             import sqlite3
             from pathlib import Path
@@ -259,22 +260,22 @@ def init_services():
         }
 
 def show_initialization_status():
-    """显示初始化状态"""
+    """Display initialization status"""
     services = init_services()
     if services:
         status = services.get('status', 'unknown')
-        message = services.get('message', '初始化完成')
+        message = services.get('message', 'Initialization completed')
         mode = services.get('mode', 'unknown')
 
         if status == 'success':
             if mode == 'full':
                 st.success(f"✅ {message}")
-                # 测试DatabaseCache方法
+                # Test DatabaseCache methods
                 if services.get('cache_service'):
                     if hasattr(services['cache_service'], 'get_stats'):
-                        st.success("✅ DatabaseCache.get_stats方法可用")
+                        st.success("✅ DatabaseCache.get_stats method available")
                     else:
-                        st.error("❌ DatabaseCache.get_stats方法不可用")
+                        st.error("❌ DatabaseCache.get_stats method not available")
             elif mode == 'cloud':
                 st.info(f"☁️ {message}")
             else:
@@ -284,23 +285,23 @@ def show_initialization_status():
         else:
             st.warning(f"⚠️ {message}")
     else:
-        st.error("❌ 服务初始化失败")
+        st.error("❌ Service initialization failed")
 
-    # 显示数据库验证结果
+    # Display database verification results
     db_result = verify_database()
     if db_result['status'] == 'success':
         st.success(f"✅ {db_result['message']}")
         if db_result['asset_count'] > 0:
-            st.info(f"📊 资产表中有 {db_result['asset_count']} 条记录")
+            st.info(f"📊 Asset table contains {db_result['asset_count']} records")
     elif db_result['status'] == 'error':
         st.error(f"❌ {db_result['message']}")
     else:
         st.warning(f"⚠️ {db_result['message']}")
 
 def get_system_status():
-    """获取系统状态"""
+    """Get system status"""
     try:
-        # 使用简化的配置，避免复杂的模块导入
+        # Use simplified configuration to avoid complex module imports
         import os
         from pathlib import Path
 
@@ -308,7 +309,7 @@ def get_system_status():
         # Use unified database at project root
         project_root = current_dir.parent.parent
 
-        # 简化的数据库路径配置 - 优先使用统一数据库
+        # Simplified database path configuration - prioritize unified database
         possible_db_paths = [
             project_root / "database" / "stock_data.db",  # Unified database (priority)
             current_dir / "database" / "stock_data.db",   # Old cloud path (fallback)
@@ -331,7 +332,7 @@ def get_system_status():
 
         DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
-        # 尝试简化的服务初始化
+        # Try simplified service initialization
         services = init_services()
         if not services:
             return {
@@ -348,48 +349,48 @@ def get_system_status():
                 }
             }
 
-        # 测试API响应时间
+        # Test API response time
         start_time = time.time()
 
-        # 改进的数据库查询测试
+        # Improved database query testing
         asset_count = 0
         cache_stats = {}
 
         if services:
             if services.get('mode') == 'full':
-                # 完整模式：使用服务查询
+                # Full mode: use service queries
                 try:
                     if services.get('db_session'):
                         from core.models import Asset
                         asset_count = services['db_session'].query(Asset).count()
                     if services.get('cache_service'):
-                        # 检查cache_service是否有get_stats方法
+                        # Check if cache_service has get_stats method
                         if hasattr(services['cache_service'], 'get_stats'):
                             cache_stats = services['cache_service'].get_stats()
                         else:
-                            # 记录错误但不显示，避免在页面配置前调用streamlit
+                            # Log error but don't display to avoid calling streamlit before page config
                             cache_stats = {'error': 'get_stats method not found'}
                 except Exception as full_query_error:
-                    # 记录错误但不显示，避免在页面配置前调用streamlit
-                    # 强制切换到云端模式查询
+                    # Log error but don't display to avoid calling streamlit before page config
+                    # Force switch to cloud mode query
                     asset_count = 0
                     cache_stats = {'error': str(full_query_error), 'error_type': type(full_query_error).__name__}
 
             elif services.get('mode') == 'cloud':
-                # 云端模式：使用SQLite直连查询
+                # Cloud mode: use SQLite direct connection queries
                 try:
                     if 'db_path' in services and os.path.exists(services['db_path']):
                         import sqlite3
                         conn = sqlite3.connect(services['db_path'])
                         cursor = conn.cursor()
 
-                        # 检查assets表是否存在
+                        # Check if assets table exists
                         cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='assets';")
                         if cursor.fetchone():
                             cursor.execute("SELECT COUNT(*) FROM assets")
                             asset_count = cursor.fetchone()[0]
 
-                        # 获取简化的缓存统计
+                        # Get simplified cache statistics
                         tables = services.get('tables', [])
                         cache_stats = {
                             'database_type': 'SQLite',
@@ -401,7 +402,7 @@ def get_system_status():
                         conn.close()
 
                 except Exception as cloud_query_error:
-                    # 记录错误但不显示，避免在页面配置前调用streamlit
+                    # Log error but don't display to avoid calling streamlit before page config
                     asset_count = 0
                     cache_stats = {
                         'database_type': 'SQLite',
@@ -427,7 +428,7 @@ def get_system_status():
             }
         }
     except Exception as e:
-        # 记录错误但不显示，避免在页面配置前调用streamlit
+        # Log error but don't display to avoid calling streamlit before page config
         return {
             'api_status': 'error',
             'api_response_time': 0,
@@ -437,8 +438,8 @@ def get_system_status():
         }
 
 def main():
-    """主页面"""
-    # 显示环境信息（如果有的话）
+    """Main page"""
+    # Display environment information (if available)
     if PATH_ERROR:
         st.warning(f"Path setup warning: {PATH_ERROR}")
 
@@ -465,10 +466,10 @@ def main():
 
     st.markdown("---")
 
-    # 显示初始化状态
+    # Display initialization status
     show_initialization_status()
 
-    # 系统状态概览
+    # System status overview
     st.markdown("### System Status Overview")
     
     system_status = get_system_status()
@@ -502,20 +503,20 @@ def main():
             cache_stats = system_status.get('cache_stats', {})
             service_mode = system_status.get('service_mode', 'unknown')
 
-            # 根据服务模式和缓存状态确定显示内容
+            # Determine display content based on service mode and cache status
             if cache_stats.get('status') == 'active':
                 if service_mode == 'full':
-                    cache_efficiency = "完整模式"
-                    cache_delta = "核心服务"
+                    cache_efficiency = "Full Mode"
+                    cache_delta = "Core Services"
                 elif service_mode == 'cloud':
-                    cache_efficiency = "云端模式"
-                    cache_delta = f"SQLite({cache_stats.get('tables', 0)}表)"
+                    cache_efficiency = "Cloud Mode"
+                    cache_delta = f"SQLite({cache_stats.get('tables', 0)} tables)"
                 else:
-                    cache_efficiency = "运行中"
-                    cache_delta = "SQLite持久化"
+                    cache_efficiency = "Running"
+                    cache_delta = "SQLite Persistent"
             else:
-                cache_efficiency = "初始化中"
-                cache_delta = "请稍候"
+                cache_efficiency = "Initializing"
+                cache_delta = "Please wait"
 
             st.metric(
                 label="Cache Status",
@@ -523,106 +524,106 @@ def main():
                 delta=cache_delta
             )
 
-        # 显示服务模式信息
+        # Display service mode information
         service_mode = system_status.get('service_mode', 'unknown')
         if service_mode != 'unknown':
-            st.info(f"🔧 当前运行模式: **{service_mode.upper()}** {'(完整功能)' if service_mode == 'full' else '(云端优化)'}")
+            st.info(f"🔧 Current Mode: **{service_mode.upper()}** {'(Full Features)' if service_mode == 'full' else '(Cloud Optimized)'}")
 
         # Debug information (only show if there are issues)
         if asset_count == 0 and 'debug_info' in system_status:
-            with st.expander("🔍 调试信息 (资产数量为0时显示)", expanded=True):
+            with st.expander("🔍 Debug Information (shown when asset count is 0)", expanded=True):
                 debug_info = system_status['debug_info']
-                st.write("**数据库配置信息:**")
+                st.write("**Database Configuration:**")
                 st.json(debug_info)
 
                 # Additional file check
                 import os
-                st.write("**文件系统检查:**")
+                st.write("**File System Check:**")
                 current_files = []
                 try:
                     for root, dirs, files in os.walk('.'):
                         for file in files:
                             if file.endswith('.db'):
                                 current_files.append(os.path.join(root, file))
-                    st.write(f"找到的数据库文件: {current_files}")
+                    st.write(f"Database files found: {current_files}")
                 except Exception as e:
-                    st.write(f"文件检查错误: {e}")
+                    st.write(f"File check error: {e}")
     else:
         col1, col2, col3, col4 = st.columns(4)
         with col1:
-            st.metric(label="API状态", value="初始化中", delta="请稍候")
+            st.metric(label="API Status", value="Initializing", delta="Please wait")
         with col2:
-            st.metric(label="响应时间", value="N/A", delta="测量中")
+            st.metric(label="Response Time", value="N/A", delta="Measuring")
         with col3:
-            st.metric(label="资产数量", value="N/A", delta="加载中")
+            st.metric(label="Assets", value="N/A", delta="Loading")
         with col4:
-            st.metric(label="缓存状态", value="N/A", delta="准备中")
+            st.metric(label="Cache Status", value="N/A", delta="Preparing")
     
-    # 功能导航
+    # Feature navigation
     st.markdown("---")
-    st.markdown("### 🧭 功能导航")
+    st.markdown("### 🧭 Feature Navigation")
     
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        #### 📈 股票数据查询
-        - 历史价格数据查询
-        - 价格趋势图表展示
-        - 基础统计信息分析
-        - 成交量和涨跌幅分析
-        
-        👉 **使用左侧导航栏进入**
+        #### 📈 Stock Data Query
+        - Historical price data query
+        - Price trend chart display
+        - Basic statistical analysis
+        - Volume and price change analysis
+
+        👉 **Use left sidebar to access**
         """)
     
     with col2:
         st.markdown("""
-        #### 📊 资产信息
-        - 公司基本信息展示
-        - 财务指标详细分析
-        - 数据覆盖情况统计
-        - 市场数据实时更新
-        
-        👉 **使用左侧导航栏进入**
+        #### 📊 Asset Information
+        - Company basic information display
+        - Detailed financial metrics analysis
+        - Data coverage statistics
+        - Real-time market data updates
+
+        👉 **Use left sidebar to access**
         """)
     
     with col3:
         st.markdown("""
-        #### ⚡ 系统状态
-        - 数据库状态监控
-        - 系统性能指标展示
-        - 缓存效率统计
-        - 服务健康检查
-        
-        👉 **使用左侧导航栏进入**
+        #### ⚡ System Status
+        - Database status monitoring
+        - System performance metrics display
+        - Cache efficiency statistics
+        - Service health checks
+
+        👉 **Use left sidebar to access**
         """)
     
-    # 快速开始
+    # Quick start
     st.markdown("---")
-    st.markdown("### 🚀 快速开始")
-    
-    with st.expander("📖 使用指南", expanded=False):
+    st.markdown("### 🚀 Quick Start")
+
+    with st.expander("📖 User Guide", expanded=False):
         st.markdown("""
-        #### 如何使用 QuantDB Cloud
-        
-        1. **股票代码格式**
-           - A股代码：6位数字（如：600000 浦发银行，000001 平安银行）
-           - 支持沪深两市主要股票
-        
-        2. **数据查询**
-           - 点击左侧"📈 股票数据查询"
-           - 输入股票代码和日期范围
-           - 系统自动获取并缓存数据到SQLite数据库
-        
-        3. **数据持久化**
-           - 使用SQLite数据库持久化存储
-           - 应用重启后数据仍然保留
-           - 智能缓存避免重复API调用
-        
-        4. **注意事项**
-           - 数据来源：AKShare官方接口
-           - 缓存机制：SQLite数据库持久化
-           - 建议使用：Chrome、Firefox、Edge浏览器
+        #### How to Use QuantDB Cloud
+
+        1. **Stock Code Format**
+           - A-Share codes: 6-digit numbers (e.g., 600000 SPDB, 000001 PAB)
+           - Supports major stocks from Shanghai and Shenzhen markets
+
+        2. **Data Query**
+           - Click "📈 Stock Data" in the left sidebar
+           - Enter stock code and date range
+           - System automatically fetches and caches data to SQLite database
+
+        3. **Data Persistence**
+           - Uses SQLite database for persistent storage
+           - Data remains after application restart
+           - Smart caching avoids duplicate API calls
+
+        4. **Important Notes**
+           - Data source: AKShare official API
+           - Cache mechanism: SQLite database persistence
+           - Recommended browsers: Chrome, Firefox, Edge
         """)
 
 if __name__ == "__main__":
