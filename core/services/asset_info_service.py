@@ -7,10 +7,12 @@ from AKShare, including company names, industry classifications, and financial m
 
 import logging
 import time
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Dict, List, Optional, Any
+from functools import lru_cache
 
 import akshare as ak
+import pandas as pd
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -37,6 +39,10 @@ class AssetInfoService:
             db: Database session
         """
         self.db = db
+        # 港股基础信息缓存
+        self._hk_stock_cache = {}
+        self._hk_cache_timestamp = None
+        self._hk_cache_ttl = timedelta(hours=1)  # 缓存1小时
         logger.info("Asset info service initialized")
 
     def get_or_create_asset(self, symbol: str) -> tuple[Asset, dict]:
@@ -92,6 +98,35 @@ class AssetInfoService:
         }
 
         return asset, metadata
+
+    def _is_hk_cache_valid(self) -> bool:
+        """检查港股缓存是否有效"""
+        if not self._hk_cache_timestamp:
+            return False
+        return datetime.now() - self._hk_cache_timestamp < self._hk_cache_ttl
+
+    def _get_hk_stock_from_cache(self, symbol: str) -> Optional[str]:
+        """从缓存中获取港股名称"""
+        if self._is_hk_cache_valid() and symbol in self._hk_stock_cache:
+            logger.info(f"Found HK stock {symbol} in cache: {self._hk_stock_cache[symbol]}")
+            return self._hk_stock_cache[symbol]
+        return None
+
+    def _update_hk_cache(self, hk_data: pd.DataFrame):
+        """更新港股缓存"""
+        try:
+            if not hk_data.empty and '代码' in hk_data.columns and '名称' in hk_data.columns:
+                # 清空旧缓存
+                self._hk_stock_cache.clear()
+                # 更新缓存
+                for _, row in hk_data.iterrows():
+                    self._hk_stock_cache[row['代码']] = row['名称']
+                self._hk_cache_timestamp = datetime.now()
+                logger.info(f"Updated HK stock cache with {len(self._hk_stock_cache)} stocks")
+            else:
+                logger.warning("Invalid HK data format for cache update")
+        except Exception as e:
+            logger.error(f"Error updating HK cache: {e}")
 
     def get_asset(self, symbol: str) -> Asset:
         """
@@ -313,55 +348,63 @@ class AssetInfoService:
                     logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
 
             elif market == 'HK_STOCK':
-                # For Hong Kong stocks, try to get real data from AKShare
+                # For Hong Kong stocks, try to get real data from AKShare with caching
                 logger.info(f"Processing Hong Kong stock {symbol}")
 
-                # Try to get HK stock info from AKShare - use comprehensive EM data
-                try:
-                    # First try the comprehensive EM data (4468 stocks)
-                    logger.info(f"Trying stock_hk_spot_em for comprehensive HK data")
-                    hk_em_data = ak.stock_hk_spot_em()
-                    if not hk_em_data.empty and '代码' in hk_em_data.columns and '名称' in hk_em_data.columns:
-                        # Look for the symbol in the EM data
-                        symbol_data = hk_em_data[hk_em_data['代码'] == symbol]
-                        if not symbol_data.empty:
-                            asset_info['name'] = symbol_data.iloc[0]['名称']
-                            logger.info(f"Found HK stock info from EM data for {symbol}: {asset_info['name']}")
+                # 首先尝试从缓存获取
+                cached_name = self._get_hk_stock_from_cache(symbol)
+                if cached_name:
+                    asset_info['name'] = cached_name
+                else:
+                    # 缓存未命中，需要从API获取
+                    try:
+                        # 优先尝试获取全量EM数据并更新缓存
+                        logger.info(f"Cache miss for HK stock {symbol}, fetching from stock_hk_spot_em")
+                        hk_em_data = ak.stock_hk_spot_em()
+
+                        if not hk_em_data.empty and '代码' in hk_em_data.columns and '名称' in hk_em_data.columns:
+                            # 更新缓存
+                            self._update_hk_cache(hk_em_data)
+
+                            # 从缓存中获取当前股票信息
+                            cached_name = self._get_hk_stock_from_cache(symbol)
+                            if cached_name:
+                                asset_info['name'] = cached_name
+                                logger.info(f"Found HK stock info from EM data for {symbol}: {asset_info['name']}")
+                            else:
+                                # 如果在EM数据中没找到，尝试spot数据
+                                logger.info(f"HK stock {symbol} not found in EM data, trying spot data")
+                                hk_spot_data = ak.stock_hk_spot()
+                                if not hk_spot_data.empty and 'symbol' in hk_spot_data.columns and 'name' in hk_spot_data.columns:
+                                    symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
+                                    if not symbol_data.empty:
+                                        asset_info['name'] = symbol_data.iloc[0]['name']
+                                        logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
+                                    else:
+                                        asset_info['name'] = self._get_default_hk_name(symbol)
+                                        logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
+                                else:
+                                    asset_info['name'] = self._get_default_hk_name(symbol)
+                                    logger.warning(f"HK spot data is empty, using default for {symbol}")
                         else:
-                            # Fallback to limited spot data
-                            logger.info(f"HK stock {symbol} not found in EM data, trying spot data")
+                            # EM数据获取失败，尝试spot数据
+                            logger.warning(f"EM data unavailable, trying spot data for {symbol}")
                             hk_spot_data = ak.stock_hk_spot()
-                            if not hk_spot_data.empty:
+                            if not hk_spot_data.empty and 'symbol' in hk_spot_data.columns and 'name' in hk_spot_data.columns:
                                 symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
                                 if not symbol_data.empty:
                                     asset_info['name'] = symbol_data.iloc[0]['name']
                                     logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
                                 else:
-                                    # Use default as last resort
                                     asset_info['name'] = self._get_default_hk_name(symbol)
-                                    logger.info(f"HK stock {symbol} not found in any API data, using default: {asset_info['name']}")
+                                    logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
                             else:
                                 asset_info['name'] = self._get_default_hk_name(symbol)
-                                logger.warning(f"HK spot data is empty, using default for {symbol}")
-                    else:
-                        # Fallback to spot data if EM data fails
-                        logger.warning(f"EM data unavailable, trying spot data for {symbol}")
-                        hk_spot_data = ak.stock_hk_spot()
-                        if not hk_spot_data.empty:
-                            symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
-                            if not symbol_data.empty:
-                                asset_info['name'] = symbol_data.iloc[0]['name']
-                                logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
-                            else:
-                                asset_info['name'] = self._get_default_hk_name(symbol)
-                                logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
-                        else:
-                            asset_info['name'] = self._get_default_hk_name(symbol)
-                            logger.warning(f"All HK data sources failed, using default for {symbol}")
+                                logger.warning(f"All HK data sources failed, using default for {symbol}")
 
-                except Exception as e:
-                    logger.warning(f"Error fetching HK data for {symbol}: {e}")
-                    asset_info['name'] = self._get_default_hk_name(symbol)
+                    except Exception as e:
+                        logger.warning(f"Error fetching HK data for {symbol}: {e}")
+                        asset_info['name'] = self._get_default_hk_name(symbol)
 
                 asset_info['exchange'] = 'HKEX'
                 asset_info['currency'] = 'HKD'
@@ -518,10 +561,15 @@ class AssetInfoService:
             '00941': 'China Mobile',
             '01299': 'AIA Group',
             '02318': 'Ping An',
-            '02171': 'CAR-T',  # Add correct name for 02171
+            '02171': 'CAR-T',
             '01810': 'Xiaomi-W',
             '03690': 'Meituan-W',
             '00388': 'HKEX',
-            '01024': 'Kuaishou-W'
+            '01024': 'Kuaishou-W',
+            '01167': '加科思-B',  # 根据日志中的实际名称
+            '00175': '吉利汽车',
+            '01211': '比亚迪股份',
+            '02269': '药明生物',
+            '01093': '石药集团'
         }
         return hk_names.get(symbol, f'HK Stock {symbol}')
