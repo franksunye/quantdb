@@ -68,11 +68,11 @@ def save_watchlist(watchlist):
         # 清除缓存以便重新加载
         load_watchlist.clear()
     except Exception as e:
-        st.error(f"保存自选股失败: {str(e)}")
+        st.error(f"Failed to save watchlist: {str(e)}")
 
 @st.cache_resource
 def init_services():
-    """初始化服务实例"""
+    """Initialize service instances"""
     try:
         from core.services import StockDataService, AssetInfoService
         from core.cache import AKShareAdapter
@@ -87,11 +87,11 @@ def init_services():
             'db_session': db_session
         }
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
+        st.error(f"Service initialization failed: {e}")
         return None
 
 def main():
-    """主页面函数"""
+    """Main page function"""
     
     # Page title
     st.title("🎯 Watchlist Management")

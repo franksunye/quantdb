@@ -119,10 +119,10 @@ def main():
     st.markdown("Monitor system performance metrics, cache efficiency and response time")
     st.markdown("---")
     
-    # 初始化服务
+    # Initialize services
     services = init_services()
     if not services:
-        st.error("❌ 服务初始化失败，请刷新页面重试")
+        st.error("❌ Service initialization failed, please refresh the page and try again")
         return
 
     # 显示运行模式

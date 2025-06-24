@@ -462,28 +462,28 @@ def display_asset_info(asset_data: dict, symbol: str):
 
 
 def display_asset_browser(query_service):
-    """显示资产浏览器 - 查询数据库中的真实资产数据"""
+    """Display asset browser - query real asset data from database"""
 
-    st.markdown("**📋 浏览已有资产**")
+    st.markdown("**📋 Browse Existing Assets**")
 
     try:
         if query_service:
-            # 使用后端服务查询数据库中的真实资产数据
-            with st.spinner("正在加载资产列表..."):
+            # Use backend service to query real asset data from database
+            with st.spinner("Loading asset list..."):
                 assets, total_count = query_service.query_assets(
                     sort_by="symbol",
                     sort_order="asc",
-                    limit=100  # 限制返回数量，避免加载过多数据
+                    limit=100  # Limit return quantity to avoid loading too much data
                 )
 
             if not assets:
-                # 如果数据库中没有资产数据，显示提示信息
-                st.info("📊 数据库中暂无资产数据")
+                # If no asset data in database, show tips
+                st.info("📊 No asset data in database")
                 st.markdown("""
-                **💡 提示：**
-                - 数据库中的资产数据会在您首次查询股票时自动创建
-                - 您可以先使用"手动输入"方式查询一些股票，系统会自动保存资产信息
-                - 推荐先查询：600000(浦发银行)、000001(平安银行)、600519(贵州茅台)
+                **💡 Tips:**
+                - Asset data in database will be automatically created when you first query stocks
+                - You can first use "Manual Input" to query some stocks, system will automatically save asset information
+                - Recommended to query first: 600000(SPDB), 000001(PAB), 600519(Kweichow Moutai)
                 """)
                 return "", False, False
 
