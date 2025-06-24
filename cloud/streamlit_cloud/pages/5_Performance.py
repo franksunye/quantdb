@@ -24,15 +24,15 @@ try:
 except ImportError:
     ADVANCED_FEATURES = False
 
-# 检测运行环境
+# Detect running environment
 CLOUD_MODE = True
 try:
-    # 检测是否在Streamlit Cloud环境
+    # Detect if in Streamlit Cloud environment
     import os
     if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
         CLOUD_MODE = True
     else:
-        # 测试是否可以导入core模块
+        # Test if core modules can be imported
         from core.services import StockDataService
         CLOUD_MODE = False
 except Exception:
@@ -47,10 +47,10 @@ st.set_page_config(
 
 @st.cache_resource
 def init_services():
-    """初始化服务实例 - 云端优化版本"""
+    """Initialize service instances - cloud optimized version"""
     try:
         if not CLOUD_MODE:
-            # 完整模式：使用core模块
+            # Full mode: use core modules
             from core.services import StockDataService, DatabaseCache
             from core.cache import AKShareAdapter
             from core.database import get_db
@@ -65,22 +65,22 @@ def init_services():
                 'mode': 'full'
             }
         else:
-            # 云端模式：简化的服务初始化
+            # Cloud mode: simplified service initialization
             import sqlite3
             from pathlib import Path
 
             current_dir = Path(__file__).parent
             db_path = current_dir / "database" / "stock_data.db"
 
-            # 测试SQLite连接
+            # Test SQLite connection
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()
 
-            # 获取基本统计信息
+            # Get basic statistics
             cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
             tables = [row[0] for row in cursor.fetchall()]
 
-            # 获取资产数量
+            # Get asset count
             asset_count = 0
             data_count = 0
             if 'assets' in tables:
@@ -102,8 +102,8 @@ def init_services():
             }
 
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
-        # 返回一个最小的服务对象以避免页面崩溃
+        st.error(f"Service initialization failed: {e}")
+        # Return minimal service object to avoid page crash
         return {
             'mode': 'minimal',
             'error': str(e),
@@ -125,29 +125,29 @@ def main():
         st.error("❌ Service initialization failed, please refresh the page and try again")
         return
 
-    # 显示运行模式
+    # Display running mode
     mode = services.get('mode', 'unknown')
     if mode == 'full':
-        st.info("🖥️ 运行模式: 完整模式 (使用core服务)")
+        st.info("🖥️ Running Mode: Full Mode (using core services)")
     elif mode == 'cloud':
-        st.info("☁️ 运行模式: 云端模式 (SQLite直连)")
+        st.info("☁️ Running Mode: Cloud Mode (SQLite direct connection)")
     elif mode == 'minimal':
-        st.warning("⚠️ 运行模式: 最小模式 (功能受限)")
-        st.error(f"初始化错误: {services.get('error', '未知错误')}")
-    
-    # 控制面板
+        st.warning("⚠️ Running Mode: Minimal Mode (limited functionality)")
+        st.error(f"Initialization error: {services.get('error', 'Unknown error')}")
+
+    # Control panel
     col1, col2, col3 = st.columns([2, 1, 1])
-    
+
     with col1:
-        st.markdown("### 📊 实时性能监控")
-    
+        st.markdown("### 📊 Real-time Performance Monitoring")
+
     with col2:
-        auto_refresh = st.checkbox("自动刷新", value=False, help="每30秒自动刷新数据")
-    
+        auto_refresh = st.checkbox("Auto Refresh", value=False, help="Auto refresh data every 30 seconds")
+
     with col3:
-        if st.button("🔄 立即刷新", use_container_width=True):
+        if st.button("🔄 Refresh Now", use_container_width=True):
             st.session_state.force_refresh = True
-            # 清除缓存以获取最新数据
+            # Clear cache to get latest data
             init_services.clear()
     
     # 自动刷新逻辑
@@ -155,22 +155,22 @@ def main():
         time.sleep(30)
         st.rerun()
     
-    # 显示性能监控数据
+    # Display performance monitoring data
     display_performance_monitoring(services)
 
 def display_performance_monitoring(services):
-    """显示性能监控数据"""
+    """Display performance monitoring data"""
 
     try:
         mode = services.get('mode', 'unknown')
 
-        # 获取缓存统计
-        with st.spinner("获取性能数据..."):
+        # Get cache statistics
+        with st.spinner("Getting performance data..."):
             if mode == 'full':
-                # 完整模式：使用cache_service
+                # Full mode: use cache_service
                 cache_stats = services['cache_service'].get_stats()
             elif mode == 'cloud':
-                # 云端模式：构造统计数据
+                # Cloud mode: construct statistics data
                 cache_stats = {
                     'total_assets': services.get('asset_count', 0),
                     'total_data_points': services.get('data_count', 0),
@@ -178,7 +178,7 @@ def display_performance_monitoring(services):
                     'top_assets': []
                 }
 
-                # 尝试获取更详细的统计信息
+                # Try to get more detailed statistics
                 try:
                     import sqlite3
                     conn = sqlite3.connect(services['db_path'])
@@ -206,21 +206,21 @@ def display_performance_monitoring(services):
                     'top_assets': []
                 }
         
-        # 核心性能指标
-        st.subheader("🚀 核心性能指标")
-        
+        # Core performance metrics
+        st.subheader("🚀 Core Performance Metrics")
+
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
-            # 测试数据库响应时间
+            # Test database response time
             start_time = time.time()
 
             if mode == 'full':
-                # 完整模式：使用SQLAlchemy
+                # Full mode: use SQLAlchemy
                 from sqlalchemy import text
                 test_query = services['db_session'].execute(text("SELECT COUNT(*) FROM assets")).scalar()
             elif mode == 'cloud':
-                # 云端模式：使用SQLite直连
+                # Cloud mode: use SQLite direct connection
                 import sqlite3
                 conn = sqlite3.connect(services['db_path'])
                 cursor = conn.cursor()
@@ -233,10 +233,10 @@ def display_performance_monitoring(services):
             cache_response_time = (time.time() - start_time) * 1000
 
             st.metric(
-                label="数据库响应时间",
+                label="Database Response Time",
                 value=f"{cache_response_time:.1f}ms",
-                delta="极快" if cache_response_time < 50 else "快速",
-                help="从SQLite数据库获取数据的响应时间"
+                delta="Excellent" if cache_response_time < 50 else "Fast",
+                help="Response time for getting data from SQLite database"
             )
         
         with col2:
