@@ -493,108 +493,108 @@ def display_asset_browser(query_service):
                 asset_dict = {
                     'symbol': asset.symbol,
                     'name': asset.name or f'Stock {asset.symbol}',
-                    'industry': asset.industry or '其他'
+                    'industry': asset.industry or 'Other'
                 }
                 asset_list.append(asset_dict)
 
-            # 显示统计信息
-            st.caption(f"📊 数据库中共有 {total_count} 只股票")
+            # Display statistics
+            st.caption(f"📊 Total {total_count} stocks in database")
 
         else:
-            # 后端服务不可用，显示错误信息
-            st.error("❌ 后端服务不可用，无法加载资产列表")
-            st.info("云端版本需要后端服务支持，请检查服务初始化状态")
+            # Backend service unavailable, display error message
+            st.error("❌ Backend service unavailable, unable to load asset list")
+            st.info("Cloud version requires backend service support, please check service initialization status")
             return "", False, False
 
-        # 按行业分组
+        # Group by industry
         industry_groups = {}
         for asset in asset_list:
-            industry = asset.get('industry', '其他')
+            industry = asset.get('industry', 'Other')
             if industry not in industry_groups:
                 industry_groups[industry] = []
             industry_groups[industry].append(asset)
 
-        # 行业筛选
+        # Industry filter
         selected_industry = st.selectbox(
-            "按行业筛选",
-            ["全部"] + sorted(list(industry_groups.keys())),
-            help="选择特定行业查看相关股票"
+            "Filter by Industry",
+            ["All"] + sorted(list(industry_groups.keys())),
+            help="Select specific industry to view related stocks"
         )
 
-        # 筛选资产
-        if selected_industry == "全部":
+        # Filter assets
+        if selected_industry == "All":
             filtered_assets = asset_list
         else:
             filtered_assets = industry_groups[selected_industry]
 
-        # 资产选择
+        # Asset selection
         asset_options = {}
         for asset in filtered_assets:
             display_name = f"{asset['symbol']} - {asset['name']}"
-            if asset.get('industry') and asset['industry'] != '其他':
+            if asset.get('industry') and asset['industry'] != 'Other':
                 display_name += f" ({asset['industry']})"
             asset_options[display_name] = asset['symbol']
 
         if asset_options:
             selected_display = st.selectbox(
-                "选择股票",
+                "Select Stock",
                 list(asset_options.keys()),
-                help="从列表中选择要查看的股票"
+                help="Select stock to view from the list"
             )
 
             selected_symbol = asset_options[selected_display]
 
-            # 操作按钮
+            # Action buttons
             col1, col2 = st.columns(2)
             with col1:
-                query_button = st.button("🔍 查看详情", type="primary", use_container_width=True)
+                query_button = st.button("🔍 View Details", type="primary", use_container_width=True)
             with col2:
-                refresh_button = st.button("🔄 刷新数据", use_container_width=True)
+                refresh_button = st.button("🔄 Refresh Data", use_container_width=True)
 
             return selected_symbol, query_button, refresh_button
         else:
-            st.info("该行业暂无资产数据")
+            st.info("No asset data available for this industry")
             return "", False, False
 
     except Exception as e:
-        st.error(f"加载资产列表失败: {str(e)}")
-        # 发生错误时，提供一些默认选项
-        st.markdown("**🔄 使用默认资产列表：**")
+        st.error(f"Failed to load asset list: {str(e)}")
+        # Provide default options when error occurs
+        st.markdown("**🔄 Use Default Asset List:**")
         default_options = {
-            "600000 - 浦发银行": "600000",
-            "000001 - 平安银行": "000001",
-            "600519 - 贵州茅台": "600519"
+            "600000 - SPDB": "600000",
+            "000001 - PAB": "000001",
+            "600519 - Kweichow Moutai": "600519"
         }
 
         selected_display = st.selectbox(
-            "选择股票",
+            "Select Stock",
             list(default_options.keys()),
-            help="从默认列表中选择股票"
+            help="Select stock from default list"
         )
 
         selected_symbol = default_options[selected_display]
 
-        # 操作按钮
+        # Action buttons
         col1, col2 = st.columns(2)
         with col1:
-            query_button = st.button("🔍 查看详情", type="primary", use_container_width=True)
+            query_button = st.button("🔍 View Details", type="primary", use_container_width=True)
         with col2:
-            refresh_button = st.button("🔄 刷新数据", use_container_width=True)
+            refresh_button = st.button("🔄 Refresh Data", use_container_width=True)
 
         return selected_symbol, query_button, refresh_button
 
 
 def display_recent_queries():
-    """显示最近查询的股票"""
+    """Display recent stock queries"""
 
     st.markdown("---")
-    st.markdown("**🕒 最近查询**")
+    st.markdown("**🕒 Recent Queries**")
 
-    # 从session state获取最近查询
+    # Get recent queries from session state
     recent_queries = st.session_state.get('recent_asset_queries', [])
 
     if recent_queries:
-        # 显示最近3个查询
+        # Display last 3 queries
         for i, query in enumerate(recent_queries[:3]):
             symbol = query['symbol']
             name = query.get('name', f'Stock {symbol}')
@@ -603,7 +603,7 @@ def display_recent_queries():
             if st.button(
                 f"{symbol} - {name}",
                 key=f"recent_{i}_{symbol}",
-                help=f"查询时间: {query_time}",
+                help=f"Query time: {query_time}",
                 use_container_width=True
             ):
                 st.session_state.update({
@@ -612,40 +612,40 @@ def display_recent_queries():
                 })
                 st.rerun()
     else:
-        st.caption("暂无最近查询记录")
+        st.caption("No recent query records")
 
 
 def add_to_recent_queries(symbol: str, name: str):
-    """添加到最近查询列表"""
+    """Add to recent query list"""
 
     if 'recent_asset_queries' not in st.session_state:
         st.session_state.recent_asset_queries = []
 
-    # 创建查询记录
+    # Create query record
     query_record = {
         'symbol': symbol,
         'name': name,
         'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     }
 
-    # 移除重复项
+    # Remove duplicates
     st.session_state.recent_asset_queries = [
         q for q in st.session_state.recent_asset_queries
         if q['symbol'] != symbol
     ]
 
-    # 添加到开头
+    # Add to beginning
     st.session_state.recent_asset_queries.insert(0, query_record)
 
-    # 保持最多10个记录
+    # Keep maximum 10 records
     st.session_state.recent_asset_queries = st.session_state.recent_asset_queries[:10]
 
 
 def display_asset_cache_info(metadata: dict):
-    """显示资产信息的缓存状态"""
+    """Display asset information cache status"""
 
     st.markdown("---")
-    st.subheader("⚡ 资产信息缓存状态")
+    st.subheader("⚡ Asset Information Cache Status")
 
     cache_info = metadata.get('cache_info', {})
 
@@ -654,30 +654,30 @@ def display_asset_cache_info(metadata: dict):
     with col1:
         cache_hit = cache_info.get('cache_hit', False)
         st.metric(
-            label="缓存命中",
-            value="是" if cache_hit else "否",
-            help="资产信息是否来自缓存"
+            label="Cache Hit",
+            value="Yes" if cache_hit else "No",
+            help="Whether asset information comes from cache"
         )
 
     with col2:
         akshare_called = cache_info.get('akshare_called', False)
         st.metric(
-            label="AKShare调用",
-            value="是" if akshare_called else "否",
-            help="是否调用了AKShare获取最新数据"
+            label="AKShare Called",
+            value="Yes" if akshare_called else "No",
+            help="Whether AKShare was called to get latest data"
         )
 
     with col3:
         response_time = cache_info.get('response_time_ms', 0)
         st.metric(
-            label="响应时间",
+            label="Response Time",
             value=f"{response_time:.1f}ms",
-            help="API响应时间"
+            help="API response time"
         )
 
-    # 显示详细信息
+    # Display detailed information
     if cache_info:
-        with st.expander("📊 详细缓存信息"):
+        with st.expander("📊 Detailed Cache Information"):
             st.json(cache_info)
 
 
@@ -685,10 +685,10 @@ def display_asset_cache_info(metadata: dict):
 
 
 def display_data_coverage(symbol: str):
-    """显示数据覆盖情况"""
+    """Display data coverage information"""
 
     try:
-        # 使用后端服务直接查询数据库
+        # Use backend service to directly query database
         from core.database import get_db
         from core.models import DailyStockData, Asset
         from datetime import date, timedelta
@@ -698,10 +698,10 @@ def display_data_coverage(symbol: str):
         db_session = next(get_db())
 
         try:
-            # 查找资产
+            # Find asset
             asset = db_session.query(Asset).filter(Asset.symbol == symbol).first()
             if not asset:
-                st.info("📝 暂无资产信息，请先查询该股票")
+                st.info("📝 No asset information available, please query this stock first")
                 return
 
             # 查询最近30天的数据覆盖情况
@@ -748,15 +748,15 @@ def display_data_coverage(symbol: str):
                     st.metric("数据跨度", "N/A")
 
             if data_count == 0:
-                st.info("📝 暂无历史数据，请先在股票数据查询页面获取数据")
+                st.info("📝 No historical data available, please get data from Stock Data Query page first")
 
         finally:
             db_session.close()
 
     except Exception as e:
-        st.warning(f"⚠️ 获取数据覆盖信息失败: {str(e)}")
-        # 显示详细错误信息用于调试
-        with st.expander("🔍 错误详情", expanded=False):
+        st.warning(f"⚠️ Failed to get data coverage information: {str(e)}")
+        # Display detailed error information for debugging
+        with st.expander("🔍 Error Details", expanded=False):
             st.code(str(e))
 
 
@@ -804,58 +804,58 @@ def format_large_number(num):
 
 
 def show_usage_guide():
-    """显示使用指南"""
+    """Display usage guide"""
 
-    st.markdown("### 📖 使用指南")
+    st.markdown("### 📖 Usage Guide")
 
     col1, col2 = st.columns(2)
 
     with col1:
         st.markdown("""
-        #### 🔍 如何查询资产信息
+        #### 🔍 How to Query Asset Information
 
-        1. **选择查询方式**: 手动输入或浏览已有资产
-        2. **输入股票代码**: 支持A股(6位)和港股(5位)代码
-        3. **点击查询**: 点击"查询资产信息"按钮
-        4. **查看详情**: 浏览基本信息、财务指标和数据覆盖
-        5. **刷新数据**: 使用"刷新数据"获取最新信息
+        1. **Choose Query Method**: Manual input or browse existing assets
+        2. **Enter Stock Code**: Supports A-share (6 digits) and HK stock (5 digits) codes
+        3. **Click Query**: Click "Query Asset Info" button
+        4. **View Details**: Browse basic information, financial metrics and data coverage
+        5. **Refresh Data**: Use "Force Refresh" to get latest information
 
-        #### 📊 信息内容
+        #### 📊 Information Content
 
-        - **基本信息**: 公司名称、行业、交易所等
-        - **财务指标**: PE、PB、ROE、市值等关键指标
-        - **数据覆盖**: 历史数据的完整性和质量信息
+        - **Basic Information**: Company name, industry, exchange, etc.
+        - **Financial Metrics**: PE, PB, ROE, market cap and other key indicators
+        - **Data Coverage**: Historical data completeness and quality information
         """)
 
     with col2:
         st.markdown("""
-        #### 💡 使用技巧
+        #### 💡 Usage Tips
 
-        - **浏览功能**: 使用"浏览已有资产"快速选择股票
-        - **行业筛选**: 按行业分类查看相关股票
-        - **港股支持**: 支持港股代码查询(如00700)
-        - **最近查询**: 快速重新查看之前查询的股票
+        - **Browse Function**: Use "Browse Existing Assets" to quickly select stocks
+        - **Industry Filter**: View related stocks by industry classification
+        - **HK Stock Support**: Supports HK stock code queries (e.g. 00700)
+        - **Recent Queries**: Quickly re-view previously queried stocks
 
-        #### 🎯 推荐查询
+        #### 🎯 Recommended Queries
 
-        **A股推荐**:
-        - **600000**: 浦发银行 (银行业龙头)
-        - **000001**: 平安银行 (股份制银行)
-        - **600519**: 贵州茅台 (消费行业)
+        **A-Share Recommendations**:
+        - **600000**: SPDB (Banking leader)
+        - **000001**: PAB (Joint-stock bank)
+        - **600519**: Kweichow Moutai (Consumer industry)
 
-        **港股推荐**:
-        - **00700**: 腾讯控股 (科技龙头)
-        - **09988**: 阿里巴巴-SW (电商巨头)
+        **HK Stock Recommendations**:
+        - **00700**: Tencent Holdings (Tech leader)
+        - **09988**: Alibaba-SW (E-commerce giant)
         """)
 
-    # 快速查询按钮
-    st.markdown("### 🚀 快速查询")
-    st.markdown("点击下方按钮快速查询热门股票的资产信息")
+    # Quick query buttons
+    st.markdown("### 🚀 Quick Query")
+    st.markdown("Click buttons below to quickly query popular stock asset information")
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        if st.button("浦发银行(600000)", use_container_width=True, key="quick_asset_600000"):
+        if st.button("SPDB(600000)", use_container_width=True, key="quick_asset_600000"):
             st.session_state.update({
                 'symbol': '600000',
                 'auto_query_asset': True
@@ -863,7 +863,7 @@ def show_usage_guide():
             st.rerun()
 
     with col2:
-        if st.button("平安银行(000001)", use_container_width=True, key="quick_asset_000001"):
+        if st.button("PAB(000001)", use_container_width=True, key="quick_asset_000001"):
             st.session_state.update({
                 'symbol': '000001',
                 'auto_query_asset': True
@@ -871,7 +871,7 @@ def show_usage_guide():
             st.rerun()
 
     with col3:
-        if st.button("贵州茅台(600519)", use_container_width=True, key="quick_asset_600519"):
+        if st.button("Kweichow Moutai(600519)", use_container_width=True, key="quick_asset_600519"):
             st.session_state.update({
                 'symbol': '600519',
                 'auto_query_asset': True
@@ -879,7 +879,7 @@ def show_usage_guide():
             st.rerun()
 
     with col4:
-        if st.button("万科A(000002)", use_container_width=True, key="quick_asset_000002"):
+        if st.button("Vanke A(000002)", use_container_width=True, key="quick_asset_000002"):
             st.session_state.update({
                 'symbol': '000002',
                 'auto_query_asset': True
