@@ -39,7 +39,12 @@ class AssetInfoService:
             db: Database session
         """
         self.db = db
-        logger.info("Asset info service initialized")
+        # 检测数据库是否为只读模式
+        self._is_readonly = self._detect_readonly_database()
+        if self._is_readonly:
+            logger.info("Asset info service initialized in READ-ONLY mode")
+        else:
+            logger.info("Asset info service initialized in READ-WRITE mode")
 
     def get_or_create_asset(self, symbol: str) -> tuple[Asset, dict]:
         """
@@ -95,6 +100,36 @@ class AssetInfoService:
 
         return asset, metadata
 
+    def _detect_readonly_database(self) -> bool:
+        """
+        检测数据库是否为只读模式
+
+        Returns:
+            True if database is readonly, False otherwise
+        """
+        import os
+
+        # 首先检查环境变量
+        if os.getenv('QUANTDB_READONLY_MODE', '').lower() in ('true', '1', 'yes'):
+            logger.info("Read-only mode forced by environment variable QUANTDB_READONLY_MODE")
+            return True
+
+        # 检查是否在Streamlit Cloud环境
+        if os.getenv('STREAMLIT_SHARING_MODE') or os.getenv('STREAMLIT_CLOUD'):
+            logger.info("Detected Streamlit Cloud environment, enabling read-only mode")
+            return True
+
+        try:
+            # 尝试创建一个临时表来测试写权限
+            from sqlalchemy import text
+            self.db.execute(text("CREATE TEMP TABLE test_write_permission (id INTEGER)"))
+            self.db.execute(text("DROP TABLE test_write_permission"))
+            self.db.rollback()  # 回滚测试操作
+            return False
+        except Exception as e:
+            logger.info(f"Database is read-only: {e}")
+            return True
+
     def bulk_import_hk_stocks(self, force_update: bool = False) -> dict:
         """
         批量导入港股数据到Assets表
@@ -105,6 +140,14 @@ class AssetInfoService:
         Returns:
             导入结果统计
         """
+        if self._is_readonly:
+            logger.warning("Cannot perform bulk import in read-only database mode")
+            return {
+                "success": False,
+                "error": "Database is read-only, bulk import not supported",
+                "readonly_mode": True
+            }
+
         logger.info("Starting bulk import of HK stocks")
         start_time = time.time()
 
@@ -195,6 +238,10 @@ class AssetInfoService:
         Returns:
             是否成功刷新
         """
+        if self._is_readonly:
+            logger.warning(f"Cannot refresh HK stock {symbol} in read-only database mode")
+            return False
+
         logger.info(f"Force refreshing HK stock: {symbol}")
 
         try:
@@ -288,7 +335,12 @@ class AssetInfoService:
             New Asset object
         """
         logger.info(f"Creating new asset for symbol: {symbol}")
-        
+
+        # 在只读模式下，创建虚拟资产对象而不保存到数据库
+        if self._is_readonly:
+            logger.info(f"Read-only mode: creating virtual asset for {symbol}")
+            return self._create_virtual_asset(symbol)
+
         try:
             # Detect market type
             market = self._detect_market(symbol)
@@ -370,6 +422,56 @@ class AssetInfoService:
             logger.warning(f"Created fallback asset for {symbol}")
             return asset
 
+    def _create_virtual_asset(self, symbol: str) -> Asset:
+        """
+        创建虚拟资产对象（不保存到数据库）
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            虚拟Asset对象
+        """
+        # 获取基础信息
+        asset_info = self._fetch_asset_basic_info(symbol)
+
+        # 检测市场类型
+        market = self._detect_market(symbol)
+
+        # 设置市场特定的默认值
+        if market == 'HK_STOCK':
+            default_exchange = 'HKEX'
+            default_currency = 'HKD'
+            default_isin = f'HK{symbol}'
+        else:  # A_STOCK
+            default_exchange = 'SHSE' if symbol.startswith('6') else 'SZSE'
+            default_currency = 'CNY'
+            default_isin = f'CN{symbol}'
+
+        # 创建虚拟资产对象（不设置asset_id，表示未保存到数据库）
+        virtual_asset = Asset(
+            symbol=symbol,
+            name=asset_info.get('name', f'Stock {symbol}'),
+            isin=asset_info.get('isin', default_isin),
+            asset_type='stock',
+            exchange=asset_info.get('exchange', default_exchange),
+            currency=default_currency,
+            industry=asset_info.get('industry'),
+            concept=asset_info.get('concept'),
+            listing_date=asset_info.get('listing_date'),
+            total_shares=asset_info.get('total_shares'),
+            circulating_shares=asset_info.get('circulating_shares'),
+            market_cap=asset_info.get('market_cap'),
+            pe_ratio=asset_info.get('pe_ratio'),
+            pb_ratio=asset_info.get('pb_ratio'),
+            roe=asset_info.get('roe'),
+            last_updated=datetime.now(),
+            data_source='virtual_readonly'
+        )
+
+        logger.info(f"Created virtual asset for {symbol}: {virtual_asset.name}")
+        return virtual_asset
+
     def _update_asset_info(self, asset: Asset) -> Asset:
         """
         Update existing asset with latest information.
@@ -381,7 +483,26 @@ class AssetInfoService:
             Updated Asset object
         """
         logger.info(f"Updating asset info for {asset.symbol}")
-        
+
+        # 在只读模式下，只更新内存中的对象，不保存到数据库
+        if self._is_readonly:
+            logger.info(f"Read-only mode: updating asset {asset.symbol} in memory only")
+            asset_info = self._fetch_asset_basic_info(asset.symbol)
+
+            # 更新内存中的字段
+            if asset_info.get('name'):
+                asset.name = asset_info['name']
+            if asset_info.get('industry'):
+                asset.industry = asset_info['industry']
+            if asset_info.get('concept'):
+                asset.concept = asset_info['concept']
+
+            asset.last_updated = datetime.now()
+            asset.data_source = 'readonly_updated'
+
+            logger.info(f"Updated asset {asset.symbol} in memory: {asset.name}")
+            return asset
+
         try:
             # Get updated info from AKShare
             asset_info = self._fetch_asset_basic_info(asset.symbol)
@@ -478,32 +599,38 @@ class AssetInfoService:
                     logger.info(f"Found HK stock {symbol} in database: {asset_info['name']}")
                 else:
                     # 数据库中没有，检查是否需要批量导入
-                    hk_assets_count = self.db.query(Asset).filter(Asset.exchange == 'HKEX').count()
+                    if self._is_readonly:
+                        # 只读模式下，直接使用默认名称
+                        asset_info['name'] = self._get_default_hk_name(symbol)
+                        logger.info(f"Read-only mode: using default name for HK stock {symbol}: {asset_info['name']}")
+                    else:
+                        # 可写模式下，检查是否需要批量导入
+                        hk_assets_count = self.db.query(Asset).filter(Asset.exchange == 'HKEX').count()
 
-                    if hk_assets_count < 1000:  # 如果港股数据太少，触发批量导入
-                        logger.info(f"HK assets count ({hk_assets_count}) is low, triggering bulk import")
-                        bulk_result = self.bulk_import_hk_stocks(force_update=False)
+                        if hk_assets_count < 1000:  # 如果港股数据太少，触发批量导入
+                            logger.info(f"HK assets count ({hk_assets_count}) is low, triggering bulk import")
+                            bulk_result = self.bulk_import_hk_stocks(force_update=False)
 
-                        if bulk_result.get('success'):
-                            # 重新查询数据库
-                            existing_hk_asset = self.db.query(Asset).filter(
-                                Asset.symbol == symbol,
-                                Asset.exchange == 'HKEX'
-                            ).first()
+                            if bulk_result.get('success'):
+                                # 重新查询数据库
+                                existing_hk_asset = self.db.query(Asset).filter(
+                                    Asset.symbol == symbol,
+                                    Asset.exchange == 'HKEX'
+                                ).first()
 
-                            if existing_hk_asset and existing_hk_asset.name:
-                                asset_info['name'] = existing_hk_asset.name
-                                logger.info(f"Found HK stock {symbol} after bulk import: {asset_info['name']}")
+                                if existing_hk_asset and existing_hk_asset.name:
+                                    asset_info['name'] = existing_hk_asset.name
+                                    logger.info(f"Found HK stock {symbol} after bulk import: {asset_info['name']}")
+                                else:
+                                    asset_info['name'] = self._get_default_hk_name(symbol)
+                                    logger.info(f"HK stock {symbol} not found after bulk import, using default: {asset_info['name']}")
                             else:
                                 asset_info['name'] = self._get_default_hk_name(symbol)
-                                logger.info(f"HK stock {symbol} not found after bulk import, using default: {asset_info['name']}")
+                                logger.warning(f"Bulk import failed for {symbol}, using default: {asset_info['name']}")
                         else:
+                            # 数据库中有足够的港股数据，但没找到当前股票，使用默认名称
                             asset_info['name'] = self._get_default_hk_name(symbol)
-                            logger.warning(f"Bulk import failed for {symbol}, using default: {asset_info['name']}")
-                    else:
-                        # 数据库中有足够的港股数据，但没找到当前股票，使用默认名称
-                        asset_info['name'] = self._get_default_hk_name(symbol)
-                        logger.info(f"HK stock {symbol} not found in database, using default: {asset_info['name']}")
+                            logger.info(f"HK stock {symbol} not found in database, using default: {asset_info['name']}")
 
                 asset_info['exchange'] = 'HKEX'
                 asset_info['currency'] = 'HKD'
