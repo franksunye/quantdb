@@ -184,7 +184,7 @@ def display_performance_monitoring(services):
                     conn = sqlite3.connect(services['db_path'])
                     cursor = conn.cursor()
 
-                    # 获取日期范围
+                    # Get date range
                     if 'daily_stock_data' in services.get('tables', []):
                         cursor.execute("SELECT MIN(date), MAX(date) FROM daily_stock_data")
                         date_range = cursor.fetchone()
@@ -196,9 +196,9 @@ def display_performance_monitoring(services):
 
                     conn.close()
                 except Exception as e:
-                    st.warning(f"获取详细统计信息失败: {e}")
+                    st.warning(f"Failed to get detailed statistics: {e}")
             else:
-                # 最小模式：使用默认值
+                # Minimal mode: use default values
                 cache_stats = {
                     'total_assets': 0,
                     'total_data_points': 0,
@@ -240,161 +240,161 @@ def display_performance_monitoring(services):
             )
         
         with col2:
-            # 模拟AKShare响应时间
+            # Simulate AKShare response time
             akshare_response_time = 1200.0
             st.metric(
-                label="AKShare响应时间",
+                label="AKShare Response Time",
                 value=f"{akshare_response_time:.1f}ms",
-                help="直接从AKShare获取数据的估计响应时间"
+                help="Estimated response time for getting data directly from AKShare"
             )
-        
+
         with col3:
-            # 计算性能提升
+            # Calculate performance improvement
             performance_improvement = ((akshare_response_time - cache_response_time) / akshare_response_time * 100)
             st.metric(
-                label="性能提升",
+                label="Performance Improvement",
                 value=f"{performance_improvement:.1f}%",
-                delta="优秀",
-                help="本地缓存相比AKShare直接调用的性能提升"
+                delta="Excellent",
+                help="Performance improvement of local cache compared to AKShare direct calls"
             )
-        
+
         with col4:
-            # 数据覆盖率
+            # Data coverage rate
             total_assets = cache_stats.get('total_assets', 0)
             total_data_points = cache_stats.get('total_data_points', 0)
             coverage_rate = min(100, (total_data_points / 1000) * 100) if total_data_points > 0 else 0
-            
+
             st.metric(
-                label="数据覆盖率",
+                label="Data Coverage Rate",
                 value=f"{coverage_rate:.1f}%",
-                delta="良好" if coverage_rate > 50 else "建设中",
-                help="数据库中数据的覆盖程度"
+                delta="Good" if coverage_rate > 50 else "Building",
+                help="Coverage level of data in database"
             )
         
         st.markdown("---")
         
-        # 性能对比图表
+        # Performance comparison charts
         if ADVANCED_FEATURES:
-            st.subheader("📊 性能对比分析")
+            st.subheader("📊 Performance Comparison Analysis")
 
             col1, col2 = st.columns(2)
 
             with col1:
-                st.markdown("#### 响应时间对比")
+                st.markdown("#### Response Time Comparison")
                 perf_chart = create_performance_comparison_chart(cache_response_time, akshare_response_time)
                 st.plotly_chart(perf_chart, use_container_width=True)
 
             with col2:
-                st.markdown("#### 数据覆盖分布")
-                # 模拟缓存命中率
+                st.markdown("#### Data Coverage Distribution")
+                # Simulate cache hit rate
                 cache_hits = int(coverage_rate)
                 cache_misses = 100 - cache_hits
                 cache_pie = create_cache_hit_pie_chart(cache_hits, cache_misses)
                 st.plotly_chart(cache_pie, use_container_width=True)
         else:
-            st.info("📊 图表功能需要plotly支持，当前使用简化显示模式")
+            st.info("📊 Chart functionality requires plotly support, currently using simplified display mode")
         
-        # 系统资源监控
+        # System resource monitoring
         st.markdown("---")
-        st.subheader("💻 系统资源监控")
-        
+        st.subheader("💻 System Resource Monitoring")
+
         col1, col2, col3, col4 = st.columns(4)
-        
+
         with col1:
-            # 计算数据库大小（估算）
-            db_size = total_data_points * 0.1 / 1024  # 估算每条记录约0.1KB
+            # Calculate database size (estimated)
+            db_size = total_data_points * 0.1 / 1024  # Estimate ~0.1KB per record
             st.metric(
-                label="数据库大小",
+                label="Database Size",
                 value=f"{db_size:.1f} MB",
-                help="SQLite数据库估算大小"
+                help="Estimated SQLite database size"
             )
-        
+
         with col2:
             st.metric(
-                label="总记录数",
+                label="Total Records",
                 value=f"{total_data_points:,}",
-                help="数据库中的历史数据记录总数"
+                help="Total historical data records in database"
             )
-        
+
         with col3:
             st.metric(
-                label="缓存资产数",
+                label="Cached Assets",
                 value=f"{total_assets:,}",
-                help="已缓存的股票资产数量"
+                help="Number of cached stock assets"
             )
-        
+
         with col4:
-            # 计算数据密度
+            # Calculate data density
             data_density = total_data_points / total_assets if total_assets > 0 else 0
             st.metric(
-                label="平均数据密度",
-                value=f"{data_density:.0f}条/股",
-                help="每只股票的平均历史数据记录数"
+                label="Average Data Density",
+                value=f"{data_density:.0f} records/stock",
+                help="Average historical data records per stock"
             )
         
-        # 实时性能测试
+        # Real-time performance testing
         st.markdown("---")
-        st.subheader("🧪 实时性能测试")
-        
+        st.subheader("🧪 Real-time Performance Testing")
+
         col1, col2, col3 = st.columns(3)
-        
+
         with col1:
-            if st.button("测试数据库查询", use_container_width=True):
+            if st.button("Test Database Query", use_container_width=True):
                 test_database_performance(services)
-        
+
         with col2:
-            if st.button("测试数据查询性能", use_container_width=True):
+            if st.button("Test Data Query Performance", use_container_width=True):
                 test_data_query_performance(services)
-        
+
         with col3:
-            if st.button("测试缓存性能", use_container_width=True):
+            if st.button("Test Cache Performance", use_container_width=True):
                 test_cache_performance(services)
-        
-        # 数据库详细信息
+
+        # Database detailed information
         st.markdown("---")
-        st.subheader("📈 数据库详细信息")
-        
+        st.subheader("📈 Database Detailed Information")
+
         if cache_stats:
             col1, col2 = st.columns(2)
-            
+
             with col1:
-                st.markdown("#### 📊 数据统计")
+                st.markdown("#### 📊 Data Statistics")
                 date_range = cache_stats.get('date_range', {})
-                st.write(f"**最早数据**: {date_range.get('min_date', 'N/A')}")
-                st.write(f"**最新数据**: {date_range.get('max_date', 'N/A')}")
-                st.write(f"**总资产数**: {total_assets:,}")
-                st.write(f"**总数据点**: {total_data_points:,}")
-            
+                st.write(f"**Earliest Data**: {date_range.get('min_date', 'N/A')}")
+                st.write(f"**Latest Data**: {date_range.get('max_date', 'N/A')}")
+                st.write(f"**Total Assets**: {total_assets:,}")
+                st.write(f"**Total Data Points**: {total_data_points:,}")
+
             with col2:
-                st.markdown("#### 🏆 热门资产")
+                st.markdown("#### 🏆 Popular Assets")
                 top_assets = cache_stats.get('top_assets', [])
                 if top_assets:
                     for i, asset in enumerate(top_assets[:5], 1):
-                        st.write(f"{i}. **{asset['symbol']}** - {asset['name']} ({asset['data_points']}条)")
+                        st.write(f"{i}. **{asset['symbol']}** - {asset['name']} ({asset['data_points']} records)")
                 else:
-                    st.write("暂无数据")
-        
+                    st.write("No data available")
+
     except Exception as e:
-        st.error(f"获取性能数据失败: {str(e)}")
-        st.info("请检查数据库连接状态")
+        st.error(f"Failed to get performance data: {str(e)}")
+        st.info("Please check database connection status")
 
 def test_database_performance(services):
-    """测试数据库查询性能"""
-    with st.spinner("测试数据库查询性能..."):
+    """Test database query performance"""
+    with st.spinner("Testing database query performance..."):
         try:
             mode = services.get('mode', 'unknown')
             times = []
 
-            # 进行多次测试取平均值
+            # Perform multiple tests to get average
             for i in range(5):
                 start_time = time.time()
 
                 if mode == 'full':
-                    # 完整模式：使用SQLAlchemy
+                    # Full mode: use SQLAlchemy
                     from sqlalchemy import text
                     result = services['db_session'].execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
                 elif mode == 'cloud':
-                    # 云端模式：使用SQLite直连
+                    # Cloud mode: use SQLite direct connection
                     import sqlite3
                     conn = sqlite3.connect(services['db_path'])
                     cursor = conn.cursor()
@@ -411,19 +411,19 @@ def test_database_performance(services):
             min_time = min(times)
             max_time = max(times)
 
-            st.success("✅ 数据库查询性能测试完成")
+            st.success("✅ Database query performance test completed")
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("平均响应时间", f"{avg_time:.1f}ms")
+                st.metric("Average Response Time", f"{avg_time:.1f}ms")
             with col2:
-                st.metric("最快响应时间", f"{min_time:.1f}ms")
+                st.metric("Fastest Response Time", f"{min_time:.1f}ms")
             with col3:
-                st.metric("最慢响应时间", f"{max_time:.1f}ms")
+                st.metric("Slowest Response Time", f"{max_time:.1f}ms")
 
         except Exception as e:
-            st.error(f"数据库查询测试失败: {str(e)}")
-            with st.expander("🔍 错误详情"):
+            st.error(f"Database query test failed: {str(e)}")
+            with st.expander("🔍 Error Details"):
                 st.code(str(e))
 
 def test_data_query_performance(services):
@@ -457,20 +457,20 @@ def test_data_query_performance(services):
             end_time = time.time()
             response_time = (end_time - start_time) * 1000
 
-            st.success("✅ 数据查询性能测试完成")
+            st.success("✅ Data query performance test completed")
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("响应时间", f"{response_time:.1f}ms")
+                st.metric("Response Time", f"{response_time:.1f}ms")
             with col2:
-                st.metric("数据记录数", f"{record_count}")
+                st.metric("Data Records", f"{record_count}")
             with col3:
-                status = "优秀" if response_time < 100 else "良好" if response_time < 1000 else "需优化"
-                st.metric("性能等级", status)
+                status = "Excellent" if response_time < 100 else "Good" if response_time < 1000 else "Needs Optimization"
+                st.metric("Performance Level", status)
 
         except Exception as e:
-            st.error(f"数据查询测试失败: {str(e)}")
-            with st.expander("🔍 错误详情"):
+            st.error(f"Data query test failed: {str(e)}")
+            with st.expander("🔍 Error Details"):
                 st.code(str(e))
 
 def test_cache_performance(services):
@@ -509,29 +509,29 @@ def test_cache_performance(services):
             avg_time = sum(times) / len(times)
             improvement = ((times[0] - times[-1]) / times[0] * 100) if times[0] > 0 else 0
 
-            st.success("✅ 缓存性能测试完成")
+            st.success("✅ Cache performance test completed")
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("平均响应时间", f"{avg_time:.1f}ms")
+                st.metric("Average Response Time", f"{avg_time:.1f}ms")
             with col2:
-                st.metric("首次查询", f"{times[0]:.1f}ms")
+                st.metric("First Query", f"{times[0]:.1f}ms")
             with col3:
-                st.metric("后续查询", f"{times[-1]:.1f}ms")
+                st.metric("Subsequent Queries", f"{times[-1]:.1f}ms")
 
             if improvement > 0:
-                st.info(f"🚀 缓存效果: 性能提升 {improvement:.1f}%")
+                st.info(f"🚀 Cache Effect: Performance improvement {improvement:.1f}%")
             elif mode == 'cloud':
-                st.info("💾 SQLite数据库本身提供了高效的数据缓存")
+                st.info("💾 SQLite database itself provides efficient data caching")
 
         except Exception as e:
-            st.error(f"缓存性能测试失败: {str(e)}")
-            with st.expander("🔍 错误详情"):
+            st.error(f"Cache performance test failed: {str(e)}")
+            with st.expander("🔍 Error Details"):
                 st.code(str(e))
 
-# 简化的图表创建函数
+# Simplified chart creation functions
 def create_performance_comparison_chart(cache_time, akshare_time):
-    """创建性能对比图表"""
+    """Create performance comparison chart"""
     if not ADVANCED_FEATURES:
         return None
 
@@ -539,13 +539,13 @@ def create_performance_comparison_chart(cache_time, akshare_time):
         import plotly.graph_objects as go
 
         fig = go.Figure(data=[
-            go.Bar(name='SQLite缓存', x=['响应时间'], y=[cache_time], marker_color='lightblue'),
-            go.Bar(name='AKShare直连', x=['响应时间'], y=[akshare_time], marker_color='lightcoral')
+            go.Bar(name='SQLite Cache', x=['Response Time'], y=[cache_time], marker_color='lightblue'),
+            go.Bar(name='AKShare Direct', x=['Response Time'], y=[akshare_time], marker_color='lightcoral')
         ])
 
         fig.update_layout(
-            title='响应时间对比 (毫秒)',
-            yaxis_title='响应时间 (ms)',
+            title='Response Time Comparison (milliseconds)',
+            yaxis_title='Response Time (ms)',
             barmode='group',
             height=400
         )
@@ -555,7 +555,7 @@ def create_performance_comparison_chart(cache_time, akshare_time):
         return None
 
 def create_cache_hit_pie_chart(hits, misses):
-    """创建缓存命中率饼图"""
+    """Create cache hit rate pie chart"""
     if not ADVANCED_FEATURES:
         return None
 
