@@ -169,16 +169,16 @@ session.close()
 # 运行监控系统测试
 python scripts/test_runner.py --monitoring
 
-# 运行监控工具
-python tools/monitoring/water_pool_monitor.py
-python tools/monitoring/system_performance_monitor.py
+# 运行监控系统 (已迁移到Streamlit Cloud)
+# 请使用 Streamlit Cloud 版本进行监控
+# 或直接调用核心服务: from core.services.monitoring_service import MonitoringService
 ```
 
 **测试覆盖**:
 - 🔍 监控服务单元测试 - 请求日志、数据覆盖、性能趋势
 - 🔧 监控中间件测试 - 装饰器、请求拦截、错误处理
-- 🛠️ 监控工具测试 - 水池监控、性能监控、输出验证
 - 🔗 监控集成测试 - 端到端监控流程、数据库集成
+- 📊 Streamlit Cloud监控 - Web界面监控功能
 
 **监控指标**:
 - 🏊‍♂️ 蓄水池容量和数据覆盖

@@ -62,43 +62,62 @@ class AssetInfoService:
         # Standardize symbol
         symbol = self._standardize_symbol(symbol)
 
-        # Check if asset exists
-        asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+        # 使用重试机制处理并发问题
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                # Check if asset exists (重新查询以避免并发问题)
+                asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
 
-        cache_hit = False
-        akshare_called = False
+                cache_hit = False
+                akshare_called = False
 
-        if asset:
-            logger.info(f"Asset {symbol} found in database")
-            cache_hit = True
-            # Update if data is stale (older than 1 day)
-            if self._is_asset_data_stale(asset):
-                logger.info(f"Asset {symbol} data is stale, updating...")
-                asset = self._update_asset_info(asset)
-                akshare_called = True
-                cache_hit = False  # Data was stale, so not a true cache hit
-        else:
-            logger.info(f"Asset {symbol} not found, creating new...")
-            asset = self._create_new_asset(symbol)
-            akshare_called = True
+                if asset:
+                    logger.info(f"Asset {symbol} found in database")
+                    cache_hit = True
+                    # Update if data is stale (older than 1 day)
+                    if self._is_asset_data_stale(asset):
+                        logger.info(f"Asset {symbol} data is stale, updating...")
+                        asset = self._update_asset_info(asset)
+                        akshare_called = True
+                        cache_hit = False  # Data was stale, so not a true cache hit
+                else:
+                    logger.info(f"Asset {symbol} not found, creating new...")
+                    asset = self._create_new_asset(symbol)
+                    akshare_called = True
 
-        # Calculate response time
-        response_time_ms = (time.time() - start_time) * 1000
+                # Calculate response time
+                response_time_ms = (time.time() - start_time) * 1000
 
-        # Create cache metadata
-        cache_info = {
-            "cache_hit": cache_hit,
-            "akshare_called": akshare_called,
-            "response_time_ms": response_time_ms
-        }
+                # Create cache metadata
+                cache_info = {
+                    "cache_hit": cache_hit,
+                    "akshare_called": akshare_called,
+                    "response_time_ms": response_time_ms
+                }
 
-        metadata = {
-            "cache_info": cache_info,
-            "symbol": symbol,
-            "timestamp": datetime.now().isoformat()
-        }
+                metadata = {
+                    "cache_info": cache_info,
+                    "symbol": symbol,
+                    "timestamp": datetime.now().isoformat()
+                }
 
-        return asset, metadata
+                return asset, metadata
+
+            except Exception as e:
+                logger.warning(f"Attempt {attempt + 1} failed for {symbol}: {e}")
+                if attempt == max_retries - 1:
+                    # 最后一次尝试失败，抛出异常
+                    raise
+                else:
+                    # 等待一小段时间后重试
+                    import time as time_module
+                    time_module.sleep(0.1 * (attempt + 1))  # 递增等待时间
+                    # 回滚当前事务
+                    try:
+                        self.db.rollback()
+                    except:
+                        pass
 
     def _detect_readonly_database(self) -> bool:
         """
@@ -109,15 +128,13 @@ class AssetInfoService:
         """
         import os
 
-        # 首先检查环境变量
+        # 首先检查环境变量强制设置
         if os.getenv('QUANTDB_READONLY_MODE', '').lower() in ('true', '1', 'yes'):
             logger.info("Read-only mode forced by environment variable QUANTDB_READONLY_MODE")
             return True
 
-        # 检查是否在Streamlit Cloud环境
-        if os.getenv('STREAMLIT_SHARING_MODE') or os.getenv('STREAMLIT_CLOUD'):
-            logger.info("Detected Streamlit Cloud environment, enabling read-only mode")
-            return True
+        # 注意：Streamlit Cloud运行时数据库是可写的，只有重启时才会重置
+        # 所以不应该基于环境变量自动启用只读模式
 
         try:
             # 尝试创建一个临时表来测试写权限
@@ -341,6 +358,12 @@ class AssetInfoService:
             logger.info(f"Read-only mode: creating virtual asset for {symbol}")
             return self._create_virtual_asset(symbol)
 
+        # 在创建前再次检查是否已存在（防止并发创建）
+        existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+        if existing_asset:
+            logger.info(f"Asset {symbol} already exists (concurrent creation), returning existing")
+            return existing_asset
+
         try:
             # Detect market type
             market = self._detect_market(symbol)
@@ -390,6 +413,18 @@ class AssetInfoService:
             logger.error(f"Error creating asset {symbol}: {e}")
             self.db.rollback()
 
+            # 检查是否是数据库只读错误
+            error_msg = str(e).lower()
+            if "readonly database" in error_msg or "attempt to write a readonly database" in error_msg:
+                logger.warning(f"Database is read-only, creating virtual asset for {symbol}")
+                return self._create_virtual_asset(symbol)
+
+            # 再次检查是否已存在（可能是并发创建导致的错误）
+            existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+            if existing_asset:
+                logger.info(f"Asset {symbol} exists after error (concurrent creation), returning existing")
+                return existing_asset
+
             # Detect market type for fallback
             market = self._detect_market(symbol)
 
@@ -398,29 +433,37 @@ class AssetInfoService:
                 default_exchange = 'HKEX'
                 default_currency = 'HKD'
                 default_isin = f'HK{symbol}'
+                default_name = self._get_default_hk_name(symbol)
             else:  # A_STOCK
                 default_exchange = 'SHSE' if symbol.startswith('6') else 'SZSE'
                 default_currency = 'CNY'
                 default_isin = f'CN{symbol}'
+                default_name = self._get_default_name(symbol)
 
-            # Create minimal asset as fallback
-            asset = Asset(
-                symbol=symbol,
-                name=f'Stock {symbol}',
-                isin=default_isin,
-                asset_type='stock',
-                exchange=default_exchange,
-                currency=default_currency,
-                last_updated=datetime.now(),
-                data_source='fallback'
-            )
-            
-            self.db.add(asset)
-            self.db.commit()
-            self.db.refresh(asset)
-            
-            logger.warning(f"Created fallback asset for {symbol}")
-            return asset
+            try:
+                # 尝试创建最小化的fallback资产
+                asset = Asset(
+                    symbol=symbol,
+                    name=default_name,
+                    isin=default_isin,
+                    asset_type='stock',
+                    exchange=default_exchange,
+                    currency=default_currency,
+                    last_updated=datetime.now(),
+                    data_source='fallback'
+                )
+
+                self.db.add(asset)
+                self.db.commit()
+                self.db.refresh(asset)
+
+                logger.warning(f"Created fallback asset for {symbol}")
+                return asset
+
+            except Exception as fallback_error:
+                logger.error(f"Fallback asset creation also failed for {symbol}: {fallback_error}")
+                # 如果连fallback都失败，创建虚拟资产
+                return self._create_virtual_asset(symbol)
 
     def _create_virtual_asset(self, symbol: str) -> Asset:
         """

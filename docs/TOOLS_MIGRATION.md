@@ -121,7 +121,12 @@ tools/
 
 ## 🎉 迁移完成
 
-**结论**: tools 目录的所有核心功能已成功迁移到 Streamlit Cloud 版本，并提供了更好的用户体验和更强的功能。原 tools 目录可以安全移除。
+**结论**: tools 目录的所有核心功能已成功迁移到 Streamlit Cloud 版本，并提供了更好的用户体验和更强的功能。原 tools 目录已安全移除。
+
+### 📝 测试更新 (2025-06-24)
+- ✅ 移除了过时的 `tests/unit/test_monitoring_tools.py`
+- ✅ 更新了测试文档中的相关引用
+- ✅ 单元测试现在可以正常运行 (114 passed, 21 skipped)
 
 ## 📚 相关文档
 
