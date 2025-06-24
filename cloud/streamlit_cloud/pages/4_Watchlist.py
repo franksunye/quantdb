@@ -1,7 +1,7 @@
 """
-自选股管理页面 - 云端版本
+Watchlist Management Page - Cloud Version
 
-用户可以添加、删除、管理自选股票，并进行批量查询和分析。
+Users can add, remove, manage watchlist stocks, and perform batch queries and analysis.
 """
 
 import streamlit as st
@@ -12,12 +12,12 @@ from datetime import datetime, date, timedelta
 import sys
 from pathlib import Path
 
-# 添加项目根目录到Python路径以访问core模块
+# Add project root directory to Python path to access core modules
 current_dir = Path(__file__).parent.parent
 project_root = current_dir.parent  # 回到QuantDB根目录
 sys.path.insert(0, str(project_root))
 
-# 导入工具组件
+# Import utility components
 try:
     from utils.charts import create_price_chart, calculate_basic_metrics
     from utils.config import config
@@ -26,41 +26,41 @@ try:
 except ImportError:
     ADVANCED_FEATURES = False
 
-# 页面配置
+# Page configuration
 st.set_page_config(
     page_title="Watchlist - QuantDB",
     page_icon="📊",
     layout="wide"
 )
 
-# 自选股数据文件路径
+# Watchlist data file path
 WATCHLIST_FILE = current_dir / "data" / "watchlist.json"
 
 @st.cache_data
 def load_watchlist():
-    """加载自选股列表"""
+    """Load watchlist"""
     try:
-        # 确保数据目录存在
+        # Ensure data directory exists
         WATCHLIST_FILE.parent.mkdir(exist_ok=True)
         
         if WATCHLIST_FILE.exists():
             with open(WATCHLIST_FILE, 'r', encoding='utf-8') as f:
                 return json.load(f)
         else:
-            # 默认自选股
+            # Default watchlist
             default_watchlist = {
-                "600000": {"name": "浦发银行", "added_date": "2024-01-01"},
-                "000001": {"name": "平安银行", "added_date": "2024-01-01"},
-                "600519": {"name": "贵州茅台", "added_date": "2024-01-01"}
+                "600000": {"name": "SPDB", "added_date": "2024-01-01"},
+                "000001": {"name": "PAB", "added_date": "2024-01-01"},
+                "600519": {"name": "Kweichow Moutai", "added_date": "2024-01-01"}
             }
             save_watchlist(default_watchlist)
             return default_watchlist
     except Exception as e:
-        st.error(f"加载自选股失败: {str(e)}")
+        st.error(f"Failed to load watchlist: {str(e)}")
         return {}
 
 def save_watchlist(watchlist):
-    """保存自选股列表"""
+    """Save watchlist"""
     try:
         WATCHLIST_FILE.parent.mkdir(exist_ok=True)
         with open(WATCHLIST_FILE, 'w', encoding='utf-8') as f:
@@ -93,34 +93,34 @@ def init_services():
 def main():
     """主页面函数"""
     
-    # 页面标题
-    st.title("🎯 自选股管理")
-    st.markdown("管理您的自选股票，进行批量分析和监控")
+    # Page title
+    st.title("🎯 Watchlist Management")
+    st.markdown("Manage your watchlist stocks, perform batch analysis and monitoring")
     st.markdown("---")
     
     # 初始化服务
     services = init_services()
     if not services:
-        st.error("❌ 服务初始化失败，请刷新页面重试")
+        st.error("❌ Service initialization failed, please refresh the page and try again")
         return
     
     # 加载自选股数据
     if 'watchlist' not in st.session_state:
         st.session_state.watchlist = load_watchlist()
     
-    # 侧边栏 - 管理操作
+    # Sidebar - Management operations
     with st.sidebar:
-        st.header("📝 自选股管理")
-        
-        # 添加股票
-        st.subheader("➕ 添加股票")
+        st.header("📝 Watchlist Management")
+
+        # Add stock
+        st.subheader("➕ Add Stock")
         new_symbol = st.text_input(
-            "股票代码",
-            placeholder="输入6位股票代码",
-            help="例如: 600000, 000001"
+            "Stock Code",
+            placeholder="Enter 6-digit stock code",
+            help="e.g.: 600000, 000001"
         )
-        
-        if st.button("添加到自选股", use_container_width=True):
+
+        if st.button("Add to Watchlist", use_container_width=True):
             add_to_watchlist(new_symbol, services)
         
         # 推荐股票

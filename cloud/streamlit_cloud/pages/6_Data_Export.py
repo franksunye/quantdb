@@ -1,7 +1,8 @@
 """
-数据导出页面 - 云端版本
+Data Export Page - Cloud Version
 
-提供股票数据的导出功能，支持CSV、Excel格式，可自定义导出范围和格式。
+Provides stock data export functionality, supports CSV and Excel formats,
+with customizable export range and format options.
 """
 
 import streamlit as st
@@ -97,9 +98,9 @@ def init_services():
 def main():
     """主页面函数"""
     
-    # 页面标题
-    st.title("📤 数据导出")
-    st.markdown("导出股票数据、资产信息和自选股列表")
+    # Page title
+    st.title("📤 Data Export")
+    st.markdown("Export stock data, asset information and watchlist")
     st.markdown("---")
     
     # 初始化服务

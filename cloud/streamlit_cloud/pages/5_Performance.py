@@ -1,7 +1,7 @@
 """
-性能监控页面 - 云端版本
+Performance Monitoring Page - Cloud Version
 
-展示系统性能指标、缓存命中率和响应时间监控。
+Display system performance metrics, cache hit rates and response time monitoring.
 """
 
 import streamlit as st
@@ -114,9 +114,9 @@ def init_services():
 def main():
     """主页面函数"""
     
-    # 页面标题
-    st.title("⚡ 性能监控")
-    st.markdown("监控系统性能指标、缓存效率和响应时间")
+    # Page title
+    st.title("⚡ Performance Monitoring")
+    st.markdown("Monitor system performance metrics, cache efficiency and response time")
     st.markdown("---")
     
     # 初始化服务
