@@ -281,27 +281,27 @@ def display_watchlist_overview():
                 if st.button("🗑️ Remove", key=f"remove_{row['Stock Code']}"):
                     remove_from_watchlist(row['Stock Code'])
     
-    # 显示选中股票的详细信息
+    # Display selected stock details
     if st.session_state.get('show_stock_detail', False) and st.session_state.get('selected_stock'):
         display_stock_detail(st.session_state.selected_stock)
 
 def display_stock_detail(symbol):
-    """显示股票详细信息"""
+    """Display stock detailed information"""
 
     st.markdown("---")
-    st.subheader(f"📈 {st.session_state.watchlist[symbol]['name']} ({symbol}) 详细信息")
+    st.subheader(f"📈 {st.session_state.watchlist[symbol]['name']} ({symbol}) Details")
 
     try:
         services = init_services()
         if not services:
-            st.error("服务初始化失败")
+            st.error("Service initialization failed")
             return
 
-        # 获取最近7天数据
+        # Get last 7 days data
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=7)
 
-        with st.spinner("获取股票数据..."):
+        with st.spinner("Getting stock data..."):
             stock_data = services['stock_service'].get_stock_data(
                 symbol=symbol,
                 start_date=start_date.strftime('%Y%m%d'),
@@ -338,26 +338,26 @@ def display_stock_detail(symbol):
             col1, col2, col3, col4 = st.columns(4)
 
             with col1:
-                st.metric("最新价格", f"¥{metrics.get('latest_price', 0):.2f}")
+                st.metric("Latest Price", f"¥{metrics.get('latest_price', 0):.2f}")
 
             with col2:
                 change = metrics.get('price_change', 0)
-                st.metric("涨跌幅", f"{change:.2f}%", delta=f"{change:.2f}%")
+                st.metric("Price Change", f"{change:.2f}%", delta=f"{change:.2f}%")
 
             with col3:
-                st.metric("最高价", f"¥{metrics.get('high_price', 0):.2f}")
+                st.metric("High Price", f"¥{metrics.get('high_price', 0):.2f}")
 
             with col4:
-                st.metric("最低价", f"¥{metrics.get('low_price', 0):.2f}")
+                st.metric("Low Price", f"¥{metrics.get('low_price', 0):.2f}")
 
-            # 价格图表
-            st.markdown("#### 📊 价格趋势")
+            # Price chart
+            st.markdown("#### 📊 Price Trend")
             if ADVANCED_FEATURES:
-                price_chart = create_price_chart(df, f"{symbol} 价格趋势")
+                price_chart = create_price_chart(df, f"{symbol} Price Trend")
             else:
-                # 简单图表
+                # Simple chart
                 import plotly.express as px
-                price_chart = px.line(df, x='trade_date', y='close', title=f"{symbol} 价格趋势")
+                price_chart = px.line(df, x='trade_date', y='close', title=f"{symbol} Price Trend")
 
             st.plotly_chart(price_chart, use_container_width=True)
 

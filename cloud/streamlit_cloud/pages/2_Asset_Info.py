@@ -694,7 +694,7 @@ def display_data_coverage(symbol: str):
         from datetime import date, timedelta
         from sqlalchemy import func
 
-        # 获取数据库会话
+        # Get database session
         db_session = next(get_db())
 
         try:
@@ -704,7 +704,7 @@ def display_data_coverage(symbol: str):
                 st.info("📝 No asset information available, please query this stock first")
                 return
 
-            # 查询最近30天的数据覆盖情况
+            # Query data coverage for last 30 days
             end_date = date.today()
             start_date = end_date - timedelta(days=30)
 
@@ -714,7 +714,7 @@ def display_data_coverage(symbol: str):
                 DailyStockData.trade_date <= end_date
             ).scalar()
 
-            # 获取数据范围
+            # Get data range
             first_record = db_session.query(DailyStockData).filter(
                 DailyStockData.asset_id == asset.asset_id
             ).order_by(DailyStockData.trade_date.asc()).first()
@@ -780,7 +780,7 @@ def format_datetime(dt_obj):
                 except ValueError:
                     continue
 
-        # 其他情况直接转换为字符串
+        # Other cases: convert directly to string
         return str(dt_obj)
     except Exception:
         return "N/A"
