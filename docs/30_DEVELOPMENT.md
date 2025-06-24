@@ -93,8 +93,8 @@ python scripts/test_runner.py --unit --api
 # 运行相关测试
 python scripts/test_runner.py --file tests/unit/test_your_module.py
 
-# 运行监控系统测试
-python scripts/test_runner.py --monitoring --verbose
+# 运行监控系统测试 (Core服务测试)
+python scripts/test_runner.py --unit --verbose
 
 # 运行完整测试套件
 python scripts/test_runner.py --all --verbose
@@ -102,11 +102,18 @@ python scripts/test_runner.py --all --verbose
 
 ### 3. 系统监控
 ```bash
-# 检查蓄水池状态
-python tools/monitoring/water_pool_monitor.py
+# 监控功能已迁移到 Streamlit Cloud
+# 使用 Web 界面进行监控: cloud/streamlit_cloud/pages/3_System_Status.py
 
-# 性能基准测试 (开发完成后)
-python tools/monitoring/system_performance_monitor.py
+# 或直接调用核心服务
+python -c "
+from core.services.monitoring_service import MonitoringService
+from core.database import get_db
+db = next(get_db())
+monitor = MonitoringService(db)
+status = monitor.get_water_pool_status()
+print(status)
+"
 ```
 
 ### 4. 提交代码
