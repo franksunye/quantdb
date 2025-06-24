@@ -104,10 +104,10 @@ def main():
         st.error("❌ Service initialization failed, please refresh the page and try again")
         return
     
-    # 加载自选股数据
+    # Load watchlist data
     if 'watchlist' not in st.session_state:
         st.session_state.watchlist = load_watchlist()
-    
+
     # Sidebar - Management operations
     with st.sidebar:
         st.header("📝 Watchlist Management")
@@ -122,73 +122,73 @@ def main():
 
         if st.button("Add to Watchlist", use_container_width=True):
             add_to_watchlist(new_symbol, services)
-        
-        # 推荐股票
+
+        # Recommended stocks
         if ADVANCED_FEATURES:
-            st.subheader("💡 推荐股票")
+            st.subheader("💡 Recommended Stocks")
             recommendations = get_stock_recommendations()
             for rec in recommendations[:3]:
                 if st.button(f"{rec['symbol']} - {rec['name']}", key=f"rec_{rec['symbol']}"):
                     add_to_watchlist(rec['symbol'], services)
-        
+
         st.markdown("---")
-        
-        # 批量操作
-        st.subheader("🔄 批量操作")
-        
-        if st.button("📊 批量查询数据", use_container_width=True):
+
+        # Batch operations
+        st.subheader("🔄 Batch Operations")
+
+        if st.button("📊 Batch Query Data", use_container_width=True):
             st.session_state.batch_query = True
-        
-        if st.button("📤 导出自选股", use_container_width=True):
+
+        if st.button("📤 Export Watchlist", use_container_width=True):
             export_watchlist()
-        
-        if st.button("🗑️ 清空自选股", use_container_width=True):
+
+        if st.button("🗑️ Clear Watchlist", use_container_width=True):
             if st.session_state.get('confirm_clear', False):
                 st.session_state.watchlist = {}
                 save_watchlist({})
-                st.success("自选股已清空")
+                st.success("Watchlist cleared")
                 st.session_state.confirm_clear = False
                 st.rerun()
             else:
                 st.session_state.confirm_clear = True
-                st.warning("再次点击确认清空")
+                st.warning("Click again to confirm clearing")
     
-    # 主内容区域
+    # Main content area
     display_watchlist_overview()
-    
-    # 批量查询结果
+
+    # Batch query results
     if st.session_state.get('batch_query', False):
         display_batch_query_results(services)
         st.session_state.batch_query = False
 
 def add_to_watchlist(symbol, services):
-    """添加股票到自选股"""
+    """Add stock to watchlist"""
     if not symbol:
-        st.error("请输入股票代码")
+        st.error("Please enter stock code")
         return
-    
-    # 验证股票代码
+
+    # Validate stock code
     if ADVANCED_FEATURES:
         validation_result = validate_stock_code(symbol)
         if not validation_result['is_valid']:
-            st.error("请输入有效的股票代码（6位数字）")
+            st.error("Please enter valid stock code (6 digits)")
             return
         symbol = symbol.strip()
     else:
         if not config.validate_symbol(symbol):
-            st.error("请输入有效的股票代码（6位数字）")
+            st.error("Please enter valid stock code (6 digits)")
             return
         symbol = config.normalize_symbol(symbol)
-    
-    # 检查是否已存在
+
+    # Check if already exists
     if symbol in st.session_state.watchlist:
-        st.warning(f"股票 {symbol} 已在自选股中")
+        st.warning(f"Stock {symbol} is already in watchlist")
         return
-    
-    # 获取股票信息
+
+    # Get stock information
     try:
         asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
-        
+
         if asset_info:
             stock_name = asset_info.name
             st.session_state.watchlist[symbol] = {
@@ -196,40 +196,40 @@ def add_to_watchlist(symbol, services):
                 "added_date": datetime.now().strftime("%Y-%m-%d")
             }
             save_watchlist(st.session_state.watchlist)
-            st.success(f"✅ 已添加 {stock_name} ({symbol}) 到自选股")
+            st.success(f"✅ Added {stock_name} ({symbol}) to watchlist")
             st.rerun()
         else:
-            st.error(f"未找到股票 {symbol} 的信息")
-    
+            st.error(f"Stock {symbol} information not found")
+
     except Exception as e:
-        st.error(f"添加股票失败: {str(e)}")
+        st.error(f"Failed to add stock: {str(e)}")
 
 def remove_from_watchlist(symbol):
-    """从自选股中移除股票"""
+    """Remove stock from watchlist"""
     if symbol in st.session_state.watchlist:
         stock_name = st.session_state.watchlist[symbol]['name']
         del st.session_state.watchlist[symbol]
         save_watchlist(st.session_state.watchlist)
-        st.success(f"✅ 已移除 {stock_name} ({symbol})")
+        st.success(f"✅ Removed {stock_name} ({symbol})")
         st.rerun()
 
 def display_watchlist_overview():
-    """显示自选股概览"""
-    
-    st.subheader("📋 我的自选股")
-    
+    """Display watchlist overview"""
+
+    st.subheader("📋 My Watchlist")
+
     if not st.session_state.watchlist:
-        st.info("暂无自选股，请在左侧添加股票")
+        st.info("No stocks in watchlist, please add stocks on the left")
         return
-    
-    # 自选股统计
+
+    # Watchlist statistics
     col1, col2, col3 = st.columns(3)
-    
+
     with col1:
-        st.metric("自选股数量", len(st.session_state.watchlist))
-    
+        st.metric("Watchlist Count", len(st.session_state.watchlist))
+
     with col2:
-        # 计算平均持有天数
+        # Calculate average holding days
         today = datetime.now()
         total_days = 0
         for stock in st.session_state.watchlist.values():
@@ -237,49 +237,49 @@ def display_watchlist_overview():
             days = (today - added_date).days
             total_days += days
         avg_days = total_days // len(st.session_state.watchlist) if st.session_state.watchlist else 0
-        st.metric("平均关注天数", f"{avg_days}天")
-    
+        st.metric("Average Watch Days", f"{avg_days} days")
+
     with col3:
         latest_added = max(st.session_state.watchlist.values(), key=lambda x: x['added_date'])['added_date']
-        st.metric("最新添加", latest_added)
+        st.metric("Latest Added", latest_added)
     
-    # 自选股列表
-    st.markdown("### 📊 股票列表")
-    
-    # 创建表格数据
+    # Stock list
+    st.markdown("### 📊 Stock List")
+
+    # Create table data
     table_data = []
     for symbol, info in st.session_state.watchlist.items():
         table_data.append({
-            "股票代码": symbol,
-            "股票名称": info['name'],
-            "添加日期": info['added_date'],
-            "操作": symbol
+            "Stock Code": symbol,
+            "Stock Name": info['name'],
+            "Added Date": info['added_date'],
+            "Actions": symbol
         })
-    
+
     if table_data:
         df = pd.DataFrame(table_data)
-        
-        # 显示表格
+
+        # Display table
         for idx, row in df.iterrows():
             col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 1, 1])
-            
+
             with col1:
-                st.write(row['股票代码'])
-            
+                st.write(row['Stock Code'])
+
             with col2:
-                st.write(row['股票名称'])
-            
+                st.write(row['Stock Name'])
+
             with col3:
-                st.write(row['添加日期'])
-            
+                st.write(row['Added Date'])
+
             with col4:
-                if st.button("📈 查看", key=f"view_{row['股票代码']}"):
-                    st.session_state.selected_stock = row['股票代码']
+                if st.button("📈 View", key=f"view_{row['Stock Code']}"):
+                    st.session_state.selected_stock = row['Stock Code']
                     st.session_state.show_stock_detail = True
-            
+
             with col5:
-                if st.button("🗑️ 移除", key=f"remove_{row['股票代码']}"):
-                    remove_from_watchlist(row['股票代码'])
+                if st.button("🗑️ Remove", key=f"remove_{row['Stock Code']}"):
+                    remove_from_watchlist(row['Stock Code'])
     
     # 显示选中股票的详细信息
     if st.session_state.get('show_stock_detail', False) and st.session_state.get('selected_stock'):
