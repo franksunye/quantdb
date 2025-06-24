@@ -98,7 +98,7 @@ async def get_swagger_ui_v2():
     )
 
 # Import and include routers
-from api.routes import assets, stocks, cache, batch, version
+from api.routes import assets, stocks, cache, batch, version, asset_management
 
 app.include_router(
     assets.router,
@@ -142,6 +142,13 @@ app.include_router(
     version.router,
     prefix="/api/v2/version",
     tags=["version-v2"]
+)
+
+# Add asset management router
+app.include_router(
+    asset_management.router,
+    prefix=f"{API_PREFIX}/management",
+    tags=["asset-management"]
 )
 
 if __name__ == "__main__":

@@ -39,10 +39,6 @@ class AssetInfoService:
             db: Database session
         """
         self.db = db
-        # 港股基础信息缓存
-        self._hk_stock_cache = {}
-        self._hk_cache_timestamp = None
-        self._hk_cache_ttl = timedelta(hours=1)  # 缓存1小时
         logger.info("Asset info service initialized")
 
     def get_or_create_asset(self, symbol: str) -> tuple[Asset, dict]:
@@ -99,34 +95,153 @@ class AssetInfoService:
 
         return asset, metadata
 
-    def _is_hk_cache_valid(self) -> bool:
-        """检查港股缓存是否有效"""
-        if not self._hk_cache_timestamp:
-            return False
-        return datetime.now() - self._hk_cache_timestamp < self._hk_cache_ttl
+    def bulk_import_hk_stocks(self, force_update: bool = False) -> dict:
+        """
+        批量导入港股数据到Assets表
 
-    def _get_hk_stock_from_cache(self, symbol: str) -> Optional[str]:
-        """从缓存中获取港股名称"""
-        if self._is_hk_cache_valid() and symbol in self._hk_stock_cache:
-            logger.info(f"Found HK stock {symbol} in cache: {self._hk_stock_cache[symbol]}")
-            return self._hk_stock_cache[symbol]
-        return None
+        Args:
+            force_update: 是否强制更新已存在的股票
 
-    def _update_hk_cache(self, hk_data: pd.DataFrame):
-        """更新港股缓存"""
+        Returns:
+            导入结果统计
+        """
+        logger.info("Starting bulk import of HK stocks")
+        start_time = time.time()
+
         try:
-            if not hk_data.empty and '代码' in hk_data.columns and '名称' in hk_data.columns:
-                # 清空旧缓存
-                self._hk_stock_cache.clear()
-                # 更新缓存
-                for _, row in hk_data.iterrows():
-                    self._hk_stock_cache[row['代码']] = row['名称']
-                self._hk_cache_timestamp = datetime.now()
-                logger.info(f"Updated HK stock cache with {len(self._hk_stock_cache)} stocks")
-            else:
-                logger.warning("Invalid HK data format for cache update")
+            # 获取港股数据
+            logger.info("Fetching HK stock data from AKShare")
+            hk_data = ak.stock_hk_spot_em()
+
+            if hk_data.empty or '代码' not in hk_data.columns or '名称' not in hk_data.columns:
+                logger.error("Invalid HK stock data format")
+                return {"success": False, "error": "Invalid data format"}
+
+            total_stocks = len(hk_data)
+            created_count = 0
+            updated_count = 0
+            skipped_count = 0
+
+            logger.info(f"Processing {total_stocks} HK stocks")
+
+            for _, row in hk_data.iterrows():
+                symbol = row['代码']
+                name = row['名称']
+
+                try:
+                    # 检查是否已存在
+                    existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+
+                    if existing_asset:
+                        if force_update:
+                            # 更新现有记录
+                            existing_asset.name = name
+                            existing_asset.last_updated = datetime.now()
+                            existing_asset.data_source = 'akshare_bulk'
+                            updated_count += 1
+                            logger.debug(f"Updated HK stock {symbol}: {name}")
+                        else:
+                            # 跳过已存在的记录
+                            skipped_count += 1
+                            logger.debug(f"Skipped existing HK stock {symbol}: {name}")
+                    else:
+                        # 创建新记录
+                        new_asset = Asset(
+                            symbol=symbol,
+                            name=name,
+                            isin=f'HK{symbol}',
+                            asset_type='stock',
+                            exchange='HKEX',
+                            currency='HKD',
+                            last_updated=datetime.now(),
+                            data_source='akshare_bulk'
+                        )
+                        self.db.add(new_asset)
+                        created_count += 1
+                        logger.debug(f"Created HK stock {symbol}: {name}")
+
+                except Exception as e:
+                    logger.error(f"Error processing HK stock {symbol}: {e}")
+                    continue
+
+            # 提交所有更改
+            self.db.commit()
+
+            elapsed_time = time.time() - start_time
+            result = {
+                "success": True,
+                "total_stocks": total_stocks,
+                "created": created_count,
+                "updated": updated_count,
+                "skipped": skipped_count,
+                "elapsed_time": elapsed_time
+            }
+
+            logger.info(f"Bulk import completed: {result}")
+            return result
+
         except Exception as e:
-            logger.error(f"Error updating HK cache: {e}")
+            logger.error(f"Error in bulk import: {e}")
+            self.db.rollback()
+            return {"success": False, "error": str(e)}
+
+    def refresh_hk_stock(self, symbol: str) -> bool:
+        """
+        强制刷新单个港股信息
+
+        Args:
+            symbol: 股票代码
+
+        Returns:
+            是否成功刷新
+        """
+        logger.info(f"Force refreshing HK stock: {symbol}")
+
+        try:
+            # 获取最新数据
+            hk_data = ak.stock_hk_spot_em()
+
+            if hk_data.empty or '代码' not in hk_data.columns or '名称' not in hk_data.columns:
+                logger.error("Invalid HK stock data format")
+                return False
+
+            # 查找目标股票
+            symbol_data = hk_data[hk_data['代码'] == symbol]
+            if symbol_data.empty:
+                logger.warning(f"HK stock {symbol} not found in AKShare data")
+                return False
+
+            name = symbol_data.iloc[0]['名称']
+
+            # 更新或创建Asset
+            existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+
+            if existing_asset:
+                existing_asset.name = name
+                existing_asset.last_updated = datetime.now()
+                existing_asset.data_source = 'akshare_refresh'
+                logger.info(f"Updated HK stock {symbol}: {name}")
+            else:
+                new_asset = Asset(
+                    symbol=symbol,
+                    name=name,
+                    isin=f'HK{symbol}',
+                    asset_type='stock',
+                    exchange='HKEX',
+                    currency='HKD',
+                    last_updated=datetime.now(),
+                    data_source='akshare_refresh'
+                )
+                self.db.add(new_asset)
+                logger.info(f"Created HK stock {symbol}: {name}")
+
+            self.db.commit()
+            return True
+
+        except Exception as e:
+            logger.error(f"Error refreshing HK stock {symbol}: {e}")
+            self.db.rollback()
+            return False
 
     def get_asset(self, symbol: str) -> Asset:
         """
@@ -348,63 +463,47 @@ class AssetInfoService:
                     logger.info(f"Successfully fetched individual info for {symbol}: {asset_info['name']}")
 
             elif market == 'HK_STOCK':
-                # For Hong Kong stocks, try to get real data from AKShare with caching
+                # For Hong Kong stocks, prioritize database over API calls
                 logger.info(f"Processing Hong Kong stock {symbol}")
 
-                # 首先尝试从缓存获取
-                cached_name = self._get_hk_stock_from_cache(symbol)
-                if cached_name:
-                    asset_info['name'] = cached_name
+                # 首先检查数据库中是否已有港股数据
+                existing_hk_asset = self.db.query(Asset).filter(
+                    Asset.symbol == symbol,
+                    Asset.exchange == 'HKEX'
+                ).first()
+
+                if existing_hk_asset and existing_hk_asset.name:
+                    # 从数据库获取股票名称
+                    asset_info['name'] = existing_hk_asset.name
+                    logger.info(f"Found HK stock {symbol} in database: {asset_info['name']}")
                 else:
-                    # 缓存未命中，需要从API获取
-                    try:
-                        # 优先尝试获取全量EM数据并更新缓存
-                        logger.info(f"Cache miss for HK stock {symbol}, fetching from stock_hk_spot_em")
-                        hk_em_data = ak.stock_hk_spot_em()
+                    # 数据库中没有，检查是否需要批量导入
+                    hk_assets_count = self.db.query(Asset).filter(Asset.exchange == 'HKEX').count()
 
-                        if not hk_em_data.empty and '代码' in hk_em_data.columns and '名称' in hk_em_data.columns:
-                            # 更新缓存
-                            self._update_hk_cache(hk_em_data)
+                    if hk_assets_count < 1000:  # 如果港股数据太少，触发批量导入
+                        logger.info(f"HK assets count ({hk_assets_count}) is low, triggering bulk import")
+                        bulk_result = self.bulk_import_hk_stocks(force_update=False)
 
-                            # 从缓存中获取当前股票信息
-                            cached_name = self._get_hk_stock_from_cache(symbol)
-                            if cached_name:
-                                asset_info['name'] = cached_name
-                                logger.info(f"Found HK stock info from EM data for {symbol}: {asset_info['name']}")
-                            else:
-                                # 如果在EM数据中没找到，尝试spot数据
-                                logger.info(f"HK stock {symbol} not found in EM data, trying spot data")
-                                hk_spot_data = ak.stock_hk_spot()
-                                if not hk_spot_data.empty and 'symbol' in hk_spot_data.columns and 'name' in hk_spot_data.columns:
-                                    symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
-                                    if not symbol_data.empty:
-                                        asset_info['name'] = symbol_data.iloc[0]['name']
-                                        logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
-                                    else:
-                                        asset_info['name'] = self._get_default_hk_name(symbol)
-                                        logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
-                                else:
-                                    asset_info['name'] = self._get_default_hk_name(symbol)
-                                    logger.warning(f"HK spot data is empty, using default for {symbol}")
-                        else:
-                            # EM数据获取失败，尝试spot数据
-                            logger.warning(f"EM data unavailable, trying spot data for {symbol}")
-                            hk_spot_data = ak.stock_hk_spot()
-                            if not hk_spot_data.empty and 'symbol' in hk_spot_data.columns and 'name' in hk_spot_data.columns:
-                                symbol_data = hk_spot_data[hk_spot_data['symbol'] == symbol]
-                                if not symbol_data.empty:
-                                    asset_info['name'] = symbol_data.iloc[0]['name']
-                                    logger.info(f"Found HK stock info from spot data for {symbol}: {asset_info['name']}")
-                                else:
-                                    asset_info['name'] = self._get_default_hk_name(symbol)
-                                    logger.info(f"HK stock {symbol} not found in spot data, using default: {asset_info['name']}")
+                        if bulk_result.get('success'):
+                            # 重新查询数据库
+                            existing_hk_asset = self.db.query(Asset).filter(
+                                Asset.symbol == symbol,
+                                Asset.exchange == 'HKEX'
+                            ).first()
+
+                            if existing_hk_asset and existing_hk_asset.name:
+                                asset_info['name'] = existing_hk_asset.name
+                                logger.info(f"Found HK stock {symbol} after bulk import: {asset_info['name']}")
                             else:
                                 asset_info['name'] = self._get_default_hk_name(symbol)
-                                logger.warning(f"All HK data sources failed, using default for {symbol}")
-
-                    except Exception as e:
-                        logger.warning(f"Error fetching HK data for {symbol}: {e}")
+                                logger.info(f"HK stock {symbol} not found after bulk import, using default: {asset_info['name']}")
+                        else:
+                            asset_info['name'] = self._get_default_hk_name(symbol)
+                            logger.warning(f"Bulk import failed for {symbol}, using default: {asset_info['name']}")
+                    else:
+                        # 数据库中有足够的港股数据，但没找到当前股票，使用默认名称
                         asset_info['name'] = self._get_default_hk_name(symbol)
+                        logger.info(f"HK stock {symbol} not found in database, using default: {asset_info['name']}")
 
                 asset_info['exchange'] = 'HKEX'
                 asset_info['currency'] = 'HKD'
