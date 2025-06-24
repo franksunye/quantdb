@@ -88,8 +88,8 @@ def init_services():
             }
 
     except Exception as e:
-        st.error(f"服务初始化失败: {e}")
-        # 返回最小服务对象
+        st.error(f"Service initialization failed: {e}")
+        # Return minimal service object
         return {
             'mode': 'minimal',
             'error': str(e)
@@ -109,111 +109,111 @@ def main():
         st.error("❌ Service initialization failed, please refresh the page and try again")
         return
 
-    # 显示运行模式
+    # Display running mode
     mode = services.get('mode', 'unknown')
     if mode == 'full':
-        st.info("🖥️ 运行模式: 完整模式 (使用core服务)")
+        st.info("🖥️ Running Mode: Full Mode (using core services)")
     elif mode == 'cloud':
-        st.info("☁️ 运行模式: 云端模式 (SQLite直连)")
+        st.info("☁️ Running Mode: Cloud Mode (SQLite direct connection)")
     elif mode == 'minimal':
-        st.warning("⚠️ 运行模式: 最小模式 (功能受限)")
-        st.error(f"初始化错误: {services.get('error', '未知错误')}")
+        st.warning("⚠️ Running Mode: Minimal Mode (limited functionality)")
+        st.error(f"Initialization error: {services.get('error', 'Unknown error')}")
 
-    # Excel支持提示
+    # Excel support notice
     if not EXCEL_SUPPORT:
-        st.warning("⚠️ Excel导出功能不可用，请使用CSV格式")
-    
-    # 导出选项
-    st.subheader("📋 导出配置")
-    
+        st.warning("⚠️ Excel export function unavailable, please use CSV format")
+
+    # Export options
+    st.subheader("📋 Export Configuration")
+
     col1, col2 = st.columns(2)
-    
+
     with col1:
-        # 数据类型选择
+        # Data type selection
         export_type = st.selectbox(
-            "导出数据类型",
-            ["股票历史数据", "资产信息", "自选股列表"],
-            help="选择要导出的数据类型"
+            "Export Data Type",
+            ["Stock Historical Data", "Asset Information", "Watchlist"],
+            help="Select the type of data to export"
         )
-        
-        # 导出格式
+
+        # Export format
         export_format = st.selectbox(
-            "导出格式",
+            "Export Format",
             ["CSV", "Excel"],
-            help="选择导出文件格式"
+            help="Select export file format"
         )
     
     with col2:
-        # 股票代码输入（仅对股票数据有效）
-        if export_type in ["股票历史数据", "资产信息"]:
+        # Stock code input (only for stock data)
+        if export_type in ["Stock Historical Data", "Asset Information"]:
             symbols_input = st.text_area(
-                "股票代码",
+                "Stock Codes",
                 value="600000\n000001\n600519",
-                help="每行输入一个股票代码，支持批量导出",
+                help="Enter one stock code per line, supports batch export",
                 height=100
             )
-            
-            # 解析股票代码
+
+            # Parse stock codes
             symbols = [s.strip() for s in symbols_input.split('\n') if s.strip()]
-            
-            # 简化的股票代码验证
+
+            # Simplified stock code validation
             valid_symbols = []
             for symbol in symbols:
-                # 基本验证：5-6位数字
+                # Basic validation: 5-6 digits
                 if symbol.isdigit() and 5 <= len(symbol) <= 6:
                     valid_symbols.append(symbol)
                 else:
-                    st.warning(f"⚠️ 无效股票代码: {symbol}")
+                    st.warning(f"⚠️ Invalid stock code: {symbol}")
 
             symbols = valid_symbols
-            
+
             if symbols:
-                st.success(f"✅ 有效股票代码: {len(symbols)}个")
-                st.write("股票列表:", ", ".join(symbols))
+                st.success(f"✅ Valid stock codes: {len(symbols)} codes")
+                st.write("Stock list:", ", ".join(symbols))
             else:
-                st.error("❌ 请输入有效的股票代码")
-        
-        # 日期范围（仅对历史数据有效）
-        if export_type == "股票历史数据":
-            st.markdown("**日期范围**")
-            
+                st.error("❌ Please enter valid stock codes")
+
+        # Date range (only for historical data)
+        if export_type == "Stock Historical Data":
+            st.markdown("**Date Range**")
+
             col_start, col_end = st.columns(2)
             with col_start:
                 start_date = st.date_input(
-                    "开始日期",
+                    "Start Date",
                     value=date.today() - timedelta(days=30),
                     max_value=date.today()
                 )
-            
+
             with col_end:
                 end_date = st.date_input(
-                    "结束日期",
+                    "End Date",
                     value=date.today(),
                     max_value=date.today()
                 )
     
-    # 导出按钮
+    # Export button
     st.markdown("---")
-    
-    if st.button("🚀 开始导出", type="primary", use_container_width=True):
-        if export_type == "股票历史数据":
+
+    if st.button("🚀 Start Export", type="primary", use_container_width=True):
+        if export_type == "Stock Historical Data":
             if symbols and start_date < end_date:
                 export_stock_data(symbols, start_date, end_date, export_format, services)
             else:
-                st.error("请检查股票代码和日期范围")
-        
-        elif export_type == "资产信息":
+                st.error("Please check stock codes and date range")
+
+        elif export_type == "Asset Information":
             if symbols:
                 export_asset_info(symbols, export_format, services)
             else:
-                st.error("请输入有效的股票代码")
-        
-        elif export_type == "自选股列表":
+                st.error("Please enter valid stock codes")
+
+        elif export_type == "Watchlist":
             export_watchlist(export_format)
-    
-    # 导出历史
+
+    # Export history
     st.markdown("---")
-    st.subheader("📁 导出历史")
+    st.subheader("📁 Export History")
     display_export_history()
 
 def export_stock_data(symbols, start_date, end_date, export_format, services):
