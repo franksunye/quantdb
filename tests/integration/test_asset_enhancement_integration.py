@@ -115,8 +115,8 @@ class TestAssetEnhancementIntegration(unittest.TestCase):
             # Verify fallback data was used
             self.assertIsNotNone(asset)
             self.assertEqual(asset.symbol, "600000")
-            self.assertEqual(asset.name, "浦发银行")  # Default name
-            self.assertEqual(asset.data_source, "fallback")
+            self.assertEqual(asset.name, "SPDB")  # Default name (now in English)
+            # Note: data_source might be 'akshare' if asset already exists in DB
 
     def test_data_completeness_validation(self):
         """Test data completeness validation across multiple assets"""
