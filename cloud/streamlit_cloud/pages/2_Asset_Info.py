@@ -35,9 +35,12 @@ st.set_page_config(
     layout="wide"
 )
 
-@st.cache_resource
 def init_services():
     """Initialize backend services"""
+    # Check if services are already cached in session state
+    if 'asset_services' in st.session_state:
+        return st.session_state['asset_services']
+
     try:
         # Get database session
         db_session = next(get_db())
@@ -46,7 +49,11 @@ def init_services():
         asset_service = AssetInfoService(db_session)
         query_service = QueryService(db_session)
 
-        return asset_service, query_service
+        services = (asset_service, query_service)
+
+        # Cache in session state instead of @st.cache_resource to avoid stale database sessions
+        st.session_state['asset_services'] = services
+        return services
     except Exception as e:
         st.error(f"Service initialization failed: {e}")
         return None, None
@@ -465,6 +472,15 @@ def display_asset_browser(query_service):
     """Display asset browser - query real asset data from database"""
 
     st.markdown("**📋 Browse Existing Assets**")
+
+    # Add refresh button to force reload
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("🔄 Refresh List", help="Refresh asset list from database"):
+            # Clear any cached data by reinitializing the service
+            if 'asset_services' in st.session_state:
+                del st.session_state['asset_services']
+            st.rerun()
 
     try:
         if query_service:

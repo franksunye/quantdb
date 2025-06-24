@@ -73,9 +73,12 @@ def validate_stock_code(code: str) -> bool:
 
     return False
 
-@st.cache_resource
 def init_services():
     """Initialize backend services"""
+    # Check if services are already cached in session state
+    if 'stock_services' in st.session_state:
+        return st.session_state['stock_services']
+
     try:
         # Get database session
         db_session = next(get_db())
@@ -91,7 +94,11 @@ def init_services():
         from core.services import QueryService
         query_service = QueryService(db_session)
 
-        return stock_service, asset_service, query_service
+        services = (stock_service, asset_service, query_service)
+
+        # Cache in session state instead of @st.cache_resource to avoid stale database sessions
+        st.session_state['stock_services'] = services
+        return services
     except Exception as e:
         st.error(f"Service initialization failed: {e}")
         return None, None, None
@@ -715,6 +722,15 @@ def display_stock_browser(query_service):
     """Display stock browser - query real stock data from database"""
 
     st.markdown("**📋 Browse Existing Stocks**")
+
+    # Add refresh button to force reload
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        if st.button("🔄 Refresh List", help="Refresh stock list from database"):
+            # Clear any cached data by reinitializing the service
+            if 'stock_services' in st.session_state:
+                del st.session_state['stock_services']
+            st.rerun()
 
     try:
         # Query real stock data from database
