@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-class TestRunner:
+class TestRunnerClass:
     """Unified test runner for the QuantDB project."""
 
     def __init__(self):
@@ -41,31 +41,16 @@ class TestRunner:
 
     def initialize_database(self):
         """Initialize the database for testing."""
-        # Run the database initialization script
-        result = subprocess.run(
-            [sys.executable, "-m", "src.scripts.init_db"],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode == 0:
-            print("Database initialized successfully.")
-        else:
-            print(f"Error initializing database: {result.stderr}")
-            return False
-
-        # Initialize test data
-        result = subprocess.run(
-            [sys.executable, "-m", "tests.init_test_db"],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode == 0:
-            print("Test data initialized successfully.")
+        # Initialize database directly using core modules
+        try:
+            import sys
+            sys.path.append(str(self.project_root))
+            from core.database.connection import Base, engine
+            Base.metadata.create_all(engine)
+            print("Database initialized successfully")
             return True
-        else:
-            print(f"Error initializing test data: {result.stderr}")
+        except Exception as e:
+            print(f"Error initializing database: {e}")
             return False
 
     def is_api_running(self, host="localhost", port=8000):
@@ -245,7 +230,7 @@ class TestRunner:
             command.append("-v")
 
         if coverage:
-            command.extend(["--cov=src", "--cov-report=term"])
+            command.extend(["--cov=core", "--cov=api", "--cov-report=term"])
 
         result = subprocess.run(command)
         return result.returncode == 0
@@ -262,7 +247,8 @@ class TestRunner:
             sys.executable,
             "-m",
             "pytest",
-            "--cov=src",
+            "--cov=core",
+            "--cov=api",
             "--cov-report=term"
         ]
 
@@ -288,7 +274,8 @@ class TestRunner:
                 sys.executable,
                 "-m",
                 "pytest",
-                "--cov=src",
+                "--cov=core",
+                "--cov=api",
                 "--cov-report=html:coverage_reports/html"
             ]
             if test_path:
@@ -311,7 +298,8 @@ class TestRunner:
                 sys.executable,
                 "-m",
                 "pytest",
-                "--cov=src",
+                "--cov=core",
+                "--cov=api",
                 "--cov-report=xml:coverage_reports/coverage.xml"
             ]
             if test_path:
@@ -338,7 +326,7 @@ class TestRunner:
                 command.append("-v")
 
             if coverage:
-                command.extend(["--cov=src", "--cov-report=term"])
+                command.extend(["--cov=core", "--cov=api", "--cov-report=term"])
 
             result = subprocess.run(command)
 
@@ -396,7 +384,7 @@ def main():
     args = parser.parse_args()
 
     # Create test runner
-    runner = TestRunner()
+    runner = TestRunnerClass()
 
     # Ensure directories exist
     runner.ensure_directories_exist()
