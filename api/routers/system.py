@@ -34,7 +34,7 @@ async def health_check():
         status="healthy",
         timestamp=time.time(),
         service="quantdb-api",
-        version="2.0.0-alpha"
+        version="2.1.0"
     )
 
 @router.get("/info")
@@ -122,8 +122,8 @@ async def get_version():
     """
     return {
         "name": "QuantDB API",
-        "version": "2.0.0-streamlit-cloud",
-        "core_version": "2.0.0-streamlit-cloud",
+        "version": "2.1.0",
+        "core_version": "2.1.0",
         "build_time": time.time(),
         "environment": "development" if is_development() else "production"
     }

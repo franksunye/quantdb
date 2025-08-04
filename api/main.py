@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="QuantDB API",
     description="Financial data API service using core business logic",
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan,
     debug=DEBUG
 )
@@ -51,13 +51,13 @@ register_exception_handlers(app)
 @app.get("/")
 async def root():
     """Root endpoint."""
-    return {"message": "Welcome to QuantDB API", "version": "2.0.0-streamlit-cloud"}
+    return {"message": "Welcome to QuantDB API", "version": "2.1.0"}
 
 # Health check endpoint
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
-    return {"status": "healthy", "service": "quantdb-api", "version": "2.0.0"}
+    return {"status": "healthy", "service": "quantdb-api", "version": "2.1.0"}
 
 # V1 Health check endpoint
 @app.get("/api/v1/health")
@@ -66,7 +66,7 @@ async def health_check_v1():
     from datetime import datetime
     return {
         "status": "ok",
-        "version": "2.0.0",
+        "version": "2.1.0",
         "timestamp": datetime.now().isoformat()
     }
 
