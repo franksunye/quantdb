@@ -151,6 +151,26 @@ app.include_router(
     tags=["asset-management"]
 )
 
-if __name__ == "__main__":
+def run_server():
+    """Run the API server with production settings"""
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+
+    # Get configuration from environment
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 8000))
+
+    logger.info(f"🚀 Starting QuantDB API server on {host}:{port}")
+    logger.info(f"📡 API Documentation: http://{host}:{port}/docs")
+    logger.info(f"🔍 Health Check: http://{host}:{port}/health")
+
+    uvicorn.run(
+        app,
+        host=host,
+        port=port,
+        log_level="info",
+        access_log=True
+    )
+
+if __name__ == "__main__":
+    run_server()
