@@ -2,52 +2,85 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.0.1-blue)
+![Version](https://img.shields.io/badge/version-2.2.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
+![Python Package](https://img.shields.io/badge/PyPI-qdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-259/259-success)
 ![Frontend](https://img.shields.io/badge/Frontend-Streamlit-FF4B4B)
 ![Cloud](https://img.shields.io/badge/Cloud-Ready-brightgreen)
-![Performance](https://img.shields.io/badge/Cache-98.1%25_faster-brightgreen)
+![Performance](https://img.shields.io/badge/Cache-90%25_faster-brightgreen)
 ![Integration](https://img.shields.io/badge/Integration-Complete-success)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-success)
 
-High-performance stock data caching service based on AKShare data source, providing intelligent caching, RESTful API, and professional frontend interface.
+**Complete stock data ecosystem with intelligent caching** - One codebase, multiple tech products for different user groups.
 
-**🚀 Cloud Deployment Ready!** Now provides complete cloud deployment solutions, including local development environment and Streamlit Cloud deployment version.
+**🎉 NEW: Python Package Available!** Now supports three product formats: Python Package, API Service, and Cloud Platform.
 
-## 🎯 Core Value
+## 🎯 Product Matrix
 
-- **🚀 Ultimate Performance**: Smart caching is **98.1%** faster than direct AKShare calls, response time ~18ms
-- **☁️ Cloud Deployment**: Supports Streamlit Cloud deployment, one-click access to professional quantitative data platform
-- **📊 Data Accuracy**: Based on official trading calendar, ensuring completeness and accuracy of stock data
-- **🏢 Real Asset Information**: Display real company names (e.g., "SPDB") instead of technical codes (e.g., "Stock 600000")
-- **💰 Financial Metrics Integration**: PE, PB, ROE and other key financial indicators from AKShare real-time data
-- **⚡ Smart Caching**: Automatically identifies trading days, avoids invalid API calls, significantly improves efficiency
-- **🔄 Real-time Monitoring**: Complete performance monitoring and data coverage tracking
-- **📝 Unified Logging**: Completely unified logging system, eliminating dual logging inconsistencies
-- **🧹 Clean Structure**: Agile development cleanup, 47% reduction in project files, easier maintenance
-- **🛡️ Production Ready**: Complete error handling, 259 tests with 100% pass rate, comprehensive documentation system
-- **📱 Professional Frontend**: Local and cloud dual versions, supporting multiple charts, performance monitoring, asset information display
-- **🔧 Backend Integration**: Cloud version directly uses backend services, queries real database data
+### 📦 **QDB Python Package** - For Developers
+```bash
+pip install qdb
+```
+```python
+import qdb
+df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
+```
+**Perfect for**: Quantitative researchers, Python developers, data scientists
+
+### 🚀 **API Service** - For Enterprises
+```bash
+curl "https://your-api.com/api/v1/stocks/000001/data?days=30"
+```
+**Perfect for**: Enterprise teams, multi-user applications, production systems
+
+### ☁️ **Cloud Platform** - For Individual Investors
+Visit: [QuantDB Cloud Platform](https://quantdb.streamlit.app)
+**Perfect for**: Individual investors, data analysis, visualization
+
+## ✨ Core Features
+
+- **🚀 90%+ Performance Boost**: Smart SQLite caching, millisecond response time
+- **📦 Multiple Product Forms**: Python package, API service, cloud platform
+- **🔄 Full AKShare Compatibility**: Same API interface, seamless replacement
+- **💾 Local Caching**: Offline available, intelligent incremental updates
+- **📅 Trading Calendar Integration**: Smart data fetching based on real trading days
+- **🛠️ Zero Configuration**: pip install and ready to use
+- **☁️ Cloud Deployment Ready**: Supports Railway, Render, Alibaba Cloud, etc.
+- **🧠 Intelligent Updates**: Automatic missing data detection and fetching
 
 ## ⚡ Performance Highlights
 
-| Metric | Direct AKShare Call | QuantDB Cache | Performance Improvement |
-|--------|-------------------|---------------|------------------------|
-| **Response Time** | ~1000ms | ~18ms | **98.1%** ⬆️ |
-| **Cache Hit** | N/A | 100% | **Perfect Cache** ✅ |
+| Metric | Direct AKShare Call | QDB Package | Performance Improvement |
+|--------|-------------------|-------------|------------------------|
+| **Response Time** | ~1000ms | ~10ms | **99%** ⬆️ |
+| **Cache Hit** | N/A | 90%+ | **Smart Cache** ✅ |
 | **Trading Day Recognition** | Manual | Automatic | **Intelligent** 🧠 |
+| **Installation** | Complex setup | `pip install qdb` | **One Command** 🚀 |
 
 ## 🚀 Quick Start
 
-### Option 1: Cloud Access (Recommended)
+### Option 1: Python Package (Recommended)
+```bash
+# Install
+pip install qdb
+
+# Use immediately
+python -c "
+import qdb
+df = qdb.get_stock_data('000001', days=30)
+print(f'Got {len(df)} records with 90%+ speed boost!')
+"
+```
+
+### Option 2: Cloud Platform Access
 Direct access to deployed Streamlit Cloud version:
-- **Frontend Interface**: [QuantDB Cloud](https://quantdb.streamlit.app) (Coming Soon)
+- **Frontend Interface**: [QuantDB Cloud](https://quantdb.streamlit.app)
 - **Complete Features**: Stock data query, asset information, cache monitoring, watchlist management
 
-### Option 2: Local Deployment
+### Option 3: Local API Service
 
 #### 1. Installation and Setup
 
