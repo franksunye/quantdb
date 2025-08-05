@@ -1,7 +1,7 @@
 """
-QDB客户端 - 简化的用户接口
+QDB Client - Simplified User Interface
 
-封装core/功能，提供简洁易用的API
+Encapsulates core/ functionality, provides concise and easy-to-use API
 """
 
 import os
@@ -11,21 +11,21 @@ from typing import List, Dict, Optional, Union, Any
 import pandas as pd
 from datetime import datetime, timedelta
 
-# 添加项目根目录到Python路径
+# Add project root directory to Python path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from .exceptions import QDBError, CacheError, DataError, NetworkError
 
 class QDBClient:
-    """QDB客户端，管理本地缓存和数据获取"""
-    
+    """QDB client, manages local cache and data acquisition"""
+
     def __init__(self, cache_dir: Optional[str] = None):
         """
-        初始化QDB客户端
-        
+        Initialize QDB client
+
         Args:
-            cache_dir: 缓存目录路径，默认为 ~/.qdb_cache
+            cache_dir: Cache directory path, defaults to ~/.qdb_cache
         """
         self.cache_dir = cache_dir or os.path.expanduser("~/.qdb_cache")
         self._ensure_cache_dir()
@@ -36,16 +36,16 @@ class QDBClient:
         self._initialized = False
         
     def _ensure_cache_dir(self):
-        """确保缓存目录存在"""
+        """Ensure cache directory exists"""
         Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
-        
+
     def _lazy_init(self):
-        """延迟初始化核心组件"""
+        """Lazy initialization of core components"""
         if self._initialized:
             return
 
         try:
-            # 设置数据库路径
+            # Set database path
             db_path = os.path.join(self.cache_dir, "qdb_cache.db")
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
 

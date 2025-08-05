@@ -1,41 +1,41 @@
 """
-QDB - 智能缓存的股票数据库
+QDB - Intelligent Caching Stock Database
 
-安装和导入：
-    pip install quantdb  # 包名：quantdb
-    import qdb           # 导入名：qdb（简洁易用）
+Installation and Import:
+    pip install quantdb  # Package name: quantdb
+    import qdb           # Import name: qdb (concise and easy to use)
 
-一行代码享受AKShare缓存加速：
+One-line code to enjoy AKShare caching acceleration:
     import qdb
     df = qdb.get_stock_data("000001", days=30)
 
-特性：
-- 🚀 90%+性能提升：本地SQLite缓存避免重复网络请求
-- 🧠 智能增量更新：只获取缺失的数据，最大化缓存效率
-- ⚡ 毫秒级响应：缓存命中时响应时间 < 10ms
-- 📅 交易日历集成：基于真实交易日历的智能数据获取
-- 🔧 零配置启动：自动初始化本地缓存数据库
-- 🔄 完全兼容：保持AKShare相同的API接口
+Features:
+- 🚀 90%+ Performance Boost: Local SQLite cache avoids repeated network requests
+- 🧠 Smart Incremental Updates: Only fetch missing data, maximize cache efficiency
+- ⚡ Millisecond Response: Cache hit response time < 10ms
+- 📅 Trading Calendar Integration: Smart data acquisition based on real trading calendar
+- 🔧 Zero Configuration Startup: Automatically initialize local cache database
+- 🔄 Full Compatibility: Maintains same API interface as AKShare
 
-注意：包名(quantdb)和导入名(qdb)不同，这是Python生态系统中的常见做法，
-类似于 scikit-learn → sklearn, beautifulsoup4 → bs4
+Note: Package name (quantdb) and import name (qdb) are different, which is a common practice
+in Python ecosystem, similar to scikit-learn → sklearn, beautifulsoup4 → bs4
 """
 
 from .client import (
-    # 核心功能
+    # Core functionality
     init,
     get_stock_data,
     get_multiple_stocks,
     get_asset_info,
-    
-    # 缓存管理
+
+    # Cache management
     cache_stats,
     clear_cache,
-    
-    # AKShare兼容接口
+
+    # AKShare compatible interface
     stock_zh_a_hist,
-    
-    # 配置管理
+
+    # Configuration management
     set_cache_dir,
     set_log_level,
 )
@@ -47,55 +47,55 @@ from .exceptions import (
     NetworkError
 )
 
-# 版本信息
+# Version information
 __version__ = "2.2.3"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
-__description__ = "智能缓存的AKShare包装器，提供高性能股票数据访问"
+__description__ = "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
 
-# 公开API
+# Public API
 __all__ = [
-    # 核心功能
+    # Core functionality
     "init",
     "get_stock_data",
-    "get_multiple_stocks", 
+    "get_multiple_stocks",
     "get_asset_info",
-    
-    # 缓存管理
+
+    # Cache management
     "cache_stats",
     "clear_cache",
-    
-    # AKShare兼容
+
+    # AKShare compatibility
     "stock_zh_a_hist",
-    
-    # 配置
+
+    # Configuration
     "set_cache_dir",
     "set_log_level",
-    
-    # 异常
+
+    # Exceptions
     "QDBError",
-    "CacheError", 
+    "CacheError",
     "DataError",
     "NetworkError",
-    
-    # 元信息
+
+    # Meta information
     "__version__",
 ]
 
-# 自动初始化提示
+# Auto-initialization prompt
 def _show_welcome():
-    """显示欢迎信息"""
-    print("🚀 QuantDB - 智能缓存的股票数据库")
-    print("📦 安装: pip install quantdb")
-    print("📖 使用: qdb.get_stock_data('000001', days=30)")
-    print("📊 统计: qdb.cache_stats()")
-    print("🔧 配置: qdb.set_cache_dir('./my_cache')")
-    print("💡 提示: 包名quantdb，导入名qdb（类似sklearn）")
+    """Display welcome information"""
+    print("🚀 QuantDB - Intelligent Caching Stock Database")
+    print("📦 Install: pip install quantdb")
+    print("📖 Usage: qdb.get_stock_data('000001', days=30)")
+    print("📊 Stats: qdb.cache_stats()")
+    print("🔧 Config: qdb.set_cache_dir('./my_cache')")
+    print("💡 Tip: Package name quantdb, import name qdb (like sklearn)")
 
-# 可选的欢迎信息（仅在交互式环境中显示）
+# Optional welcome message (only displayed in interactive environment)
 import sys
-if hasattr(sys, 'ps1'):  # 检查是否在交互式环境
+if hasattr(sys, 'ps1'):  # Check if in interactive environment
     try:
         _show_welcome()
     except:
-        pass  # 静默失败，不影响导入
+        pass  # Silent failure, does not affect import

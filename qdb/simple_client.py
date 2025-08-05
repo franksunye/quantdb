@@ -1,7 +1,7 @@
 """
-QDB简化客户端 - 独立版本
+QDB Simplified Client - Standalone Version
 
-不依赖core模块，直接使用AKShare和SQLite
+Does not depend on core modules, directly uses AKShare and SQLite
 """
 
 import os
@@ -16,20 +16,20 @@ try:
     AKSHARE_AVAILABLE = True
 except ImportError:
     AKSHARE_AVAILABLE = False
-    print("⚠️ AKShare未安装，部分功能不可用")
+    print("⚠️ AKShare not installed, some features unavailable")
 
 from .exceptions import QDBError, CacheError, DataError
 
 
 class SimpleQDBClient:
-    """简化的QDB客户端，独立实现"""
-    
+    """Simplified QDB client, standalone implementation"""
+
     def __init__(self, cache_dir: Optional[str] = None):
         """
-        初始化简化客户端
-        
+        Initialize simplified client
+
         Args:
-            cache_dir: 缓存目录路径
+            cache_dir: Cache directory path
         """
         self.cache_dir = cache_dir or os.path.expanduser("~/.qdb_cache")
         self._ensure_cache_dir()
@@ -37,16 +37,16 @@ class SimpleQDBClient:
         self._init_database()
         
     def _ensure_cache_dir(self):
-        """确保缓存目录存在"""
+        """Ensure cache directory exists"""
         Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
-        
+
     def _init_database(self):
-        """初始化SQLite数据库"""
+        """Initialize SQLite database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
             
-            # 创建股票数据表
+            # Create stock data table
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS stock_data (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -62,14 +62,14 @@ class SimpleQDBClient:
                 )
             ''')
             
-            # 创建索引
+            # Create index
             cursor.execute('CREATE INDEX IF NOT EXISTS idx_symbol_date ON stock_data(symbol, date)')
             
             conn.commit()
             conn.close()
             
         except Exception as e:
-            raise CacheError(f"初始化数据库失败: {str(e)}")
+            raise CacheError(f"Database initialization failed: {str(e)}")
     
     def get_stock_data(
         self, 
@@ -80,20 +80,20 @@ class SimpleQDBClient:
         adjust: str = ""
     ) -> pd.DataFrame:
         """
-        获取股票历史数据
-        
+        Get stock historical data
+
         Args:
-            symbol: 股票代码
-            start_date: 开始日期，格式 "20240101"
-            end_date: 结束日期，格式 "20240201"
-            days: 获取最近N天数据
-            adjust: 复权类型
-            
+            symbol: Stock code
+            start_date: Start date, format "20240101"
+            end_date: End date, format "20240201"
+            days: Get recent N days data
+            adjust: Adjustment type
+
         Returns:
-            股票数据DataFrame
+            Stock data DataFrame
         """
         if not AKSHARE_AVAILABLE:
-            raise DataError("AKShare未安装，无法获取股票数据")
+            raise DataError("AKShare not installed, cannot get stock data")
         
         try:
             # 处理days参数
