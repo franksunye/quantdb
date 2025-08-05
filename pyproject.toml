@@ -3,7 +3,7 @@ requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "qdb"
+name = "quantdb"
 version = "2.2.0"
 description = "智能缓存的AKShare包装器，提供高性能股票数据访问"
 readme = "README.md"

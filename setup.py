@@ -53,7 +53,7 @@ extras_require = {
 
 setup(
     # 基本信息
-    name="qdb",
+    name="quantdb",
     version="2.2.0",
     author="Ye Sun",
     author_email="franksunye@hotmail.com",
