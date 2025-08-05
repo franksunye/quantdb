@@ -1,0 +1,151 @@
+name: 🐛 Bug Report
+description: Report a bug or issue with QuantDB
+title: "[BUG] "
+labels: ["bug", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below with as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 🐛 Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 🔄 Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Install quantdb with `pip install quantdb`
+        2. Run the following code: `import qdb; qdb.get_stock_data("000001")`
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: ✅ Expected Behavior
+      description: A clear and concise description of what you expected to happen.
+      placeholder: What should have happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: ❌ Actual Behavior
+      description: A clear and concise description of what actually happened.
+      placeholder: What actually happened?
+    validations:
+      required: true
+
+  - type: textarea
+    id: code
+    attributes:
+      label: 💻 Code Sample
+      description: Please provide a minimal code sample that reproduces the issue
+      render: python
+      placeholder: |
+        import qdb
+        # Your code here...
+    validations:
+      required: false
+
+  - type: textarea
+    id: error
+    attributes:
+      label: 📋 Error Message/Traceback
+      description: If applicable, add the full error message or traceback
+      render: text
+      placeholder: Paste the full error message here...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: 📦 QuantDB Version
+      description: Which version of QuantDB are you using?
+      options:
+        - "Latest (pip install quantdb)"
+        - "2.2.6"
+        - "2.2.5"
+        - "2.2.4"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: python-version
+    attributes:
+      label: 🐍 Python Version
+      description: Which Python version are you using?
+      options:
+        - "3.11"
+        - "3.10"
+        - "3.9"
+        - "3.8"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 💻 Operating System
+      description: Which operating system are you using?
+      options:
+        - "Windows"
+        - "macOS"
+        - "Linux (Ubuntu)"
+        - "Linux (Other)"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 🌍 Environment Details
+      description: Any additional environment details that might be relevant
+      placeholder: |
+        - Virtual environment: Yes/No
+        - Package manager: pip/conda/poetry
+        - IDE: VSCode/PyCharm/Jupyter/Other
+        - Any other relevant details...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 📝 Additional Context
+      description: Add any other context about the problem here
+      placeholder: Any additional information that might help us understand the issue...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to make sure this is not a duplicate
+          required: true
+        - label: I have provided a clear description of the bug
+          required: true
+        - label: I have included steps to reproduce the issue
+          required: true
+        - label: I am using the latest version of QuantDB
+          required: false

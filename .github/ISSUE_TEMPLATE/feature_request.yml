@@ -1,0 +1,152 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for QuantDB
+title: "[FEATURE] "
+labels: ["enhancement", "needs-triage"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below to help us understand your request.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: ✨ Feature Summary
+      description: A clear and concise description of the feature you'd like to see
+      placeholder: Briefly describe the feature...
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 🎯 Problem/Use Case
+      description: What problem does this feature solve? What's your use case?
+      placeholder: |
+        I'm always frustrated when...
+        I need this feature because...
+        This would help me...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 💡 Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: |
+        I would like to see...
+        The feature should work like...
+        Example API: qdb.new_feature()
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 🔄 Alternatives Considered
+      description: Describe any alternative solutions or features you've considered
+      placeholder: |
+        I've also considered...
+        Another approach could be...
+        Currently I work around this by...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: 📈 Priority
+      description: How important is this feature to you?
+      options:
+        - "Low - Nice to have"
+        - "Medium - Would be helpful"
+        - "High - Important for my workflow"
+        - "Critical - Blocking my use case"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 📂 Feature Category
+      description: Which area does this feature relate to?
+      options:
+        - "Core API - Data retrieval functions"
+        - "Performance - Caching and optimization"
+        - "Data Sources - New data providers"
+        - "Data Types - New asset classes or markets"
+        - "Developer Experience - Tooling and utilities"
+        - "Documentation - Guides and examples"
+        - "Other (please specify in additional context)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: api_example
+    attributes:
+      label: 💻 API Design Example
+      description: If applicable, show how you envision the API would look
+      render: python
+      placeholder: |
+        # Example of how the feature might be used
+        import qdb
+        
+        # Your proposed API here...
+        result = qdb.new_feature(param1="value1")
+    validations:
+      required: false
+
+  - type: textarea
+    id: implementation
+    attributes:
+      label: 🔧 Implementation Ideas
+      description: If you have ideas about how this could be implemented, share them here
+      placeholder: |
+        This could be implemented by...
+        We might need to...
+        Similar to how...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: 📝 Additional Context
+      description: Add any other context, screenshots, or examples about the feature request
+      placeholder: |
+        Links to similar features in other libraries...
+        Screenshots or mockups...
+        Any other relevant information...
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 🤝 Contribution
+      description: Are you interested in contributing to this feature?
+      options:
+        - label: I would be interested in implementing this feature
+          required: false
+        - label: I would be willing to help test this feature
+          required: false
+        - label: I can provide more detailed requirements if needed
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ Checklist
+      description: Please confirm the following
+      options:
+        - label: I have searched existing issues to make sure this is not a duplicate
+          required: true
+        - label: I have provided a clear description of the feature
+          required: true
+        - label: I have explained the problem this feature would solve
+          required: true
+        - label: This feature aligns with QuantDB's goals (high-performance stock data access)
+          required: true
