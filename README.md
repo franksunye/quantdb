@@ -2,7 +2,7 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.2.1-blue)
+![Version](https://img.shields.io/badge/version-2.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -45,7 +45,7 @@ curl "https://your-api.com/api/v1/stocks/000001/data?days=30"
 **Perfect for**: Enterprise teams, multi-user applications, production systems
 
 ### ☁️ **Cloud Platform** - For Individual Investors
-Visit: [QuantDB Cloud Platform](https://quantdb.streamlit.app)
+Visit: [QuantDB Cloud Platform](https://quantdb-cloud.streamlit.app)
 **Perfect for**: Individual investors, data analysis, visualization
 
 ## ✨ Core Features
@@ -85,7 +85,7 @@ print(f'Got {len(df)} records with 90%+ speed boost!')
 
 ### Option 2: Cloud Platform Access
 Direct access to deployed Streamlit Cloud version:
-- **Frontend Interface**: [QuantDB Cloud](https://quantdb.streamlit.app)
+- **Frontend Interface**: [QuantDB Cloud](https://quantdb-cloud.streamlit.app)
 - **Complete Features**: Stock data query, asset information, cache monitoring, watchlist management
 
 ### Option 3: Local API Service

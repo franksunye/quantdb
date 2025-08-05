@@ -2,9 +2,9 @@
 
 *[English](README.md) | 中文版本*
 
-![Version](https://img.shields.io/badge/version-2.2.0-blue)
+![Version](https://img.shields.io/badge/version-2.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Python Package](https://img.shields.io/badge/PyPI-qdb-blue)
+![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-259/259-success)
@@ -14,18 +14,26 @@
 ![Integration](https://img.shields.io/badge/Integration-Complete-success)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-success)
 
-**智能缓存的股票数据生态系统** - 一套代码，多个技术产品，满足不同用户群体需求。
+**智能缓存的AKShare包装器，90%+性能提升** - 专为中国金融市场设计的完整股票数据生态系统，具备智能SQLite缓存功能。
 
-**🎉 全新发布：Python包上线！** 现已支持三种产品形态：Python包、API服务、云平台。
+**🎉 PyPI正式发布！**
+[![PyPI version](https://badge.fury.io/py/quantdb.svg)](https://pypi.org/project/quantdb/)
+[![Downloads](https://pepy.tech/badge/quantdb)](https://pepy.tech/project/quantdb)
+
+```bash
+pip install quantdb  # 一行命令，瞬间90%+速度提升！
+```
+
+**三种产品形态**：Python包、API服务、云平台，满足不同用户需求。
 
 ## 🎯 产品矩阵
 
-### 📦 **QDB Python包** - 开发者首选
+### 📦 **QuantDB Python包** - 开发者首选
 ```bash
-pip install qdb
+pip install quantdb
 ```
 ```python
-import qdb
+import qdb  # 导入仍使用qdb，保持API一致性
 df = qdb.get_stock_data("000001", days=30)  # 比AKShare快90%+！
 ```
 **适用于**: 量化研究者、Python开发者、数据科学家
@@ -37,7 +45,7 @@ curl "https://your-api.com/api/v1/stocks/000001/data?days=30"
 **适用于**: 企业团队、多用户应用、生产系统
 
 ### ☁️ **云平台** - 个人投资者工具
-访问: [QuantDB云平台](https://quantdb.streamlit.app)
+访问: [QuantDB云平台](https://quantdb-cloud.streamlit.app)
 **适用于**: 个人投资者、数据分析、可视化
 
 ## ✨ 核心特性
@@ -66,7 +74,7 @@ curl "https://your-api.com/api/v1/stocks/000001/data?days=30"
 
 ### 选项1: 云端访问 (推荐)
 直接访问已部署的Streamlit Cloud版本：
-- **前端界面**: [QuantDB Cloud](https://quantdb.streamlit.app) (即将上线)
+- **前端界面**: [QuantDB Cloud](https://quantdb-cloud.streamlit.app)
 - **功能完整**: 股票数据查询、资产信息、缓存监控、自选股管理
 
 ### 选项2: 本地部署

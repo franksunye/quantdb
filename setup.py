@@ -54,7 +54,7 @@ extras_require = {
 setup(
     # 基本信息
     name="quantdb",
-    version="2.2.1",
+    version="2.2.2",
     author="Ye Sun",
     author_email="franksunye@hotmail.com",
     description="Intelligent caching wrapper for AKShare with 90%+ performance boost for Chinese stock data",

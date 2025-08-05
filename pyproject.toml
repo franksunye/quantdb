@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantdb"
-version = "2.2.1"
+version = "2.2.2"
 description = "Intelligent caching wrapper for AKShare with 90%+ performance boost for Chinese stock data"
 readme = "README.md"
 license = {text = "MIT"}
