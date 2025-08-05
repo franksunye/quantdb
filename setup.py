@@ -54,9 +54,9 @@ extras_require = {
 setup(
     # 基本信息
     name="qdb",
-    version="1.0.0",
-    author="QuantDB Team",
-    author_email="contact@quantdb.com",
+    version="2.2.0",
+    author="Ye Sun",
+    author_email="franksunye@hotmail.com",
     description="智能缓存的AKShare包装器，提供高性能股票数据访问",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -99,12 +99,12 @@ setup(
     # 关键词
     keywords="stock, finance, akshare, cache, quantitative, trading, investment",
     
-    # 入口点
-    entry_points={
-        'console_scripts': [
-            'qdb=qdb.cli:main',  # 未来可以添加命令行工具
-        ],
-    },
+    # 入口点 - 暂时移除CLI，专注于库功能
+    # entry_points={
+    #     'console_scripts': [
+    #         'qdb=qdb.cli:main',
+    #     ],
+    # },
     
     # 许可证
     license="MIT",

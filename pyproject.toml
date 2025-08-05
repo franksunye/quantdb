@@ -4,15 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qdb"
-version = "1.0.0"
+version = "2.2.0"
 description = "智能缓存的AKShare包装器，提供高性能股票数据访问"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "QuantDB Team", email = "contact@quantdb.com"}
+    {name = "Ye Sun", email = "franksunye@hotmail.com"}
 ]
 maintainers = [
-    {name = "QuantDB Team", email = "contact@quantdb.com"}
+    {name = "Ye Sun", email = "franksunye@hotmail.com"}
 ]
 keywords = ["stock", "finance", "akshare", "cache", "quantitative", "trading", "investment"]
 classifiers = [
@@ -65,8 +65,7 @@ Repository = "https://github.com/franksunye/quantdb"
 Documentation = "https://github.com/franksunye/quantdb/docs"
 "Bug Reports" = "https://github.com/franksunye/quantdb/issues"
 
-[project.scripts]
-qdb = "qdb.cli:main"
+
 
 [tool.setuptools]
 packages = ["qdb", "core"]
