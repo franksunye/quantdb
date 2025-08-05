@@ -1,12 +1,14 @@
 # QuantDB - Intelligent Stock Data Caching
 
-[![PyPI version](https://badge.fury.io/py/quantdb.svg)](https://pypi.org/project/quantdb/)
-[![Downloads](https://pepy.tech/badge/quantdb)](https://pepy.tech/project/quantdb)
-![Python](https://img.shields.io/badge/python-3.8+-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Performance](https://img.shields.io/badge/performance-90%25_faster-brightgreen)
+[![PyPI version](https://img.shields.io/pypi/v/quantdb.svg)](https://pypi.org/project/quantdb/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/quantdb)](https://pypi.org/project/quantdb/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/quantdb)](https://pypi.org/project/quantdb/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Performance](https://img.shields.io/badge/performance-90%25_faster-brightgreen)](https://github.com/franksunye/quantdb)
 
 **Intelligent caching wrapper for AKShare with 90%+ performance boost** - Complete stock data ecosystem with smart SQLite caching for Chinese financial markets.
+
+> 📊 **Note**: Download statistics may take 24-48 hours to appear on PyPI and third-party services after a new release.
 
 ## 🚀 Quick Start
 
