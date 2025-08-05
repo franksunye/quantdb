@@ -6,9 +6,9 @@ Setup configuration for PyPI distribution
 from setuptools import setup, find_packages
 from pathlib import Path
 
-# Read README file
+# Read PyPI-specific README file
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README.md").read_text(encoding='utf-8')
+long_description = (this_directory / "README_PYPI.md").read_text(encoding='utf-8')
 
 # Read requirements
 def read_requirements(filename):
