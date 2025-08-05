@@ -2,7 +2,7 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.2.2-blue)
+![Version](https://img.shields.io/badge/version-2.2.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -24,6 +24,11 @@
 pip install quantdb  # One command, instant 90%+ speed boost!
 ```
 
+```python
+import qdb  # Note: import name is 'qdb' for simplicity
+df = qdb.get_stock_data("000001", days=30)
+```
+
 **Three product formats**: Python Package, API Service, and Cloud Platform for different user needs.
 
 ## 🎯 Product Matrix
@@ -33,10 +38,11 @@ pip install quantdb  # One command, instant 90%+ speed boost!
 pip install quantdb
 ```
 ```python
-import qdb  # Import as qdb for API consistency
+import qdb  # Note: Package name is 'quantdb', import name is 'qdb'
 df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
 ```
 **Perfect for**: Quantitative researchers, Python developers, data scientists
+**Import Note**: Install as `quantdb`, import as `qdb` (like scikit-learn → sklearn)
 
 ### 🚀 **API Service** - For Enterprises
 ```bash
@@ -68,18 +74,42 @@ Visit: [QuantDB Cloud Platform](https://quantdb-cloud.streamlit.app)
 | **Trading Day Recognition** | Manual | Automatic | **Intelligent** 🧠 |
 | **Installation** | Complex setup | `pip install quantdb` | **One Command** 🚀 |
 
+## 📦 Installation & Import
+
+**Important**: Package name and import name are different (common practice in Python ecosystem)
+
+```bash
+# Install the package
+pip install quantdb
+```
+
+```python
+# Import the package (note: import name is 'qdb')
+import qdb
+
+# Start using immediately
+df = qdb.get_stock_data("000001", days=30)
+stats = qdb.cache_stats()
+```
+
+**Why different names?**
+- **Package name**: `quantdb` (descriptive, searchable on PyPI)
+- **Import name**: `qdb` (concise, easy to type)
+- **Similar to**: `scikit-learn` → `sklearn`, `beautifulsoup4` → `bs4`
+
 ## 🚀 Quick Start
 
 ### Option 1: Python Package (Recommended)
 ```bash
-# Install
+# Install the package
 pip install quantdb
 
-# Use immediately
+# Import and use (note the different import name)
 python -c "
-import qdb
+import qdb  # Package: quantdb, Import: qdb
 df = qdb.get_stock_data('000001', days=30)
 print(f'Got {len(df)} records with 90%+ speed boost!')
+print('✅ QuantDB package working perfectly!')
 "
 ```
 

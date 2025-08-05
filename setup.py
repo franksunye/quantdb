@@ -54,10 +54,10 @@ extras_require = {
 setup(
     # 基本信息
     name="quantdb",
-    version="2.2.2",
+    version="2.2.3",
     author="Ye Sun",
     author_email="franksunye@hotmail.com",
-    description="Intelligent caching wrapper for AKShare with 90%+ performance boost for Chinese stock data",
+    description="Intelligent caching wrapper for AKShare with 90%+ performance boost (import as 'qdb')",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/franksunye/quantdb",
@@ -97,7 +97,7 @@ setup(
     ],
     
     # 关键词
-    keywords="stock, finance, akshare, cache, quantitative, trading, investment",
+    keywords="stock, finance, akshare, cache, quantitative, trading, investment, qdb, quantdb",
     
     # 入口点 - 暂时移除CLI，专注于库功能
     # entry_points={

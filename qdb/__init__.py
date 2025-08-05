@@ -1,6 +1,10 @@
 """
 QDB - 智能缓存的股票数据库
 
+安装和导入：
+    pip install quantdb  # 包名：quantdb
+    import qdb           # 导入名：qdb（简洁易用）
+
 一行代码享受AKShare缓存加速：
     import qdb
     df = qdb.get_stock_data("000001", days=30)
@@ -12,6 +16,9 @@ QDB - 智能缓存的股票数据库
 - 📅 交易日历集成：基于真实交易日历的智能数据获取
 - 🔧 零配置启动：自动初始化本地缓存数据库
 - 🔄 完全兼容：保持AKShare相同的API接口
+
+注意：包名(quantdb)和导入名(qdb)不同，这是Python生态系统中的常见做法，
+类似于 scikit-learn → sklearn, beautifulsoup4 → bs4
 """
 
 from .client import (
@@ -41,7 +48,7 @@ from .exceptions import (
 )
 
 # 版本信息
-__version__ = "2.2.2"
+__version__ = "2.2.3"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
 __description__ = "智能缓存的AKShare包装器，提供高性能股票数据访问"
@@ -78,10 +85,12 @@ __all__ = [
 # 自动初始化提示
 def _show_welcome():
     """显示欢迎信息"""
-    print("🚀 QDB - 智能缓存的股票数据库")
-    print("📖 使用指南: qdb.get_stock_data('000001', days=30)")
-    print("📊 缓存统计: qdb.cache_stats()")
-    print("🔧 配置缓存: qdb.set_cache_dir('./my_cache')")
+    print("🚀 QuantDB - 智能缓存的股票数据库")
+    print("📦 安装: pip install quantdb")
+    print("📖 使用: qdb.get_stock_data('000001', days=30)")
+    print("📊 统计: qdb.cache_stats()")
+    print("🔧 配置: qdb.set_cache_dir('./my_cache')")
+    print("💡 提示: 包名quantdb，导入名qdb（类似sklearn）")
 
 # 可选的欢迎信息（仅在交互式环境中显示）
 import sys

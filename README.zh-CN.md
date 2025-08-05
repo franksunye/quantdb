@@ -2,7 +2,7 @@
 
 *[English](README.md) | 中文版本*
 
-![Version](https://img.shields.io/badge/version-2.2.2-blue)
+![Version](https://img.shields.io/badge/version-2.2.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -24,6 +24,11 @@
 pip install quantdb  # 一行命令，瞬间90%+速度提升！
 ```
 
+```python
+import qdb  # 注意：导入名是'qdb'，简洁易用
+df = qdb.get_stock_data("000001", days=30)
+```
+
 **三种产品形态**：Python包、API服务、云平台，满足不同用户需求。
 
 ## 🎯 产品矩阵
@@ -33,10 +38,11 @@ pip install quantdb  # 一行命令，瞬间90%+速度提升！
 pip install quantdb
 ```
 ```python
-import qdb  # 导入仍使用qdb，保持API一致性
+import qdb  # 注意：包名是quantdb，导入名是qdb
 df = qdb.get_stock_data("000001", days=30)  # 比AKShare快90%+！
 ```
 **适用于**: 量化研究者、Python开发者、数据科学家
+**导入说明**: 安装用`quantdb`，导入用`qdb`（类似scikit-learn → sklearn）
 
 ### 🚀 **API服务** - 企业级解决方案
 ```bash
@@ -69,6 +75,29 @@ curl "https://your-api.com/api/v1/stocks/000001/data?days=30"
 | **响应时间** | ~1000ms | ~18ms | **98.1%** ⬆️ |
 | **缓存命中** | 不适用 | 100% | **完美缓存** ✅ |
 | **交易日识别** | 手动判断 | 自动识别 | **智能化** 🧠 |
+
+## 📦 安装和导入
+
+**重要说明**: 包名和导入名不同（Python生态系统中的常见做法）
+
+```bash
+# 安装包
+pip install quantdb
+```
+
+```python
+# 导入包（注意：导入名是'qdb'）
+import qdb
+
+# 立即开始使用
+df = qdb.get_stock_data("000001", days=30)
+stats = qdb.cache_stats()
+```
+
+**为什么使用不同的名称？**
+- **包名**: `quantdb`（描述性强，便于在PyPI搜索）
+- **导入名**: `qdb`（简洁，易于输入）
+- **类似案例**: `scikit-learn` → `sklearn`, `beautifulsoup4` → `bs4`
 
 ## 🚀 快速开始
 

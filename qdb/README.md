@@ -2,6 +2,12 @@
 
 🚀 **一行代码享受AKShare缓存加速**
 
+**重要提示**: 从v2.2.0开始，请使用新的包名安装：
+```bash
+pip install quantdb  # 新包名
+import qdb           # 导入名保持不变
+```
+
 QDB是一个智能缓存的AKShare包装器，通过本地SQLite缓存实现90%+的性能提升，让股票数据获取从秒级优化到毫秒级。
 
 ## ✨ 核心特性
@@ -17,7 +23,8 @@ QDB是一个智能缓存的AKShare包装器，通过本地SQLite缓存实现90%+
 
 ### 安装
 ```bash
-pip install qdb
+# 使用新的包名安装
+pip install quantdb
 ```
 
 ### 基础使用
