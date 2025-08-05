@@ -1,25 +1,25 @@
 """
-QDB - 智能缓存的股票数据库
+QDB - Intelligent caching stock database
 Setup configuration for PyPI distribution
 """
 
 from setuptools import setup, find_packages
 from pathlib import Path
 
-# 读取README文件
+# Read README file
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
-# 读取requirements
+# Read requirements
 def read_requirements(filename):
-    """读取requirements文件"""
+    """Read requirements file"""
     try:
         with open(filename, 'r', encoding='utf-8') as f:
             return [line.strip() for line in f if line.strip() and not line.startswith('#')]
     except FileNotFoundError:
         return []
 
-# 基础依赖
+# Basic dependencies
 install_requires = [
     "pandas>=1.3.0",
     "numpy>=1.20.0", 
@@ -29,7 +29,7 @@ install_requires = [
     "python-dateutil>=2.8.0",
 ]
 
-# 可选依赖
+# Optional dependencies
 extras_require = {
     'full': [
         "fastapi>=0.68.0",
@@ -52,7 +52,7 @@ extras_require = {
 }
 
 setup(
-    # 基本信息
+    # Basic information
     name="quantdb",
     version="2.2.3",
     author="Ye Sun",
@@ -67,7 +67,7 @@ setup(
         "Documentation": "https://github.com/franksunye/quantdb/docs",
     },
     
-    # 包配置
+    # Package configuration
     packages=find_packages(include=['qdb', 'qdb.*', 'core', 'core.*']),
     include_package_data=True,
     package_data={
@@ -75,12 +75,12 @@ setup(
         'core': ['**/*.sql', '**/*.json'],
     },
     
-    # 依赖配置
+    # Dependency configuration
     python_requires=">=3.8",
     install_requires=install_requires,
     extras_require=extras_require,
     
-    # 分类信息
+    # Classification information
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
@@ -96,20 +96,20 @@ setup(
         "Operating System :: OS Independent",
     ],
     
-    # 关键词
+    # Keywords
     keywords="stock, finance, akshare, cache, quantitative, trading, investment, qdb, quantdb",
     
-    # 入口点 - 暂时移除CLI，专注于库功能
+    # Entry points - temporarily removed CLI, focusing on library functionality
     # entry_points={
     #     'console_scripts': [
     #         'qdb=qdb.cli:main',
     #     ],
     # },
     
-    # 许可证
+    # License
     license="MIT",
     
-    # 其他配置
+    # Other configuration
     zip_safe=False,
     platforms=["any"],
 )

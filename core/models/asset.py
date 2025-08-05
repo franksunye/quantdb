@@ -21,22 +21,22 @@ class Asset(Base):
     exchange = Column(String, nullable=False)
     currency = Column(String, nullable=False)
 
-    # 新增基本信息字段
-    industry = Column(String)  # 行业分类
-    concept = Column(String)   # 概念分类
-    listing_date = Column(Date)  # 上市日期
+    # Basic information fields
+    industry = Column(String)  # Industry classification
+    concept = Column(String)   # Concept classification
+    listing_date = Column(Date)  # Listing date
 
-    # 新增市场数据字段
-    total_shares = Column(BigInteger)  # 总股本
-    circulating_shares = Column(BigInteger)  # 流通股
-    market_cap = Column(BigInteger)  # 总市值
+    # Market data fields
+    total_shares = Column(BigInteger)  # Total shares outstanding
+    circulating_shares = Column(BigInteger)  # Circulating shares
+    market_cap = Column(BigInteger)  # Market capitalization
 
-    # 新增财务指标字段
-    pe_ratio = Column(Float)  # 市盈率
-    pb_ratio = Column(Float)  # 市净率
-    roe = Column(Float)       # 净资产收益率
+    # Financial indicator fields
+    pe_ratio = Column(Float)  # Price-to-earnings ratio
+    pb_ratio = Column(Float)  # Price-to-book ratio
+    roe = Column(Float)       # Return on equity
 
-    # 元数据
+    # Metadata
     last_updated = Column(DateTime, default=func.now())
     data_source = Column(String, default="akshare")
 

@@ -8,7 +8,7 @@ from ..database.connection import Base
 
 
 class DailyStockData(Base):
-    """Daily stock data model - 统一的股票数据模型"""
+    """Daily stock data model - unified stock data model"""
     __tablename__ = "daily_stock_data"
 
     id = Column(Integer, primary_key=True, index=True)

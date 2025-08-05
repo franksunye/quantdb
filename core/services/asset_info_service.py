@@ -39,7 +39,7 @@ class AssetInfoService:
             db: Database session
         """
         self.db = db
-        # 检测数据库是否为只读模式
+        # Detect if database is in read-only mode
         self._is_readonly = self._detect_readonly_database()
         if self._is_readonly:
             logger.info("Asset info service initialized in READ-ONLY mode")

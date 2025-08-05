@@ -1,40 +1,40 @@
 # QDB Package Manifest
-# 指定哪些文件应该包含在分发包中
+# Specify which files should be included in the distribution package
 
-# 包含文档文件
+# Include documentation files
 include README.md
 include LICENSE
 include CHANGELOG.md
 include pyproject.toml
 include setup.py
 
-# 包含配置文件
+# Include configuration files
 include *.cfg
 include *.ini
 include *.toml
 include *.yaml
 include *.yml
 
-# 包含qdb包的所有文件
+# Include all files from qdb package
 recursive-include qdb *.py
 recursive-include qdb *.md
 recursive-include qdb *.txt
 recursive-include qdb *.json
 
-# 包含core包的必要文件
+# Include essential files from core package
 recursive-include core *.py
 recursive-include core *.sql
 recursive-include core *.json
 
-# 包含测试文件（可选）
+# Include test files (optional)
 recursive-include tests *.py
 
-# 排除不需要的文件
+# Exclude unnecessary files
 exclude .gitignore
 exclude .env*
 exclude *.log
 
-# 排除开发相关文件
+# Exclude development-related files
 exclude .coverage
 exclude .pytest_cache
 exclude __pycache__
@@ -42,21 +42,21 @@ recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * *.pyo
 
-# 排除IDE文件
+# Exclude IDE files
 exclude .vscode
 exclude .idea
 recursive-exclude * .DS_Store
 
-# 排除数据库文件
+# Exclude database files
 exclude *.db
 exclude *.sqlite
 exclude *.sqlite3
 recursive-exclude database *.db
 
-# 排除日志文件
+# Exclude log files
 recursive-exclude logs *.log
 
-# 排除临时文件
+# Exclude temporary files
 exclude *.tmp
 exclude *.bak
 exclude *~
