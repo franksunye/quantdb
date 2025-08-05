@@ -41,7 +41,7 @@ from .exceptions import (
 )
 
 # 版本信息
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
 __description__ = "智能缓存的AKShare包装器，提供高性能股票数据访问"

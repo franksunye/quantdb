@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantdb"
-version = "2.2.0"
-description = "智能缓存的AKShare包装器，提供高性能股票数据访问"
+version = "2.2.1"
+description = "Intelligent caching wrapper for AKShare with 90%+ performance boost for Chinese stock data"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [

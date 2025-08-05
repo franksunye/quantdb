@@ -2,9 +2,9 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.2.0-blue)
+![Version](https://img.shields.io/badge/version-2.2.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![Python Package](https://img.shields.io/badge/PyPI-qdb-blue)
+![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-259/259-success)
@@ -14,18 +14,26 @@
 ![Integration](https://img.shields.io/badge/Integration-Complete-success)
 ![Status](https://img.shields.io/badge/Status-Production_Ready-success)
 
-**Complete stock data ecosystem with intelligent caching** - One codebase, multiple tech products for different user groups.
+**Intelligent caching wrapper for AKShare with 90%+ performance boost** - Complete stock data ecosystem with smart SQLite caching for Chinese financial markets.
 
-**🎉 NEW: Python Package Available!** Now supports three product formats: Python Package, API Service, and Cloud Platform.
+**🎉 NOW AVAILABLE ON PyPI!**
+[![PyPI version](https://badge.fury.io/py/quantdb.svg)](https://pypi.org/project/quantdb/)
+[![Downloads](https://pepy.tech/badge/quantdb)](https://pepy.tech/project/quantdb)
+
+```bash
+pip install quantdb  # One command, instant 90%+ speed boost!
+```
+
+**Three product formats**: Python Package, API Service, and Cloud Platform for different user needs.
 
 ## 🎯 Product Matrix
 
-### 📦 **QDB Python Package** - For Developers
+### 📦 **QuantDB Python Package** - For Developers
 ```bash
-pip install qdb
+pip install quantdb
 ```
 ```python
-import qdb
+import qdb  # Import as qdb for API consistency
 df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
 ```
 **Perfect for**: Quantitative researchers, Python developers, data scientists
@@ -53,19 +61,19 @@ Visit: [QuantDB Cloud Platform](https://quantdb.streamlit.app)
 
 ## ⚡ Performance Highlights
 
-| Metric | Direct AKShare Call | QDB Package | Performance Improvement |
+| Metric | Direct AKShare Call | QuantDB Package | Performance Improvement |
 |--------|-------------------|-------------|------------------------|
 | **Response Time** | ~1000ms | ~10ms | **99%** ⬆️ |
 | **Cache Hit** | N/A | 90%+ | **Smart Cache** ✅ |
 | **Trading Day Recognition** | Manual | Automatic | **Intelligent** 🧠 |
-| **Installation** | Complex setup | `pip install qdb` | **One Command** 🚀 |
+| **Installation** | Complex setup | `pip install quantdb` | **One Command** 🚀 |
 
 ## 🚀 Quick Start
 
 ### Option 1: Python Package (Recommended)
 ```bash
 # Install
-pip install qdb
+pip install quantdb
 
 # Use immediately
 python -c "
