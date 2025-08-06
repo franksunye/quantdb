@@ -571,3 +571,128 @@ class AKShareAdapter:
         df = pd.DataFrame(data)
         logger.info(f"Generated {len(df)} rows of mock data for {symbol}")
         return df
+
+    def get_realtime_data(self, symbol: str) -> pd.DataFrame:
+        """
+        Get realtime stock data using AKShare stock_zh_a_spot.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            DataFrame with realtime stock data
+
+        Raises:
+            Exception: If data retrieval fails
+        """
+        try:
+            logger.info(f"Getting realtime data for {symbol}")
+
+            # Detect market type
+            market = self._detect_market(symbol)
+
+            if market == 'A_STOCK':
+                # Clean symbol for A-shares
+                clean_symbol = symbol
+                if "." in clean_symbol:
+                    clean_symbol = clean_symbol.split(".")[0]
+                if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                    clean_symbol = clean_symbol[2:]
+
+                logger.info(f"Getting A-share realtime data for {clean_symbol}")
+
+                # Use stock_zh_a_spot for realtime A-share data
+                df = self._safe_call(ak.stock_zh_a_spot)
+
+                if df is not None and not df.empty:
+                    # Filter for the specific symbol
+                    # Note: stock_zh_a_spot returns all stocks, we need to filter
+                    symbol_df = df[df['代码'] == clean_symbol]
+
+                    if not symbol_df.empty:
+                        # Standardize column names
+                        symbol_df = symbol_df.copy()
+                        symbol_df['symbol'] = clean_symbol
+                        return symbol_df
+                    else:
+                        logger.warning(f"Symbol {clean_symbol} not found in realtime data")
+                        return pd.DataFrame()
+                else:
+                    logger.warning(f"No realtime data available")
+                    return pd.DataFrame()
+
+            elif market == 'HK_STOCK':
+                # For Hong Kong stocks, we might need a different approach
+                logger.warning(f"Hong Kong stock realtime data not yet implemented for {symbol}")
+                return pd.DataFrame()
+            else:
+                raise ValueError(f"Unsupported market: {market}")
+
+        except Exception as e:
+            logger.error(f"Error getting realtime data for {symbol}: {e}")
+            raise
+
+    def get_realtime_data_batch(self, symbols: list) -> dict:
+        """
+        Get realtime data for multiple stocks efficiently.
+
+        Args:
+            symbols: List of stock symbols
+
+        Returns:
+            Dictionary with symbol as key and data as value
+        """
+        try:
+            logger.info(f"Getting realtime data for {len(symbols)} symbols")
+
+            # Get all A-share realtime data at once
+            all_data = self._safe_call(ak.stock_zh_a_spot)
+
+            if all_data is None or all_data.empty:
+                logger.warning("No realtime data available")
+                return {}
+
+            result = {}
+
+            for symbol in symbols:
+                try:
+                    # Clean symbol
+                    clean_symbol = symbol
+                    if "." in clean_symbol:
+                        clean_symbol = clean_symbol.split(".")[0]
+                    if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                        clean_symbol = clean_symbol[2:]
+
+                    # Filter data for this symbol
+                    symbol_data = all_data[all_data['代码'] == clean_symbol]
+
+                    if not symbol_data.empty:
+                        # Convert to dictionary format
+                        row = symbol_data.iloc[0]
+                        result[symbol] = {
+                            'symbol': symbol,
+                            'name': row.get('名称', f'Stock {symbol}'),
+                            'price': float(row.get('最新价', 0)),
+                            'change': float(row.get('涨跌额', 0)),
+                            'pct_change': float(row.get('涨跌幅', 0)),
+                            'volume': float(row.get('成交量', 0)),
+                            'turnover': float(row.get('成交额', 0)),
+                            'high': float(row.get('最高', 0)),
+                            'low': float(row.get('最低', 0)),
+                            'open': float(row.get('今开', 0)),
+                            'prev_close': float(row.get('昨收', 0)),
+                            'timestamp': datetime.now()
+                        }
+                    else:
+                        logger.warning(f"Symbol {symbol} not found in realtime data")
+
+                except Exception as e:
+                    logger.error(f"Error processing symbol {symbol}: {e}")
+                    continue
+
+            logger.info(f"Successfully retrieved realtime data for {len(result)} symbols")
+            return result
+
+        except Exception as e:
+            logger.error(f"Error getting batch realtime data: {e}")
+            raise

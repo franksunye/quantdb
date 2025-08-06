@@ -28,6 +28,10 @@ from .client import (
     get_multiple_stocks,
     get_asset_info,
 
+    # Realtime data functionality
+    get_realtime_data,
+    get_realtime_data_batch,
+
     # Cache management
     cache_stats,
     clear_cache,
@@ -60,6 +64,10 @@ __all__ = [
     "get_stock_data",
     "get_multiple_stocks",
     "get_asset_info",
+
+    # Realtime data functionality
+    "get_realtime_data",
+    "get_realtime_data_batch",
 
     # Cache management
     "cache_stats",

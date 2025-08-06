@@ -43,3 +43,4 @@ class Asset(Base):
     # Relationships
     daily_data = relationship("DailyStockData", back_populates="asset")
     intraday_data = relationship("IntradayStockData", back_populates="asset")
+    realtime_data = relationship("RealtimeStockData", back_populates="asset")

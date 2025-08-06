@@ -281,3 +281,29 @@ def set_log_level(level: str):
     """设置日志级别"""
     os.environ["LOG_LEVEL"] = level.upper()
     print(f"✅ Log level set to: {level.upper()}")
+
+def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Get realtime stock data
+
+    Args:
+        symbol: Stock symbol
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        Dictionary with realtime stock data
+    """
+    return _get_client().get_realtime_data(symbol, force_refresh)
+
+def get_realtime_data_batch(symbols: List[str], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+    """
+    Get realtime data for multiple stocks
+
+    Args:
+        symbols: List of stock symbols
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        Dictionary with symbol as key and realtime data as value
+    """
+    return _get_client().get_realtime_data_batch(symbols, force_refresh)

@@ -300,6 +300,216 @@ class SimpleQDBClient:
         except Exception as e:
             raise CacheError(f"清除缓存失败: {str(e)}")
 
+    def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Get realtime stock data (simplified implementation)
+
+        Args:
+            symbol: Stock symbol
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            Dictionary with realtime stock data
+        """
+        try:
+            if not AKSHARE_AVAILABLE:
+                return {
+                    'symbol': symbol,
+                    'error': 'AKShare not available',
+                    'cache_hit': False,
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            # For simplified client, we'll use stock_zh_a_spot directly
+            import akshare as ak
+
+            # Get all realtime data
+            try:
+                df = ak.stock_zh_a_spot()
+            except Exception as e:
+                # If AKShare fails, return mock data for demonstration
+                print(f"⚠️ AKShare realtime data unavailable, using mock data: {e}")
+                return self._get_mock_realtime_data(symbol)
+
+            # Clean symbol
+            clean_symbol = symbol
+            if "." in clean_symbol:
+                clean_symbol = clean_symbol.split(".")[0]
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                clean_symbol = clean_symbol[2:]
+
+            # Filter for our symbol
+            symbol_data = df[df['代码'] == clean_symbol]
+
+            if symbol_data.empty:
+                return {
+                    'symbol': symbol,
+                    'error': 'Symbol not found',
+                    'cache_hit': False,
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            # Convert to our format
+            row = symbol_data.iloc[0]
+            return {
+                'symbol': symbol,
+                'name': row.get('名称', f'Stock {symbol}'),
+                'price': float(row.get('最新价', 0)),
+                'open': float(row.get('今开', 0)),
+                'high': float(row.get('最高', 0)),
+                'low': float(row.get('最低', 0)),
+                'prev_close': float(row.get('昨收', 0)),
+                'change': float(row.get('涨跌额', 0)),
+                'pct_change': float(row.get('涨跌幅', 0)),
+                'volume': float(row.get('成交量', 0)),
+                'turnover': float(row.get('成交额', 0)),
+                'timestamp': datetime.now().isoformat(),
+                'cache_hit': False
+            }
+
+        except Exception as e:
+            return {
+                'symbol': symbol,
+                'error': str(e),
+                'cache_hit': False,
+                'timestamp': datetime.now().isoformat()
+            }
+
+    def get_realtime_data_batch(self, symbols: List[str], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+        """
+        Get realtime data for multiple stocks (simplified implementation)
+
+        Args:
+            symbols: List of stock symbols
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            Dictionary with symbol as key and realtime data as value
+        """
+        result = {}
+
+        try:
+            if not AKSHARE_AVAILABLE:
+                for symbol in symbols:
+                    result[symbol] = {
+                        'symbol': symbol,
+                        'error': 'AKShare not available',
+                        'cache_hit': False,
+                        'timestamp': datetime.now().isoformat()
+                    }
+                return result
+
+            # Get all realtime data once
+            import akshare as ak
+            try:
+                df = ak.stock_zh_a_spot()
+            except Exception as e:
+                # If AKShare fails, return mock data for demonstration
+                print(f"⚠️ AKShare realtime data unavailable, using mock data: {e}")
+                for symbol in symbols:
+                    result[symbol] = self._get_mock_realtime_data(symbol)
+                return result
+
+            for symbol in symbols:
+                try:
+                    # Clean symbol
+                    clean_symbol = symbol
+                    if "." in clean_symbol:
+                        clean_symbol = clean_symbol.split(".")[0]
+                    if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                        clean_symbol = clean_symbol[2:]
+
+                    # Filter for this symbol
+                    symbol_data = df[df['代码'] == clean_symbol]
+
+                    if not symbol_data.empty:
+                        row = symbol_data.iloc[0]
+                        result[symbol] = {
+                            'symbol': symbol,
+                            'name': row.get('名称', f'Stock {symbol}'),
+                            'price': float(row.get('最新价', 0)),
+                            'open': float(row.get('今开', 0)),
+                            'high': float(row.get('最高', 0)),
+                            'low': float(row.get('最低', 0)),
+                            'prev_close': float(row.get('昨收', 0)),
+                            'change': float(row.get('涨跌额', 0)),
+                            'pct_change': float(row.get('涨跌幅', 0)),
+                            'volume': float(row.get('成交量', 0)),
+                            'turnover': float(row.get('成交额', 0)),
+                            'timestamp': datetime.now().isoformat(),
+                            'cache_hit': False
+                        }
+                    else:
+                        result[symbol] = {
+                            'symbol': symbol,
+                            'error': 'Symbol not found',
+                            'cache_hit': False,
+                            'timestamp': datetime.now().isoformat()
+                        }
+
+                except Exception as e:
+                    result[symbol] = {
+                        'symbol': symbol,
+                        'error': str(e),
+                        'cache_hit': False,
+                        'timestamp': datetime.now().isoformat()
+                    }
+
+            return result
+
+        except Exception as e:
+            # Return error for all symbols
+            for symbol in symbols:
+                result[symbol] = {
+                    'symbol': symbol,
+                    'error': str(e),
+                    'cache_hit': False,
+                    'timestamp': datetime.now().isoformat()
+                }
+            return result
+
+    def _get_mock_realtime_data(self, symbol: str) -> Dict[str, Any]:
+        """
+        Generate mock realtime data for demonstration purposes.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Mock realtime data dictionary
+        """
+        import random
+
+        # Mock data based on symbol
+        base_prices = {
+            '000001': 10.50,  # 平安银行
+            '000002': 25.30,  # 万科A
+            '600000': 8.20,   # 浦发银行
+            '600036': 35.80,  # 招商银行
+        }
+
+        base_price = base_prices.get(symbol, 20.00)
+        change_pct = random.uniform(-3.0, 3.0)
+        change = base_price * change_pct / 100
+        current_price = base_price + change
+
+        return {
+            'symbol': symbol,
+            'name': f'Mock Stock {symbol}',
+            'price': round(current_price, 2),
+            'open': round(base_price + random.uniform(-0.5, 0.5), 2),
+            'high': round(current_price + random.uniform(0, 1.0), 2),
+            'low': round(current_price - random.uniform(0, 1.0), 2),
+            'prev_close': base_price,
+            'change': round(change, 2),
+            'pct_change': round(change_pct, 2),
+            'volume': random.randint(100000, 10000000),
+            'turnover': random.randint(1000000, 100000000),
+            'timestamp': datetime.now().isoformat(),
+            'cache_hit': False,
+            'is_mock': True
+        }
+
 
 # 全局简化客户端实例
 _simple_client: Optional[SimpleQDBClient] = None
