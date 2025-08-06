@@ -116,4 +116,4 @@ class SessionDataManager:
             'avg_response_time': 0,
             'query_history': []
         }
-        st.success("缓存已清空")
+        st.success("Cache cleared")

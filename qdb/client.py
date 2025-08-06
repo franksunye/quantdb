@@ -178,7 +178,7 @@ class QDBClient:
                 "cache_dir": self.cache_dir,
                 "cache_size_mb": round(cache_size, 2),
                 "initialized": self._initialized,
-                "status": "运行中" if self._initialized else "未初始化"
+                "status": "Running" if self._initialized else "Not initialized"
             }
 
         except Exception as e:
@@ -200,7 +200,7 @@ class QDBClient:
                     import shutil
                     shutil.rmtree(self.cache_dir)
                     Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
-                    print("✅ 已清除所有缓存")
+                    print("✅ Cache cleared")
                     self._initialized = False
                 else:
                     print("⚠️ 缓存目录不存在")
@@ -232,9 +232,9 @@ def init(cache_dir: Optional[str] = None):
     """
     global _global_client
     # 直接使用简化版客户端，避免依赖问题
-    print("🚀 使用QDB简化模式（独立版本）")
+    print("🚀 Using QDB simplified mode (standalone version)")
     _global_client = SimpleQDBClient(cache_dir)
-    print(f"✅ QDB已初始化，缓存目录: {_global_client.cache_dir}")
+    print(f"✅ QDB initialized, cache directory: {_global_client.cache_dir}")
 
 def get_stock_data(symbol: str, **kwargs) -> pd.DataFrame:
     """获取股票数据"""
@@ -275,9 +275,9 @@ def set_cache_dir(cache_dir: str):
     """设置缓存目录"""
     global _global_client
     _global_client = QDBClient(cache_dir)
-    print(f"✅ 缓存目录已设置为: {cache_dir}")
+    print(f"✅ Cache directory set to: {cache_dir}")
 
 def set_log_level(level: str):
     """设置日志级别"""
     os.environ["LOG_LEVEL"] = level.upper()
-    print(f"✅ 日志级别已设置为: {level.upper()}")
+    print(f"✅ Log level set to: {level.upper()}")

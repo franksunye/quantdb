@@ -275,7 +275,7 @@ class SimpleQDBClient:
                 "cache_size_mb": round(cache_size, 2),
                 "total_records": record_count,
                 "akshare_available": AKSHARE_AVAILABLE,
-                "status": "运行中"
+                "status": "Running"
             }
             
         except Exception as e:
@@ -295,7 +295,7 @@ class SimpleQDBClient:
                 if os.path.exists(self.db_path):
                     os.remove(self.db_path)
                     self._init_database()
-                    print("✅ 已清除所有缓存")
+                    print("✅ Cache cleared")
                 
         except Exception as e:
             raise CacheError(f"清除缓存失败: {str(e)}")
