@@ -47,11 +47,17 @@ class Asset(AssetBase):
 
     model_config = ConfigDict(from_attributes=True)
 
+# Asset aliases for backward compatibility
+AssetInfo = Asset  # AssetInfo is an alias for Asset
+
 # Asset response with cache metadata
 class AssetWithMetadata(BaseModel):
     """Schema for returning an Asset with cache metadata"""
     asset: Asset
     metadata: Dict[str, Any]
+
+# AssetResponse alias for backward compatibility
+AssetResponse = AssetWithMetadata
 
 # Daily stock data schemas
 class DailyStockDataBase(BaseModel):
