@@ -15,7 +15,8 @@ from core.models.system_metrics import RequestLog, DataCoverage, SystemMetrics
 from core.utils.logger import logger
 
 # Import API schemas
-from ..schemas import CacheStatusResponse, SystemMetrics as SystemMetricsSchema
+# from ..schemas import CacheStatusResponse, SystemMetrics as SystemMetricsSchema
+from typing import Dict, Any
 
 # Create router
 router = APIRouter(
@@ -24,7 +25,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
-@router.get("/metrics", response_model=SystemMetricsSchema)
+@router.get("/metrics", response_model=Dict[str, Any])
 async def get_system_metrics(
     db: Session = Depends(get_db)
 ):
