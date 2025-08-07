@@ -19,6 +19,7 @@ from core.cache.akshare_adapter import AKShareAdapter
 from core.services.stock_data_service import StockDataService
 from core.services.database_cache import DatabaseCache
 from core.services.asset_info_service import AssetInfoService
+from core.services.stock_list_service import StockListService
 from core.services.monitoring_middleware import monitor_stock_request
 from core.utils.logger import get_logger
 
@@ -37,6 +38,13 @@ def get_stock_data_service(
 def get_asset_info_service(db: Session = Depends(get_db)):
     """Get asset info service instance."""
     return AssetInfoService(db)
+
+def get_stock_list_service(
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+):
+    """Get stock list service instance."""
+    return StockListService(db, akshare_adapter)
 
 # Setup logger
 logger = get_logger(__name__)
@@ -341,3 +349,107 @@ async def get_database_cache_status(
     except Exception as e:
         logger.error(f"Error getting database cache status: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")
+
+
+@router.get("/list")
+async def get_stock_list(
+    market: Optional[str] = Query(None, description="Market filter: SHSE, SZSE, HKEX, or None for all"),
+    force_refresh: bool = Query(False, description="Force refresh data from source"),
+    stock_list_service: StockListService = Depends(get_stock_list_service)
+):
+    """
+    Get stock list with market filtering and daily caching.
+
+    Args:
+        market: Market filter ('SHSE', 'SZSE', 'HKEX', or None for all markets)
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        List of stocks with market information
+    """
+    try:
+        logger.info(f"Getting stock list for market: {market or 'all'}, force_refresh={force_refresh}")
+
+        # Get stock list from service
+        stocks = stock_list_service.get_stock_list(market=market, force_refresh=force_refresh)
+
+        # Get cache statistics
+        cache_stats = stock_list_service.get_cache_stats()
+
+        response = {
+            "stocks": stocks,
+            "metadata": {
+                "count": len(stocks),
+                "market_filter": market or "all",
+                "cache_stats": cache_stats,
+                "force_refresh": force_refresh,
+                "timestamp": datetime.now().isoformat()
+            }
+        }
+
+        logger.info(f"Successfully returned {len(stocks)} stocks for market: {market or 'all'}")
+        return response
+
+    except Exception as e:
+        logger.error(f"Error getting stock list: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.get("/list/summary")
+async def get_market_summary(
+    stock_list_service: StockListService = Depends(get_stock_list_service)
+):
+    """
+    Get market summary statistics for all markets.
+
+    Returns:
+        Summary statistics for SHSE, SZSE, and HKEX markets
+    """
+    try:
+        logger.info("Getting market summary")
+
+        summary = stock_list_service.get_market_summary()
+
+        response = {
+            "summary": summary,
+            "metadata": {
+                "timestamp": datetime.now().isoformat(),
+                "cache_date": summary.get("date")
+            }
+        }
+
+        logger.info(f"Successfully returned market summary for {summary.get('total_stocks', 0)} stocks")
+        return response
+
+    except Exception as e:
+        logger.error(f"Error getting market summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+
+@router.delete("/list/cache")
+async def clear_stock_list_cache(
+    stock_list_service: StockListService = Depends(get_stock_list_service)
+):
+    """
+    Clear stock list cache.
+
+    Returns:
+        Number of cache entries cleared
+    """
+    try:
+        logger.info("Clearing stock list cache")
+
+        deleted_count = stock_list_service.clear_cache()
+
+        response = {
+            "message": "Stock list cache cleared successfully",
+            "deleted_count": deleted_count,
+            "timestamp": datetime.now().isoformat()
+        }
+
+        logger.info(f"Successfully cleared {deleted_count} stock list cache entries")
+        return response
+
+    except Exception as e:
+        logger.error(f"Error clearing stock list cache: {e}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")

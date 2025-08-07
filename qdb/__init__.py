@@ -32,6 +32,9 @@ from .client import (
     get_realtime_data,
     get_realtime_data_batch,
 
+    # Stock list functionality
+    get_stock_list,
+
     # Cache management
     cache_stats,
     clear_cache,
@@ -68,6 +71,9 @@ __all__ = [
     # Realtime data functionality
     "get_realtime_data",
     "get_realtime_data_batch",
+
+    # Stock list functionality
+    "get_stock_list",
 
     # Cache management
     "cache_stats",
