@@ -357,9 +357,20 @@ def init(cache_dir: Optional[str] = None):
     _global_client = SimpleQDBClient(cache_dir)
     print(f"✅ QDB initialized, cache directory: {_global_client.cache_dir}")
 
-def get_stock_data(symbol: str, **kwargs) -> pd.DataFrame:
-    """获取股票数据"""
-    return _get_client().get_stock_data(symbol, **kwargs)
+def get_stock_data(symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> pd.DataFrame:
+    """
+    获取股票数据
+
+    Args:
+        symbol: 股票代码
+        start_date: 开始日期，格式YYYYMMDD
+        end_date: 结束日期，格式YYYYMMDD
+        **kwargs: 其他参数
+
+    Returns:
+        股票数据DataFrame
+    """
+    return _get_client().get_stock_data(symbol, start_date=start_date, end_date=end_date, **kwargs)
 
 def get_multiple_stocks(symbols: List[str], **kwargs) -> Dict[str, pd.DataFrame]:
     """批量获取股票数据"""
