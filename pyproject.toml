@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quantdb"
-version = "2.2.6"
+version = "2.2.7"
 description = "Intelligent caching wrapper for AKShare with 90%+ performance boost (import as 'qdb')"
 readme = "README_PYPI.md"
 license = {text = "MIT"}

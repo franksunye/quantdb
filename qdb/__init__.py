@@ -59,7 +59,7 @@ from .exceptions import (
 )
 
 # Version information
-__version__ = "2.2.6"
+__version__ = "2.2.7"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
 __description__ = "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
