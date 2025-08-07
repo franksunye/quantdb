@@ -14,7 +14,8 @@ from .response import (
     IntradayStockDataBase,
     IntradayStockDataCreate,
     HistoricalDataPoint,
-    HistoricalDataResponse
+    HistoricalDataResponse,
+    HealthResponse
 )
 
 __all__ = [
@@ -31,5 +32,6 @@ __all__ = [
     "IntradayStockDataBase",
     "IntradayStockDataCreate",
     "HistoricalDataPoint",
-    "HistoricalDataResponse"
+    "HistoricalDataResponse",
+    "HealthResponse"
 ]
