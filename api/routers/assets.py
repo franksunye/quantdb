@@ -78,7 +78,7 @@ async def list_assets(
     exchange: Optional[str] = Query(None, description="Filter by exchange"),
     industry: Optional[str] = Query(None, description="Filter by industry"),
     sort_by: Optional[str] = Query("symbol", description="Field to sort by"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$", description="Sort order"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Sort order"),
     db: Session = Depends(get_db),
     query_service: QueryService = Depends(get_query_service)
 ):

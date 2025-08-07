@@ -152,3 +152,12 @@ class HistoricalDataResponse(BaseModel):
     metadata: Dict[str, Any]
 
 
+# Health check schema
+class HealthResponse(BaseModel):
+    """Schema for health check response"""
+    status: str
+    timestamp: float
+    service: str
+    version: str
+
+

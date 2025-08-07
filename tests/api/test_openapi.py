@@ -57,8 +57,8 @@ class TestOpenAPI(unittest.TestCase):
         # 验证API信息
         self.assertEqual(openapi_spec["info"]["title"], "QuantDB API",
                          "API标题应为'QuantDB API'")
-        self.assertEqual(openapi_spec["info"]["version"], "2.0.0",
-                         "API版本应为'2.0.0'")
+        self.assertEqual(openapi_spec["info"]["version"], "2.1.0",
+                         "API版本应为'2.1.0'")
 
         # 验证是否包含关键路径
         paths = openapi_spec["paths"]
