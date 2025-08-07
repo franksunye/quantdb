@@ -2,7 +2,7 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.2.6-blue)
+![Version](https://img.shields.io/badge/version-2.2.7-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -28,7 +28,7 @@ pip install quantdb  # One command, instant 90%+ speed boost!
 import qdb  # Note: import name is 'qdb' for simplicity
 df = qdb.get_stock_data("000001", days=30)
 
-# New features available in v2.2.6:
+# New features available in v2.2.7:
 realtime = qdb.get_realtime_data("000001")  # Real-time quotes
 stocks = qdb.get_stock_list()  # Complete stock list
 financials = qdb.get_financial_summary("000001")  # Financial data
@@ -243,7 +243,7 @@ For detailed architecture design, please refer to [System Architecture Documenta
 
 ## 🎯 Project Status
 
-**Current Version**: v2.2.6 (Complete Multi-Feature Extension)
+**Current Version**: v2.2.7 (Complete Multi-Feature Extension)
 **Next Version**: v2.3.0 (Enhanced Analytics and Performance)
 **MVP Score**: 10/10 (Core features complete, cloud deployment ready)
 **Test Coverage**: 259/259 passed (100%) - 222 backend + 37 frontend

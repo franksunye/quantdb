@@ -42,7 +42,7 @@ data = qdb.get_multiple_stocks(stocks, days=30)
 info = qdb.get_asset_info("000001")
 ```
 
-### 新功能 (v2.2.6)
+### 新功能 (v2.2.7)
 ```python
 import qdb
 

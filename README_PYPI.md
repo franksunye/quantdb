@@ -104,7 +104,7 @@ qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 - **Portfolio Management**: Multi-asset data retrieval and analysis
 - **Academic Research**: Reliable data source for financial studies
 
-## 🎉 New in v2.2.6
+## 🎉 New in v2.2.7
 
 - **✅ Real-time Stock Quotes**: Live market data with smart caching
 - **✅ Stock List API**: Complete market coverage and filtering
