@@ -99,7 +99,7 @@ async def get_swagger_ui_v2():
 
 # Import and include routers
 from api.routes import assets, stocks, cache, batch, version, asset_management
-from api.routers import realtime, index_data
+from api.routers import realtime, index_data, financial
 
 app.include_router(
     assets.router,
@@ -162,6 +162,12 @@ app.include_router(
 app.include_router(
     index_data.router,
     tags=["index"]
+)
+
+# Add financial data router
+app.include_router(
+    financial.router,
+    tags=["financial"]
 )
 
 def run_server():

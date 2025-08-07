@@ -72,9 +72,18 @@
     - [x] Python包集成 (`qdb.get_index_data()`, `qdb.get_index_realtime()`, `qdb.get_index_list()`)
     - [x] 智能缓存策略 (历史数据永久缓存，实时数据1-5分钟缓存)
     - [x] 完整API文档和使用指南 (`docs/INDEX_API_GUIDE.md`)
-  - [ ] **基础财务数据API** (下月实现)
-    - [ ] 实现财务摘要数据接口
-    - [ ] 添加核心财务指标支持
+  - [x] **基础财务数据API** ✅ (已完成 2025-08-07)
+    - [x] 实现财务摘要数据接口
+      - 季度财务摘要数据 (净利润、营业收入、ROE等)
+      - API端点: `GET /api/v1/financial/{symbol}/summary`
+      - Python包: `qdb.get_financial_summary(symbol)`
+      - 智能缓存策略 (24小时TTL)
+    - [x] 添加核心财务指标支持
+      - 详细财务分析指标 (98行×86列数据)
+      - API端点: `GET /api/v1/financial/{symbol}/indicators`
+      - Python包: `qdb.get_financial_indicators(symbol)`
+      - 批量查询: `POST /api/v1/financial/batch`
+      - 周级缓存策略 (7天TTL)
 
 ### 📈 Sprint 5 - API服务商业化 (下月)
 

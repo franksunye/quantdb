@@ -35,6 +35,10 @@ from .client import (
     # Stock list functionality
     get_stock_list,
 
+    # Financial data functionality
+    get_financial_summary,
+    get_financial_indicators,
+
     # Cache management
     cache_stats,
     clear_cache,
@@ -74,6 +78,10 @@ __all__ = [
 
     # Stock list functionality
     "get_stock_list",
+
+    # Financial data functionality
+    "get_financial_summary",
+    "get_financial_indicators",
 
     # Cache management
     "cache_stats",

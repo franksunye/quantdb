@@ -208,6 +208,127 @@ class QDBClient:
         except Exception as e:
             raise CacheError(f"清除缓存失败: {str(e)}")
 
+    def get_financial_summary(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Get financial summary data for a stock symbol
+
+        Args:
+            symbol: Stock symbol (e.g., '000001', '600000')
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            Dictionary containing financial summary data
+        """
+        self._lazy_init()
+
+        try:
+            print(f"📊 Getting financial summary for {symbol}...")
+
+            # Use AKShare adapter to get financial summary
+            df = self._akshare_adapter.get_financial_summary(symbol)
+
+            if df.empty:
+                print(f"⚠️ No financial summary data available for {symbol}")
+                return {
+                    'symbol': symbol,
+                    'error': 'No financial summary data available',
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            # Process the data into a simplified format
+            quarters = []
+            date_columns = [col for col in df.columns if col not in ['选项', '指标']]
+
+            # Get latest 4 quarters
+            for date_col in date_columns[:4]:
+                quarter_data = {'period': date_col}
+
+                for _, row in df.iterrows():
+                    indicator = row['指标']
+                    value = row.get(date_col)
+
+                    if value is not None and not pd.isna(value):
+                        # Map key indicators
+                        if indicator == '归母净利润':
+                            quarter_data['net_profit'] = float(value)
+                        elif indicator == '营业总收入':
+                            quarter_data['total_revenue'] = float(value)
+                        elif indicator == '营业成本':
+                            quarter_data['operating_cost'] = float(value)
+                        elif indicator == '净资产收益率':
+                            quarter_data['roe'] = float(value)
+                        elif indicator == '总资产收益率':
+                            quarter_data['roa'] = float(value)
+
+                quarters.append(quarter_data)
+
+            result = {
+                'symbol': symbol,
+                'data_type': 'financial_summary',
+                'quarters': quarters,
+                'count': len(quarters),
+                'timestamp': datetime.now().isoformat()
+            }
+
+            print(f"✅ Retrieved financial summary for {symbol} ({len(quarters)} quarters)")
+            return result
+
+        except Exception as e:
+            print(f"⚠️ Error getting financial summary for {symbol}: {e}")
+            return {
+                'symbol': symbol,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
+
+    def get_financial_indicators(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Get financial indicators data for a stock symbol
+
+        Args:
+            symbol: Stock symbol (e.g., '000001', '600000')
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            Dictionary containing financial indicators data
+        """
+        self._lazy_init()
+
+        try:
+            print(f"📈 Getting financial indicators for {symbol}...")
+
+            # Use AKShare adapter to get financial indicators
+            df = self._akshare_adapter.get_financial_indicators(symbol)
+
+            if df.empty:
+                print(f"⚠️ No financial indicators data available for {symbol}")
+                return {
+                    'symbol': symbol,
+                    'error': 'No financial indicators data available',
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            # Process the indicators data
+            result = {
+                'symbol': symbol,
+                'data_type': 'financial_indicators',
+                'data_shape': f"{df.shape[0]}x{df.shape[1]}",
+                'columns': list(df.columns)[:10],  # First 10 columns as sample
+                'sample_data': df.head(3).to_dict('records') if len(df) > 0 else [],
+                'timestamp': datetime.now().isoformat()
+            }
+
+            print(f"✅ Retrieved financial indicators for {symbol} (shape: {df.shape})")
+            return result
+
+        except Exception as e:
+            print(f"⚠️ Error getting financial indicators for {symbol}: {e}")
+            return {
+                'symbol': symbol,
+                'error': str(e),
+                'timestamp': datetime.now().isoformat()
+            }
+
 # 全局客户端实例
 _global_client: Optional[QDBClient] = None
 
@@ -368,3 +489,29 @@ def get_index_list(category: Optional[str] = None, force_refresh: bool = False) 
         List of dictionaries containing index information
     """
     return _get_client().get_index_list(category, force_refresh)
+
+def get_financial_summary(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Get financial summary data for a stock symbol
+
+    Args:
+        symbol: Stock symbol (e.g., '000001', '600000')
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        Dictionary containing financial summary data
+    """
+    return _get_client().get_financial_summary(symbol, force_refresh)
+
+def get_financial_indicators(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Get financial indicators data for a stock symbol
+
+    Args:
+        symbol: Stock symbol (e.g., '000001', '600000')
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        Dictionary containing financial indicators data
+    """
+    return _get_client().get_financial_indicators(symbol, force_refresh)

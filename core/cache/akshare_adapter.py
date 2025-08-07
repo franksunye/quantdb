@@ -697,6 +697,112 @@ class AKShareAdapter:
             logger.error(f"Error getting batch realtime data: {e}")
             raise
 
+    def get_financial_summary(self, symbol: str) -> pd.DataFrame:
+        """
+        Get financial summary data using AKShare stock_financial_abstract.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            DataFrame with financial summary data
+        """
+        try:
+            logger.info(f"Getting financial summary for {symbol}")
+
+            # Validate symbol format
+            if not self._validate_symbol(symbol):
+                logger.error(f"Invalid symbol format: {symbol}")
+                return pd.DataFrame()
+
+            # Detect market and clean symbol
+            market = self._detect_market(symbol)
+            clean_symbol = symbol
+
+            if market == 'A_STOCK':
+                # Remove possible suffix and prefix
+                if "." in clean_symbol:
+                    clean_symbol = clean_symbol.split(".")[0]
+                if clean_symbol.lower().startswith(("sh", "sz")):
+                    clean_symbol = clean_symbol[2:]
+
+                logger.info(f"Getting financial summary for A-share {clean_symbol}")
+
+                # Use stock_financial_abstract for financial summary
+                try:
+                    df = self._safe_call(ak.stock_financial_abstract, symbol=clean_symbol)
+                except Exception as e:
+                    logger.error(f"Failed to get financial summary for {clean_symbol}: {e}")
+                    df = pd.DataFrame()
+
+                if df is not None and not df.empty:
+                    logger.info(f"Retrieved financial summary with shape: {df.shape}")
+                    return df
+                else:
+                    logger.warning(f"No financial summary data available for {symbol}")
+                    return pd.DataFrame()
+
+            else:
+                logger.warning(f"Financial summary not supported for market: {market}")
+                return pd.DataFrame()
+
+        except Exception as e:
+            logger.error(f"Error getting financial summary for {symbol}: {e}")
+            return pd.DataFrame()
+
+    def get_financial_indicators(self, symbol: str) -> pd.DataFrame:
+        """
+        Get financial indicators data using AKShare stock_financial_analysis_indicator.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            DataFrame with financial indicators data
+        """
+        try:
+            logger.info(f"Getting financial indicators for {symbol}")
+
+            # Validate symbol format
+            if not self._validate_symbol(symbol):
+                logger.error(f"Invalid symbol format: {symbol}")
+                return pd.DataFrame()
+
+            # Detect market and clean symbol
+            market = self._detect_market(symbol)
+            clean_symbol = symbol
+
+            if market == 'A_STOCK':
+                # Remove possible suffix and prefix
+                if "." in clean_symbol:
+                    clean_symbol = clean_symbol.split(".")[0]
+                if clean_symbol.lower().startswith(("sh", "sz")):
+                    clean_symbol = clean_symbol[2:]
+
+                logger.info(f"Getting financial indicators for A-share {clean_symbol}")
+
+                # Use stock_financial_analysis_indicator for detailed indicators
+                try:
+                    df = self._safe_call(ak.stock_financial_analysis_indicator, symbol=clean_symbol)
+                except Exception as e:
+                    logger.error(f"Failed to get financial indicators for {clean_symbol}: {e}")
+                    df = pd.DataFrame()
+
+                if df is not None and not df.empty:
+                    logger.info(f"Retrieved financial indicators with shape: {df.shape}")
+                    return df
+                else:
+                    logger.warning(f"No financial indicators data available for {symbol}")
+                    return pd.DataFrame()
+
+            else:
+                logger.warning(f"Financial indicators not supported for market: {market}")
+                return pd.DataFrame()
+
+        except Exception as e:
+            logger.error(f"Error getting financial indicators for {symbol}: {e}")
+            return pd.DataFrame()
+
     def get_stock_list(self, market: Optional[str] = None) -> pd.DataFrame:
         """
         Get stock list using AKShare stock_zh_a_spot_em.
