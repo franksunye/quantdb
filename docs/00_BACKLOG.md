@@ -1,16 +1,18 @@
 # QuantDB 产品待办清单 (Product Backlog)
 
-**当前Sprint**: Sprint 4 | **版本**: v2.2.6 | **更新**: 2025-08-06
+**当前Sprint**: Sprint 4 | **版本**: v2.3.0 | **更新**: 2025-08-07
 
 ## 🎯 产品现状
 
-✅ **里程碑2.0完成**: Python包国际化完成 (100%)
-- 📦 **QuantDB包**: https://pypi.org/project/quantdb/ (v2.2.6)
+✅ **里程碑2.3完成**: 指数数据API完成 (100%)
+- 📦 **QuantDB包**: https://pypi.org/project/quantdb/ (v2.3.0)
 - 🚀 **安装命令**: `pip install quantdb`
 - 📖 **导入方式**: `import qdb`
 - 🌍 **100%英文代码库**: 完全适配国际开发者社区
 - ✅ **87测试通过**: 无功能回归
 - ✅ **完整国际化**: 版本显示和用户界面消息100%英文化
+- 🆕 **指数数据API**: 完整的指数历史/实时数据支持
+- 📊 **智能缓存**: 高性能指数数据访问策略
 
 ## 📋 产品待办清单 (Product Backlog)
 
@@ -63,10 +65,13 @@
     - ✅ 创建 `/api/v1/stocks/list` 端点
     - ✅ 支持按市场筛选 (SHSE/SZSE/HKEX)
     - ✅ 集成到Python包: `qdb.get_stock_list()`
-  - [ ] **指数数据API** (下月实现)
-    - [ ] 实现指数历史数据接口
-    - [ ] 实现指数实时数据接口
-    - [ ] 支持主要指数 (上证/深证/创业板)
+  - [x] **指数数据API** ✅ (已完成 2025-08-07)
+    - [x] 实现指数历史数据接口 (`GET /api/v1/index/historical/{symbol}`)
+    - [x] 实现指数实时数据接口 (`GET /api/v1/index/realtime/{symbol}`)
+    - [x] 支持主要指数 (上证/深证/创业板)
+    - [x] Python包集成 (`qdb.get_index_data()`, `qdb.get_index_realtime()`, `qdb.get_index_list()`)
+    - [x] 智能缓存策略 (历史数据永久缓存，实时数据1-5分钟缓存)
+    - [x] 完整API文档和使用指南 (`docs/INDEX_API_GUIDE.md`)
   - [ ] **基础财务数据API** (下月实现)
     - [ ] 实现财务摘要数据接口
     - [ ] 添加核心财务指标支持
