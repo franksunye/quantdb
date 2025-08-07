@@ -307,3 +307,16 @@ def get_realtime_data_batch(symbols: List[str], force_refresh: bool = False) -> 
         Dictionary with symbol as key and realtime data as value
     """
     return _get_client().get_realtime_data_batch(symbols, force_refresh)
+
+def get_stock_list(market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+    """
+    Get stock list with market filtering and daily caching
+
+    Args:
+        market: Market filter ('SHSE', 'SZSE', 'HKEX', or None for all markets)
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        List of dictionaries containing stock information
+    """
+    return _get_client().get_stock_list(market, force_refresh)

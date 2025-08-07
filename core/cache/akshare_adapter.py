@@ -696,3 +696,117 @@ class AKShareAdapter:
         except Exception as e:
             logger.error(f"Error getting batch realtime data: {e}")
             raise
+
+    def get_stock_list(self, market: Optional[str] = None) -> pd.DataFrame:
+        """
+        Get stock list using AKShare stock_zh_a_spot_em.
+
+        Args:
+            market: Market filter ('SHSE', 'SZSE', 'HKEX', or None for all)
+
+        Returns:
+            DataFrame with stock list data
+        """
+        try:
+            logger.info(f"Getting stock list for market: {market or 'all'}")
+
+            # Use stock_zh_a_spot_em for comprehensive stock list
+            df = self._safe_call(ak.stock_zh_a_spot_em)
+
+            if df is None or df.empty:
+                logger.warning("No stock list data available")
+                return pd.DataFrame()
+
+            # Standardize column names and add market information
+            df = df.copy()
+
+            # Map Chinese column names to English
+            column_mapping = {
+                '代码': 'symbol',
+                '名称': 'name',
+                '最新价': 'price',
+                '涨跌幅': 'pct_change',
+                '涨跌额': 'change',
+                '成交量': 'volume',
+                '成交额': 'turnover',
+                '振幅': 'amplitude',
+                '最高': 'high',
+                '最低': 'low',
+                '今开': 'open',
+                '昨收': 'prev_close',
+                '量比': 'volume_ratio',
+                '换手率': 'turnover_rate',
+                '市盈率-动态': 'pe_ratio',
+                '市净率': 'pb_ratio',
+                '总市值': 'market_cap',
+                '流通市值': 'circulating_market_cap'
+            }
+
+            # Rename columns that exist
+            for chinese_name, english_name in column_mapping.items():
+                if chinese_name in df.columns:
+                    df = df.rename(columns={chinese_name: english_name})
+
+            # Add market classification
+            df['market'] = df['symbol'].apply(self._classify_market)
+
+            # Filter by market if specified
+            if market:
+                market_upper = market.upper()
+                if market_upper in ['SHSE', 'SZSE', 'HKEX']:
+                    df = df[df['market'] == market_upper]
+                else:
+                    logger.warning(f"Unknown market filter: {market}")
+
+            # Ensure required columns exist
+            required_columns = ['symbol', 'name', 'market']
+            for col in required_columns:
+                if col not in df.columns:
+                    if col == 'symbol':
+                        df['symbol'] = df.index.astype(str)
+                    elif col == 'name':
+                        df['name'] = 'Unknown'
+                    elif col == 'market':
+                        df['market'] = df['symbol'].apply(self._classify_market)
+
+            logger.info(f"Retrieved {len(df)} stocks for market: {market or 'all'}")
+            return df
+
+        except Exception as e:
+            logger.error(f"Error getting stock list: {e}")
+            raise
+
+    def _classify_market(self, symbol: str) -> str:
+        """
+        Classify stock market based on symbol.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Market code ('SHSE', 'SZSE', 'HKEX')
+        """
+        if not symbol:
+            return 'UNKNOWN'
+
+        symbol = str(symbol).strip()
+
+        # Hong Kong Exchange (HKEX) - 5 digit codes (check first)
+        if len(symbol) == 5 and symbol.isdigit():
+            return 'HKEX'
+
+        # Shanghai Stock Exchange (SHSE)
+        elif (symbol.startswith('60') or
+              symbol.startswith('68') or
+              symbol.startswith('90')):
+            return 'SHSE'
+
+        # Shenzhen Stock Exchange (SZSE)
+        elif (symbol.startswith('00') or
+              symbol.startswith('30') or
+              symbol.startswith('20')):
+            return 'SZSE'
+
+        # Default to SZSE for other patterns
+        else:
+            return 'SZSE'

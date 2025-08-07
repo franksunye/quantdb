@@ -510,6 +510,306 @@ class SimpleQDBClient:
             'is_mock': True
         }
 
+    def get_stock_list(self, market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """
+        Get stock list with market filtering and daily caching.
+
+        Args:
+            market: Market filter ('SHSE', 'SZSE', 'HKEX', or None for all markets)
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            List of dictionaries containing stock information
+        """
+        try:
+            if not AKSHARE_AVAILABLE:
+                print("⚠️ AKShare not available, returning mock stock list")
+                return self._get_mock_stock_list(market)
+
+            # Check cache first (unless force refresh)
+            if not force_refresh:
+                cached_data = self._get_cached_stock_list(market)
+                if cached_data:
+                    print(f"✅ Using cached stock list ({len(cached_data)} stocks)")
+                    return cached_data
+
+            # Fetch fresh data from AKShare
+            print("🔄 Fetching fresh stock list from AKShare...")
+            import akshare as ak
+
+            try:
+                df = ak.stock_zh_a_spot_em()
+            except Exception as e:
+                print(f"⚠️ AKShare stock list unavailable, using mock data: {e}")
+                return self._get_mock_stock_list(market)
+
+            if df.empty:
+                print("⚠️ No stock list data available")
+                return []
+
+            # Process and filter data
+            stocks = []
+            for _, row in df.iterrows():
+                try:
+                    symbol = str(row.get('代码', '')).strip()
+                    if not symbol:
+                        continue
+
+                    # Classify market
+                    stock_market = self._classify_market(symbol)
+
+                    # Apply market filter
+                    if market and market.upper() != stock_market:
+                        continue
+
+                    stock_data = {
+                        'symbol': symbol,
+                        'name': str(row.get('名称', 'Unknown')).strip(),
+                        'market': stock_market,
+                        'price': float(row.get('最新价', 0)) if row.get('最新价') else None,
+                        'pct_change': float(row.get('涨跌幅', 0)) if row.get('涨跌幅') else None,
+                        'change': float(row.get('涨跌额', 0)) if row.get('涨跌额') else None,
+                        'volume': float(row.get('成交量', 0)) if row.get('成交量') else None,
+                        'turnover': float(row.get('成交额', 0)) if row.get('成交额') else None,
+                        'cache_date': datetime.now().date().isoformat(),
+                        'is_active': True
+                    }
+                    stocks.append(stock_data)
+
+                except Exception as e:
+                    print(f"⚠️ Error processing stock {row.get('代码', 'unknown')}: {e}")
+                    continue
+
+            # Save to cache
+            self._save_stock_list_to_cache(stocks)
+
+            print(f"✅ Retrieved {len(stocks)} stocks for market: {market or 'all'}")
+            return stocks
+
+        except Exception as e:
+            print(f"⚠️ Error getting stock list: {e}")
+            # Try to return cached data as fallback
+            try:
+                cached_data = self._get_cached_stock_list(market)
+                if cached_data:
+                    print(f"✅ Using cached data as fallback ({len(cached_data)} stocks)")
+                    return cached_data
+            except:
+                pass
+
+            # Final fallback to mock data
+            return self._get_mock_stock_list(market)
+
+    def _classify_market(self, symbol: str) -> str:
+        """
+        Classify stock market based on symbol.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Market code ('SHSE', 'SZSE', 'HKEX')
+        """
+        if not symbol:
+            return 'UNKNOWN'
+
+        symbol = str(symbol).strip()
+
+        # Hong Kong Exchange (HKEX) - 5 digit codes (check first)
+        if len(symbol) == 5 and symbol.isdigit():
+            return 'HKEX'
+
+        # Shanghai Stock Exchange (SHSE)
+        elif (symbol.startswith('60') or
+              symbol.startswith('68') or
+              symbol.startswith('90')):
+            return 'SHSE'
+
+        # Shenzhen Stock Exchange (SZSE)
+        elif (symbol.startswith('00') or
+              symbol.startswith('30') or
+              symbol.startswith('20')):
+            return 'SZSE'
+
+        # Default to SZSE for other patterns
+        else:
+            return 'SZSE'
+
+    def _get_cached_stock_list(self, market: Optional[str] = None) -> Optional[List[Dict[str, Any]]]:
+        """
+        Get stock list from cache if fresh (today's data).
+
+        Args:
+            market: Market filter
+
+        Returns:
+            Cached stock list or None if not fresh
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            # Check if stock_list table exists
+            cursor.execute("""
+                SELECT name FROM sqlite_master
+                WHERE type='table' AND name='stock_list'
+            """)
+
+            if not cursor.fetchone():
+                conn.close()
+                return None
+
+            # Check for today's data
+            today = datetime.now().date().isoformat()
+
+            query = """
+                SELECT symbol, name, market, price, pct_change, change,
+                       volume, turnover, cache_date, is_active
+                FROM stock_list
+                WHERE cache_date = ? AND is_active = 1
+            """
+            params = [today]
+
+            # Apply market filter
+            if market:
+                query += " AND market = ?"
+                params.append(market.upper())
+
+            query += " ORDER BY symbol"
+
+            cursor.execute(query, params)
+            rows = cursor.fetchall()
+            conn.close()
+
+            if not rows:
+                return None
+
+            # Convert to list of dictionaries
+            stocks = []
+            for row in rows:
+                stocks.append({
+                    'symbol': row[0],
+                    'name': row[1],
+                    'market': row[2],
+                    'price': row[3],
+                    'pct_change': row[4],
+                    'change': row[5],
+                    'volume': row[6],
+                    'turnover': row[7],
+                    'cache_date': row[8],
+                    'is_active': bool(row[9])
+                })
+
+            return stocks
+
+        except Exception as e:
+            print(f"⚠️ Error reading stock list cache: {e}")
+            return None
+
+    def _save_stock_list_to_cache(self, stocks: List[Dict[str, Any]]):
+        """
+        Save stock list to cache.
+
+        Args:
+            stocks: List of stock dictionaries
+        """
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+
+            # Create stock_list table if not exists
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS stock_list (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    symbol TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    market TEXT NOT NULL,
+                    price REAL,
+                    pct_change REAL,
+                    change REAL,
+                    volume REAL,
+                    turnover REAL,
+                    cache_date TEXT NOT NULL,
+                    is_active INTEGER DEFAULT 1,
+                    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE(symbol, cache_date)
+                )
+            ''')
+
+            # Clear today's data first
+            today = datetime.now().date().isoformat()
+            cursor.execute("DELETE FROM stock_list WHERE cache_date = ?", (today,))
+
+            # Insert new data
+            for stock in stocks:
+                cursor.execute('''
+                    INSERT OR REPLACE INTO stock_list
+                    (symbol, name, market, price, pct_change, change,
+                     volume, turnover, cache_date, is_active)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    stock['symbol'],
+                    stock['name'],
+                    stock['market'],
+                    stock.get('price'),
+                    stock.get('pct_change'),
+                    stock.get('change'),
+                    stock.get('volume'),
+                    stock.get('turnover'),
+                    stock['cache_date'],
+                    1 if stock.get('is_active', True) else 0
+                ))
+
+            conn.commit()
+            conn.close()
+            print(f"✅ Saved {len(stocks)} stocks to cache")
+
+        except Exception as e:
+            print(f"⚠️ Error saving stock list to cache: {e}")
+
+    def _get_mock_stock_list(self, market: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        Generate mock stock list for demonstration.
+
+        Args:
+            market: Market filter
+
+        Returns:
+            Mock stock list
+        """
+        mock_stocks = [
+            {'symbol': '000001', 'name': '平安银行', 'market': 'SZSE'},
+            {'symbol': '000002', 'name': '万科A', 'market': 'SZSE'},
+            {'symbol': '600000', 'name': '浦发银行', 'market': 'SHSE'},
+            {'symbol': '600036', 'name': '招商银行', 'market': 'SHSE'},
+            {'symbol': '600519', 'name': '贵州茅台', 'market': 'SHSE'},
+            {'symbol': '000858', 'name': '五粮液', 'market': 'SZSE'},
+            {'symbol': '300015', 'name': '爱尔眼科', 'market': 'SZSE'},
+            {'symbol': '00700', 'name': '腾讯控股', 'market': 'HKEX'},
+            {'symbol': '09988', 'name': '阿里巴巴-SW', 'market': 'HKEX'},
+        ]
+
+        # Apply market filter
+        if market:
+            market_upper = market.upper()
+            mock_stocks = [s for s in mock_stocks if s['market'] == market_upper]
+
+        # Add mock data
+        import random
+        for stock in mock_stocks:
+            stock.update({
+                'price': round(random.uniform(10, 200), 2),
+                'pct_change': round(random.uniform(-5, 5), 2),
+                'change': round(random.uniform(-10, 10), 2),
+                'volume': random.randint(100000, 10000000),
+                'turnover': random.randint(1000000, 100000000),
+                'cache_date': datetime.now().date().isoformat(),
+                'is_active': True,
+                'is_mock': True
+            })
+
+        return mock_stocks
+
 
 # 全局简化客户端实例
 _simple_client: Optional[SimpleQDBClient] = None
