@@ -1,8 +1,8 @@
 # QuantDB 更新日志
 
-## [2.2.6] - 国际化收尾完成 (2025-08-06)
+## [2.2.6] - 国际化收尾+实时API完成 (2025-08-06)
 
-### 🎯 Sprint 4.1 完成 - 100%国际化达成
+### 🎯 Sprint 4.1&4.3 完成 - 100%国际化+实时数据API达成
 - **版本显示修复**: 修复qdb.__version__从2.2.4到2.2.6，与PyPI包版本保持一致
 - **用户界面完全英文化**: 完成所有剩余中文消息翻译
   - 状态消息: "运行中" → "Running"
@@ -13,11 +13,31 @@
 - **质量保证**: 功能完整性验证，所有用户可见文本100%英文
 - **PyPI就绪**: 准备发布v2.2.6，完整国际化版本
 
+### 🚀 Sprint 4.3 完成 - 实时行情数据API
+- **AKShare集成**: 实现stock_zh_a_spot接口包装，支持降级机制
+- **智能缓存**: SQLite-based缓存，交易时间5分钟TTL，非交易时间60分钟TTL
+- **API端点**: GET /api/v1/realtime/stock/{symbol} 单股票实时数据
+- **批量API**: POST /api/v1/batch/realtime 批量实时数据查询
+- **Python包集成**: qdb.get_realtime_data() 和 qdb.get_realtime_data_batch()
+- **错误处理**: 完整的错误处理和降级机制，包含模拟数据支持
+- **质量保证**: 全面的单元测试和功能验证
+
 ### 📦 修改文件
+**国际化相关**:
 - `qdb/__init__.py`: 版本号更新
 - `qdb/client.py`: 用户消息英文化
 - `qdb/simple_client.py`: 简化客户端消息英文化
 - `cloud/streamlit_cloud/utils/session_manager.py`: 云平台消息英文化
+
+**实时API相关**:
+- `core/models/realtime_data.py`: 实时数据模型 (NEW)
+- `core/services/realtime_data_service.py`: 实时数据服务 (NEW)
+- `api/routers/realtime.py`: 实时数据API路由 (NEW)
+- `tests/unit/test_realtime_api.py`: 实时API测试 (NEW)
+- `core/cache/akshare_adapter.py`: 扩展实时数据支持
+- `qdb/client.py`, `qdb/simple_client.py`: 实时数据函数集成
+- `core/models/__init__.py`, `core/models/asset.py`: 模型关系更新
+- `api/main.py`: 路由集成
 
 ## [2.2.4] - 核心代码国际化完成 (2025-08-05)
 
