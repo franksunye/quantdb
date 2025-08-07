@@ -320,3 +320,51 @@ def get_stock_list(market: Optional[str] = None, force_refresh: bool = False) ->
         List of dictionaries containing stock information
     """
     return _get_client().get_stock_list(market, force_refresh)
+
+def get_index_data(
+    symbol: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    period: str = "daily",
+    force_refresh: bool = False
+) -> pd.DataFrame:
+    """
+    Get historical index data
+
+    Args:
+        symbol: Index symbol (e.g., '000001', '399001')
+        start_date: Start date in YYYYMMDD format
+        end_date: End date in YYYYMMDD format
+        period: Data frequency ('daily', 'weekly', 'monthly')
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        DataFrame with historical index data
+    """
+    return _get_client().get_index_data(symbol, start_date, end_date, period, force_refresh)
+
+def get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    """
+    Get realtime index data
+
+    Args:
+        symbol: Index symbol (e.g., '000001', '399001')
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        Dictionary with realtime index data
+    """
+    return _get_client().get_index_realtime(symbol, force_refresh)
+
+def get_index_list(category: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+    """
+    Get index list with category filtering and daily caching
+
+    Args:
+        category: Index category filter (e.g., '沪深重要指数', '上证系列指数')
+        force_refresh: If True, bypass cache and fetch fresh data
+
+    Returns:
+        List of dictionaries containing index information
+    """
+    return _get_client().get_index_list(category, force_refresh)

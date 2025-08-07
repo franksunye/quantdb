@@ -776,6 +776,277 @@ class AKShareAdapter:
             logger.error(f"Error getting stock list: {e}")
             raise
 
+    def get_index_data(
+        self,
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        period: str = "daily"
+    ) -> pd.DataFrame:
+        """
+        Get index historical data using AKShare index_zh_a_hist.
+
+        Args:
+            symbol: Index symbol (e.g., '000001', '399001')
+            start_date: Start date in format YYYYMMDD
+            end_date: End date in format YYYYMMDD
+            period: Data frequency. Options are "daily", "weekly", "monthly"
+
+        Returns:
+            DataFrame with index data
+        """
+        try:
+            logger.info(f"Getting index data for {symbol} from {start_date} to {end_date} with period={period}")
+
+            # Validate parameters
+            if not symbol:
+                logger.error("Symbol cannot be empty")
+                raise ValueError("Symbol cannot be empty")
+
+            # Validate period parameter
+            valid_periods = ["daily", "weekly", "monthly"]
+            if period not in valid_periods:
+                logger.error(f"Invalid period: {period}. Valid options are: {valid_periods}")
+                raise ValueError(f"Invalid period: {period}. Valid options are: {valid_periods}")
+
+            # Set default dates if not provided
+            if end_date is None:
+                end_date = datetime.now().strftime('%Y%m%d')
+            if start_date is None:
+                start_date = (datetime.now() - timedelta(days=365)).strftime('%Y%m%d')
+
+            # Validate and format dates
+            start_date = self._validate_and_format_date(start_date)
+            end_date = self._validate_and_format_date(end_date)
+
+            # Clean symbol (remove market prefix if present)
+            clean_symbol = symbol
+            if "." in clean_symbol:
+                clean_symbol = clean_symbol.split(".")[0]
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                clean_symbol = clean_symbol[2:]
+
+            logger.info(f"Getting index data using index_zh_a_hist for {clean_symbol} with period={period}")
+
+            # Use index_zh_a_hist for index data
+            df = self._safe_call(
+                ak.index_zh_a_hist,
+                symbol=clean_symbol,
+                period=period,
+                start_date=start_date,
+                end_date=end_date
+            )
+
+            if df is None or df.empty:
+                logger.warning(f"No index data available for {symbol}")
+                return pd.DataFrame()
+
+            # Standardize column names
+            df = df.copy()
+
+            # Map Chinese column names to English
+            column_mapping = {
+                '日期': 'date',
+                '开盘': 'open',
+                '收盘': 'close',
+                '最高': 'high',
+                '最低': 'low',
+                '成交量': 'volume',
+                '成交额': 'turnover',
+                '振幅': 'amplitude',
+                '涨跌幅': 'pct_change',
+                '涨跌额': 'change',
+                '换手率': 'turnover_rate'
+            }
+
+            # Rename columns that exist
+            for chinese_name, english_name in column_mapping.items():
+                if chinese_name in df.columns:
+                    df = df.rename(columns={chinese_name: english_name})
+
+            # Ensure required columns exist
+            required_columns = ['date', 'open', 'high', 'low', 'close']
+            for col in required_columns:
+                if col not in df.columns:
+                    if col == 'date':
+                        df['date'] = pd.to_datetime(df.index).strftime('%Y-%m-%d')
+                    else:
+                        df[col] = 0.0
+
+            # Convert date column to proper format
+            if 'date' in df.columns:
+                df['date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+
+            # Sort by date
+            df = df.sort_values('date')
+
+            logger.info(f"Retrieved {len(df)} rows of index data for {symbol}")
+            return df
+
+        except Exception as e:
+            logger.error(f"Error getting index data for {symbol}: {e}")
+            raise
+
+    def get_index_realtime_data(self, symbol: str) -> pd.DataFrame:
+        """
+        Get realtime index data using AKShare stock_zh_index_spot_em.
+
+        Args:
+            symbol: Index symbol
+
+        Returns:
+            DataFrame with realtime index data
+        """
+        try:
+            logger.info(f"Getting realtime index data for {symbol}")
+
+            # Clean symbol
+            clean_symbol = symbol
+            if "." in clean_symbol:
+                clean_symbol = clean_symbol.split(".")[0]
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                clean_symbol = clean_symbol[2:]
+
+            # Use stock_zh_index_spot_em for realtime index data
+            # This returns all indexes, we need to filter for the specific symbol
+            df = self._safe_call(ak.stock_zh_index_spot_em, symbol="沪深重要指数")
+
+            if df is None or df.empty:
+                logger.warning(f"No realtime index data available")
+                return pd.DataFrame()
+
+            # Filter for the specific symbol
+            # Note: The API returns Chinese column names, we need to handle this
+            symbol_df = df[df['代码'] == clean_symbol] if '代码' in df.columns else pd.DataFrame()
+
+            if symbol_df.empty:
+                logger.warning(f"Index {clean_symbol} not found in realtime data")
+                return pd.DataFrame()
+
+            # Standardize column names
+            symbol_df = symbol_df.copy()
+
+            # Map Chinese column names to English
+            column_mapping = {
+                '代码': 'symbol',
+                '名称': 'name',
+                '最新价': 'price',
+                '涨跌额': 'change',
+                '涨跌幅': 'pct_change',
+                '成交量': 'volume',
+                '成交额': 'turnover',
+                '振幅': 'amplitude',
+                '最高': 'high',
+                '最低': 'low',
+                '今开': 'open',
+                '昨收': 'prev_close'
+            }
+
+            # Rename columns that exist
+            for chinese_name, english_name in column_mapping.items():
+                if chinese_name in symbol_df.columns:
+                    symbol_df = symbol_df.rename(columns={chinese_name: english_name})
+
+            # Add symbol if not present
+            if 'symbol' not in symbol_df.columns:
+                symbol_df['symbol'] = clean_symbol
+
+            logger.info(f"Retrieved realtime data for index {symbol}")
+            return symbol_df
+
+        except Exception as e:
+            logger.error(f"Error getting realtime index data for {symbol}: {e}")
+            raise
+
+    def get_index_list(self, category: Optional[str] = None) -> pd.DataFrame:
+        """
+        Get index list using AKShare stock_zh_index_spot_em.
+
+        Args:
+            category: Index category filter (e.g., '沪深重要指数', '上证系列指数', '深证系列指数')
+
+        Returns:
+            DataFrame with index list data
+        """
+        try:
+            logger.info(f"Getting index list for category: {category or 'all'}")
+
+            # Default categories to fetch
+            categories = [
+                "沪深重要指数",
+                "上证系列指数",
+                "深证系列指数",
+                "中证系列指数"
+            ]
+
+            if category:
+                categories = [category]
+
+            all_indexes = []
+
+            for cat in categories:
+                try:
+                    df = self._safe_call(ak.stock_zh_index_spot_em, symbol=cat)
+
+                    if df is not None and not df.empty:
+                        # Add category information
+                        df = df.copy()
+                        df['category'] = cat
+                        all_indexes.append(df)
+
+                except Exception as e:
+                    logger.warning(f"Failed to get indexes for category {cat}: {e}")
+                    continue
+
+            if not all_indexes:
+                logger.warning("No index list data available")
+                return pd.DataFrame()
+
+            # Combine all categories
+            df = pd.concat(all_indexes, ignore_index=True)
+
+            # Standardize column names
+            column_mapping = {
+                '代码': 'symbol',
+                '名称': 'name',
+                '最新价': 'price',
+                '涨跌额': 'change',
+                '涨跌幅': 'pct_change',
+                '成交量': 'volume',
+                '成交额': 'turnover',
+                '振幅': 'amplitude',
+                '最高': 'high',
+                '最低': 'low',
+                '今开': 'open',
+                '昨收': 'prev_close'
+            }
+
+            # Rename columns that exist
+            for chinese_name, english_name in column_mapping.items():
+                if chinese_name in df.columns:
+                    df = df.rename(columns={chinese_name: english_name})
+
+            # Ensure required columns exist
+            required_columns = ['symbol', 'name', 'category']
+            for col in required_columns:
+                if col not in df.columns:
+                    if col == 'symbol':
+                        df['symbol'] = df.index.astype(str)
+                    elif col == 'name':
+                        df['name'] = 'Unknown'
+                    elif col == 'category':
+                        df['category'] = 'Unknown'
+
+            # Remove duplicates based on symbol
+            df = df.drop_duplicates(subset=['symbol'], keep='first')
+
+            logger.info(f"Retrieved {len(df)} indexes for category: {category or 'all'}")
+            return df
+
+        except Exception as e:
+            logger.error(f"Error getting index list: {e}")
+            raise
+
     def _classify_market(self, symbol: str) -> str:
         """
         Classify stock market based on symbol.

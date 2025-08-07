@@ -9,10 +9,12 @@ from . import stock_data
 from . import assets
 from . import monitoring
 from . import system
+from . import index_data
 
 __all__ = [
     "stock_data",
-    "assets", 
+    "assets",
     "monitoring",
-    "system"
+    "system",
+    "index_data"
 ]

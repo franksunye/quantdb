@@ -810,6 +810,379 @@ class SimpleQDBClient:
 
         return mock_stocks
 
+    def get_index_data(
+        self,
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        period: str = "daily",
+        force_refresh: bool = False
+    ) -> pd.DataFrame:
+        """
+        Get historical index data
+
+        Args:
+            symbol: Index symbol (e.g., '000001', '399001')
+            start_date: Start date in YYYYMMDD format
+            end_date: End date in YYYYMMDD format
+            period: Data frequency ('daily', 'weekly', 'monthly')
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            DataFrame with historical index data
+        """
+        try:
+            if not AKSHARE_AVAILABLE:
+                print("⚠️ AKShare not available, returning mock index data")
+                return self._get_mock_index_data(symbol, start_date, end_date)
+
+            # For simplified client, we'll use index_zh_a_hist directly
+            import akshare as ak
+
+            # Set default dates if not provided
+            if end_date is None:
+                end_date = datetime.now().strftime("%Y%m%d")
+            if start_date is None:
+                start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
+
+            # Clean symbol
+            clean_symbol = symbol
+            if "." in clean_symbol:
+                clean_symbol = clean_symbol.split(".")[0]
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                clean_symbol = clean_symbol[2:]
+
+            try:
+                df = ak.index_zh_a_hist(
+                    symbol=clean_symbol,
+                    period=period,
+                    start_date=start_date,
+                    end_date=end_date
+                )
+            except Exception as e:
+                print(f"⚠️ AKShare index data unavailable, using mock data: {e}")
+                return self._get_mock_index_data(symbol, start_date, end_date)
+
+            if df.empty:
+                print("⚠️ No index data available")
+                return self._get_mock_index_data(symbol, start_date, end_date)
+
+            # Standardize column names
+            df = self._standardize_index_columns(df)
+            print(f"✅ Retrieved {len(df)} rows of index data for {symbol}")
+            return df
+
+        except Exception as e:
+            raise DataError(f"Failed to get index data for {symbol}: {str(e)}")
+
+    def get_index_realtime(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """
+        Get realtime index data
+
+        Args:
+            symbol: Index symbol
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            Dictionary with realtime index data
+        """
+        try:
+            if not AKSHARE_AVAILABLE:
+                return {
+                    'symbol': symbol,
+                    'error': 'AKShare not available',
+                    'cache_hit': False,
+                    'timestamp': datetime.now().isoformat()
+                }
+
+            # For simplified client, we'll use stock_zh_index_spot_em directly
+            import akshare as ak
+
+            try:
+                df = ak.stock_zh_index_spot_em(symbol="沪深重要指数")
+            except Exception as e:
+                print(f"⚠️ AKShare realtime index data unavailable, using mock data: {e}")
+                return self._get_mock_index_realtime_data(symbol)
+
+            # Clean symbol
+            clean_symbol = symbol
+            if "." in clean_symbol:
+                clean_symbol = clean_symbol.split(".")[0]
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                clean_symbol = clean_symbol[2:]
+
+            # Filter for the specific symbol
+            symbol_df = df[df['代码'] == clean_symbol] if '代码' in df.columns else pd.DataFrame()
+
+            if symbol_df.empty:
+                print(f"⚠️ Index {clean_symbol} not found in realtime data, using mock data")
+                return self._get_mock_index_realtime_data(symbol)
+
+            # Convert to dictionary
+            data = symbol_df.iloc[0].to_dict()
+
+            # Standardize field names
+            standardized_data = {
+                'symbol': data.get('代码', symbol),
+                'name': data.get('名称', f'Index {symbol}'),
+                'price': data.get('最新价', 0.0),
+                'change': data.get('涨跌额', 0.0),
+                'pct_change': data.get('涨跌幅', 0.0),
+                'volume': data.get('成交量', 0.0),
+                'turnover': data.get('成交额', 0.0),
+                'high': data.get('最高', 0.0),
+                'low': data.get('最低', 0.0),
+                'open': data.get('今开', 0.0),
+                'prev_close': data.get('昨收', 0.0),
+                'amplitude': data.get('振幅', 0.0),
+                'cache_hit': False,
+                'timestamp': datetime.now().isoformat(),
+                'is_trading_hours': self._is_trading_hours()
+            }
+
+            print(f"✅ Retrieved realtime index data for {symbol}")
+            return standardized_data
+
+        except Exception as e:
+            return {
+                'symbol': symbol,
+                'error': str(e),
+                'cache_hit': False,
+                'timestamp': datetime.now().isoformat()
+            }
+
+    def get_index_list(self, category: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """
+        Get index list with category filtering and daily caching
+
+        Args:
+            category: Index category filter
+            force_refresh: If True, bypass cache and fetch fresh data
+
+        Returns:
+            List of dictionaries containing index information
+        """
+        try:
+            if not AKSHARE_AVAILABLE:
+                print("⚠️ AKShare not available, returning mock index list")
+                return self._get_mock_index_list(category)
+
+            # For simplified client, we'll use stock_zh_index_spot_em directly
+            import akshare as ak
+
+            categories = ["沪深重要指数", "上证系列指数", "深证系列指数", "中证系列指数"]
+            if category:
+                categories = [category]
+
+            all_indexes = []
+
+            for cat in categories:
+                try:
+                    df = ak.stock_zh_index_spot_em(symbol=cat)
+                    if df is not None and not df.empty:
+                        # Add category information
+                        df = df.copy()
+                        df['category'] = cat
+                        all_indexes.append(df)
+                except Exception as e:
+                    print(f"⚠️ Failed to get indexes for category {cat}: {e}")
+                    continue
+
+            if not all_indexes:
+                print("⚠️ No index list data available, using mock data")
+                return self._get_mock_index_list(category)
+
+            # Combine all categories
+            df = pd.concat(all_indexes, ignore_index=True)
+
+            # Convert to list of dictionaries
+            index_list = []
+            for _, row in df.iterrows():
+                index_data = {
+                    'symbol': row.get('代码', ''),
+                    'name': row.get('名称', ''),
+                    'category': row.get('category', 'Unknown'),
+                    'price': row.get('最新价'),
+                    'pct_change': row.get('涨跌幅'),
+                    'change': row.get('涨跌额'),
+                    'volume': row.get('成交量'),
+                    'turnover': row.get('成交额'),
+                    'cache_date': datetime.now().date().isoformat(),
+                    'is_active': True
+                }
+                index_list.append(index_data)
+
+            print(f"✅ Retrieved {len(index_list)} indexes")
+            return index_list
+
+        except Exception as e:
+            # Final fallback to mock data
+            return self._get_mock_index_list(category)
+
+
+    def _standardize_index_columns(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Standardize index data column names.
+
+        Args:
+            df: DataFrame with Chinese column names
+
+        Returns:
+            DataFrame with standardized English column names
+        """
+        column_mapping = {
+            '日期': 'date',
+            '开盘': 'open',
+            '收盘': 'close',
+            '最高': 'high',
+            '最低': 'low',
+            '成交量': 'volume',
+            '成交额': 'turnover',
+            '振幅': 'amplitude',
+            '涨跌幅': 'pct_change',
+            '涨跌额': 'change',
+            '换手率': 'turnover_rate'
+        }
+
+        # Rename columns that exist
+        for chinese_name, english_name in column_mapping.items():
+            if chinese_name in df.columns:
+                df = df.rename(columns={chinese_name: english_name})
+
+        return df
+
+    def _get_mock_index_data(self, symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
+        """Generate mock index data for testing."""
+        import random
+        import numpy as np
+
+        # Parse dates
+        start_dt = datetime.strptime(start_date, '%Y%m%d')
+        end_dt = datetime.strptime(end_date, '%Y%m%d')
+
+        # Generate date range (business days only)
+        dates = pd.bdate_range(start=start_dt, end=end_dt)
+
+        data = []
+        base_price = 3000.0  # Base index value
+
+        for i, date in enumerate(dates):
+            # Simulate price movement
+            if i == 0:
+                open_price = base_price
+            else:
+                open_price = data[i-1]['close']
+
+            # Random daily movement
+            change_pct = np.random.normal(0, 0.02)  # 2% daily volatility
+            close_price = open_price * (1 + change_pct)
+
+            high = max(open_price, close_price) * (1 + abs(np.random.normal(0, 0.01)))
+            low = min(open_price, close_price) * (1 - abs(np.random.normal(0, 0.01)))
+
+            volume = random.randint(100000000, 500000000)  # Index volume
+
+            data.append({
+                'date': date.strftime('%Y-%m-%d'),
+                'open': round(open_price, 2),
+                'high': round(high, 2),
+                'low': round(low, 2),
+                'close': round(close_price, 2),
+                'volume': volume,
+                'turnover': round(close_price * volume / 1000000, 2),  # In millions
+                'amplitude': round((high - low) / close_price * 100, 2),
+                'pct_change': round(change_pct * 100, 2),
+                'change': round(close_price - open_price, 2)
+            })
+
+        df = pd.DataFrame(data)
+        print(f"Generated {len(df)} rows of mock index data for {symbol}")
+        return df
+
+    def _get_mock_index_realtime_data(self, symbol: str) -> Dict[str, Any]:
+        """Generate mock realtime index data."""
+        import random
+
+        base_price = 3000.0
+        change_pct = random.uniform(-3, 3)
+        price = base_price * (1 + change_pct / 100)
+
+        return {
+            'symbol': symbol,
+            'name': f'Mock Index {symbol}',
+            'price': round(price, 2),
+            'open': round(price * 0.995, 2),
+            'high': round(price * 1.01, 2),
+            'low': round(price * 0.99, 2),
+            'prev_close': round(base_price, 2),
+            'change': round(price - base_price, 2),
+            'pct_change': round(change_pct, 2),
+            'amplitude': round(random.uniform(0.5, 3.0), 2),
+            'volume': random.randint(100000000, 500000000),
+            'turnover': random.randint(10000000000, 50000000000),
+            'cache_hit': False,
+            'timestamp': datetime.now().isoformat(),
+            'is_trading_hours': self._is_trading_hours(),
+            'is_mock': True
+        }
+
+    def _get_mock_index_list(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Generate mock index list."""
+        import random
+
+        mock_indexes = [
+            {'symbol': '000001', 'name': '上证指数', 'category': '沪深重要指数'},
+            {'symbol': '399001', 'name': '深证成指', 'category': '沪深重要指数'},
+            {'symbol': '399006', 'name': '创业板指', 'category': '沪深重要指数'},
+            {'symbol': '000300', 'name': '沪深300', 'category': '沪深重要指数'},
+            {'symbol': '000016', 'name': '上证50', 'category': '上证系列指数'},
+            {'symbol': '000905', 'name': '中证500', 'category': '中证系列指数'},
+            {'symbol': '399005', 'name': '中小100', 'category': '深证系列指数'},
+        ]
+
+        # Apply category filter
+        if category:
+            mock_indexes = [idx for idx in mock_indexes if idx['category'] == category]
+
+        # Add mock market data
+        for index in mock_indexes:
+            base_price = random.uniform(2000, 4000)
+            change_pct = random.uniform(-3, 3)
+
+            index.update({
+                'price': round(base_price, 2),
+                'pct_change': round(change_pct, 2),
+                'change': round(base_price * change_pct / 100, 2),
+                'volume': random.randint(100000000, 500000000),
+                'turnover': random.randint(10000000000, 50000000000),
+                'cache_date': datetime.now().date().isoformat(),
+                'is_active': True,
+                'is_mock': True
+            })
+
+        return mock_indexes
+
+    def _is_trading_hours(self) -> bool:
+        """Check if current time is within trading hours."""
+        try:
+            now = datetime.now()
+            current_time = now.time()
+
+            # A-share trading hours: 9:30-11:30, 13:00-15:00 (Monday-Friday)
+            if now.weekday() >= 5:  # Weekend
+                return False
+
+            morning_start = datetime.strptime("09:30", "%H:%M").time()
+            morning_end = datetime.strptime("11:30", "%H:%M").time()
+            afternoon_start = datetime.strptime("13:00", "%H:%M").time()
+            afternoon_end = datetime.strptime("15:00", "%H:%M").time()
+
+            return (morning_start <= current_time <= morning_end) or \
+                   (afternoon_start <= current_time <= afternoon_end)
+
+        except Exception:
+            return True  # Default to trading hours for safety
+
 
 # 全局简化客户端实例
 _simple_client: Optional[SimpleQDBClient] = None
