@@ -61,6 +61,22 @@ stats = qdb.cache_stats()  # View cache statistics
 qdb.clear_cache()         # Clear cache if needed
 ```
 
+### New Features (v2.2.6)
+```python
+import qdb
+
+# Real-time stock quotes
+realtime = qdb.get_realtime_data("000001")
+batch_realtime = qdb.get_realtime_data_batch(["000001", "000002"])
+
+# Complete stock list
+stock_list = qdb.get_stock_list()
+
+# Financial data
+financial_summary = qdb.get_financial_summary("000001")
+financial_indicators = qdb.get_financial_indicators("000001")
+```
+
 ### AKShare Compatibility
 ```python
 import qdb
@@ -88,12 +104,12 @@ qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 - **Portfolio Management**: Multi-asset data retrieval and analysis
 - **Academic Research**: Reliable data source for financial studies
 
-## 🔄 Coming Soon (v2.3.0)
+## 🎉 New in v2.2.6
 
-- **Real-time Stock Quotes**: Live market data with smart caching
-- **Stock List API**: Complete market coverage and filtering
-- **Index Data**: Major indices support (SSE, SZSE, etc.)
-- **Financial Metrics**: Key financial indicators and ratios
+- **✅ Real-time Stock Quotes**: Live market data with smart caching
+- **✅ Stock List API**: Complete market coverage and filtering
+- **✅ Index Data**: Major indices support (SSE, SZSE, etc.)
+- **✅ Financial Metrics**: Key financial indicators and ratios
 
 ## 📚 Documentation & Support
 

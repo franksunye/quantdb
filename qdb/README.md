@@ -42,6 +42,22 @@ data = qdb.get_multiple_stocks(stocks, days=30)
 info = qdb.get_asset_info("000001")
 ```
 
+### 新功能 (v2.2.6)
+```python
+import qdb
+
+# 实时股票数据
+realtime = qdb.get_realtime_data("000001")
+batch_realtime = qdb.get_realtime_data_batch(["000001", "000002"])
+
+# 股票列表
+stock_list = qdb.get_stock_list()
+
+# 财务数据
+financial_summary = qdb.get_financial_summary("000001")
+financial_indicators = qdb.get_financial_indicators("000001")
+```
+
 ### 高级功能
 ```python
 # 兼容AKShare的完整API
@@ -154,12 +170,27 @@ pytest tests/
 **参数**:
 - `symbol`: 股票代码
 - `start_date`: 开始日期 (可选)
-- `end_date`: 结束日期 (可选)  
+- `end_date`: 结束日期 (可选)
 - `days`: 最近N天 (可选)
 - `adjust`: 复权类型 (可选)
 
 #### `get_multiple_stocks(symbols, **kwargs)`
 批量获取多只股票数据
+
+#### `get_realtime_data(symbol)`
+获取单只股票实时数据
+
+#### `get_realtime_data_batch(symbols)`
+批量获取多只股票实时数据
+
+#### `get_stock_list()`
+获取完整股票列表
+
+#### `get_financial_summary(symbol)`
+获取财务摘要数据
+
+#### `get_financial_indicators(symbol)`
+获取财务指标数据
 
 #### `cache_stats()`
 获取缓存统计信息

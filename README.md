@@ -2,7 +2,7 @@
 
 *English | [中文版本](README.zh-CN.md)*
 
-![Version](https://img.shields.io/badge/version-2.2.3-blue)
+![Version](https://img.shields.io/badge/version-2.2.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -27,6 +27,11 @@ pip install quantdb  # One command, instant 90%+ speed boost!
 ```python
 import qdb  # Note: import name is 'qdb' for simplicity
 df = qdb.get_stock_data("000001", days=30)
+
+# New features available in v2.2.6:
+realtime = qdb.get_realtime_data("000001")  # Real-time quotes
+stocks = qdb.get_stock_list()  # Complete stock list
+financials = qdb.get_financial_summary("000001")  # Financial data
 ```
 
 **Three product formats**: Python Package, API Service, and Cloud Platform for different user needs.
@@ -64,6 +69,10 @@ Visit: [QuantDB Cloud Platform](https://quantdb-cloud.streamlit.app)
 - **🛠️ Zero Configuration**: pip install and ready to use
 - **☁️ Cloud Deployment Ready**: Supports Railway, Render, Alibaba Cloud, etc.
 - **🧠 Intelligent Updates**: Automatic missing data detection and fetching
+- **⚡ Real-time Data**: Live stock quotes and market data
+- **📊 Financial Analytics**: Complete financial indicators and ratios
+- **📈 Index Data**: Major market indices support (SSE, SZSE, etc.)
+- **📋 Stock Lists**: Complete market coverage and filtering
 
 ## ⚡ Performance Highlights
 
@@ -234,8 +243,8 @@ For detailed architecture design, please refer to [System Architecture Documenta
 
 ## 🎯 Project Status
 
-**Current Version**: v2.0.1 (Complete Hong Kong Stock Support)
-**Next Version**: v2.1.0 (Enhanced Monitoring and Analysis Features)
+**Current Version**: v2.2.6 (Complete Multi-Feature Extension)
+**Next Version**: v2.3.0 (Enhanced Analytics and Performance)
 **MVP Score**: 10/10 (Core features complete, cloud deployment ready)
 **Test Coverage**: 259/259 passed (100%) - 222 backend + 37 frontend
 **Data Quality**: ⭐⭐⭐⭐⭐ (5/5) - Real company names and financial metrics
