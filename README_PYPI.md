@@ -28,7 +28,7 @@ df = qdb.get_stock_data("000001", start_date="20240101", end_date="20240131")  #
 ## ✨ Key Features
 
 - **🚀 90%+ Performance Boost**: Local SQLite cache avoids repeated network requests
-- **🧠 Smart Incremental Updates**: Only fetch missing data, maximize cache efficiency  
+- **🧠 Smart Incremental Updates**: Only fetch missing data, maximize cache efficiency
 - **⚡ Millisecond Response**: Cache hit response time < 10ms
 - **📅 Trading Calendar Integration**: Smart data acquisition based on real trading calendar
 - **🔧 Zero Configuration**: Automatically initialize local cache database
@@ -83,6 +83,11 @@ all_stocks = qdb.get_stock_list()  # All markets
 shse_stocks = qdb.get_stock_list(market="SHSE")  # Shanghai Stock Exchange
 szse_stocks = qdb.get_stock_list(market="SZSE")  # Shenzhen Stock Exchange
 
+# Index data (now available via top-level qdb)
+index_hist = qdb.get_index_data("000001", start_date="20240101", end_date="20240201")
+index_rt = qdb.get_index_realtime("000001")
+index_list = qdb.get_index_list()  # Or filter by category
+
 # Financial data and indicators
 financial_summary = qdb.get_financial_summary("000001")  # Key metrics
 financial_indicators = qdb.get_financial_indicators("000001")  # Detailed ratios
@@ -107,6 +112,12 @@ qdb.set_cache_dir("./my_custom_cache")
 qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 ```
 
+## 🔍 Feature details
+
+- Real-time data: Trading-hours TTL vs. off-hours TTL to minimize latency and API calls; automatic cache hit detection and graceful fallback
+- Stock list: Market filter via market="SHSE"/"SZSE"/"HKEX"; daily caching with force_refresh toggle
+- Financial metrics: Summary and indicators endpoints designed for quick lookups and lightweight analysis
+
 ## 🎯 Use Cases
 
 - **Quantitative Research**: Frequent backtesting with cached historical data
@@ -115,12 +126,12 @@ qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 - **Portfolio Management**: Multi-asset data retrieval and analysis
 - **Academic Research**: Reliable data source for financial studies
 
-## 🎉 New in v2.2.7
+## 🎉 What's new in v2.2.8
 
-- **✅ Real-time Stock Quotes**: Live market data with smart caching
-- **✅ Stock List API**: Complete market coverage and filtering
-- **✅ Index Data**: Major indices support (SSE, SZSE, etc.)
-- **✅ Financial Metrics**: Key financial indicators and ratios
+- ✅ Easier API usage: get_stock_data() now supports positional, keyword, and mixed arguments
+- ✅ Documentation and examples updated: Improved UX and clarity
+- ✅ Quality assured: 149/149 tests passing (100%)
+- ✅ Version alignment: Unified version across files; PyPI-ready packaging
 
 ## 📚 Documentation & Support
 
@@ -134,7 +145,7 @@ qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 QuantDB provides multiple deployment options:
 
 1. **📦 Python Package** (This Package): Local caching for individual developers
-2. **🚀 API Service**: Enterprise-grade REST API with advanced features  
+2. **🚀 API Service**: Enterprise-grade REST API with advanced features
 3. **☁️ Cloud Platform**: Web interface with visualization and monitoring
 
 ## 🤝 Contributing
