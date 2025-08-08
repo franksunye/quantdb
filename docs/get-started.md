@@ -44,7 +44,7 @@ print(data.head())
 
 ## Import and Initialize
 ```python
-import quantdb as qdb  # package name: quantdb, import name: qdb
+import qdb  # package name: quantdb, import name: qdb
 
 # Optional: specify cache directory
 db_dir = "./my_quantdb_cache"
@@ -77,14 +77,16 @@ df = qdb.stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
 
 # Cache management
 stats = qdb.cache_stats()
+print(stats)
 qdb.clear_cache()            # clear all
-qdb.clear_cache("000001")    # clear by symbol
+# qdb.clear_cache("000001")   # per-symbol clearing not yet implemented in simplified mode
 
 # Configuration
 qdb.set_cache_dir("./qdb_cache")
 qdb.set_log_level("INFO")
 ```
 
+Note: TTL is managed internally; there are no `set_cache_expire` / `disable_cache` / `enable_cache` functions in this version.
 See API Reference for financial summaries/indicators and more.
 
 ## Run the examples

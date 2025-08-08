@@ -8,7 +8,7 @@ QuantDB is a high-performance stock data toolkit that provides 90%+ speedup for 
 
 ### Smart Caching
 - Transparent caching to avoid repeated API calls
-- Multiple TTL strategies configurable
+- Smart internal TTL management (no manual configuration required)
 - Significant speed improvement on repeated queries
 
 ### Easy to Use
@@ -38,25 +38,26 @@ data = qdb.stock_zh_a_hist(
 ### Realtime quotes
 
 ```python
-# Market snapshot
-realtime = qdb.stock_zh_a_spot_em()
-print(realtime.head())
+# Single-symbol realtime quote
+tick = qdb.get_realtime_data("000001")
+print(tick)
 
-# Single-symbol realtime info
-stock_info = qdb.stock_individual_info_em(symbol="000001")
-print(stock_info)
+# Market snapshot and basic stock list
+stocks = qdb.get_stock_list()  # cached daily
+print(f"Total stocks: {len(stocks)}")
+print(stocks[0])
 ```
 
 ### Financial data
 
 ```python
-# Financial indicators
-financial = qdb.stock_financial_em(symbol="000001")
-print(financial.head())
+# Financial summary (last quarters)
+summary = qdb.get_financial_summary(symbol="000001")
+print(summary)
 
-# Balance sheet
-balance = qdb.stock_balance_sheet_by_report_em(symbol="000001")
-print(balance.head())
+# Financial indicators (sample columns and data)
+indicators = qdb.get_financial_indicators(symbol="000001")
+print(indicators)
 ```
 
 ## ⚙️ Advanced Configuration
@@ -66,26 +67,33 @@ print(balance.head())
 ```python
 import qdb
 
-# TTL in seconds
-qdb.set_cache_expire(3600)  # 1 hour
+# Cache statistics
+stats = qdb.cache_stats()
+print(stats)
 
-# Clear cache
-qdb.clear_cache()
+# Clear cache (all or by symbol placeholder)
+qdb.clear_cache()            # clear all
+# qdb.clear_cache("000001")   # clearing by symbol is not yet implemented in simplified mode
 
-# Disable / enable cache
-qdb.disable_cache()
-qdb.enable_cache()
+# Configuration
+qdb.set_cache_dir("./qdb_cache")
+qdb.set_log_level("INFO")
 ```
 
-### Database settings
+Note: TTL is managed internally in this version. There are no `set_cache_expire` / `disable_cache` / `enable_cache` functions.
+
+### Logging & paths
 
 ```python
-# Custom database path
-qdb.set_database_path("./my_stock_data.db")
+# Change cache directory (affects where the local SQLite cache is stored)
+qdb.set_cache_dir("./qdb_cache")
 
-# Cache statistics
-stats = qdb.get_cache_stats()
-print(f"Cache hit rate: {stats['hit_rate']:.2%}")
+# Set log level
+qdb.set_log_level("INFO")
+
+# Inspect cache stats
+stats = qdb.cache_stats()
+print(stats)
 ```
 
 ## 🔧 Performance Tips
@@ -134,10 +142,13 @@ portfolio = {
 portfolio_data = {}
 for symbol, weight in portfolio.items():
     data = qdb.stock_zh_a_hist(symbol)
+    if data.empty:
+        continue  # skip if no data returned
+    price_col = '收盘' if '收盘' in data.columns else 'close'
     portfolio_data[symbol] = {
         'data': data,
         'weight': weight,
-        'latest_price': data['收盘'].iloc[-1]
+        'latest_price': data[price_col].iloc[-1]
     }
 
 # Compute a simple metric

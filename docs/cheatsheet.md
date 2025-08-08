@@ -35,7 +35,7 @@ stats = qdb.cache_stats()
 
 # 清除缓存
 qdb.clear_cache()           # 全部
-qdb.clear_cache("000001")   # 指定
+# qdb.clear_cache("000001")   # 按符号清除暂未实现
 ```
 
 ## 配置与日志

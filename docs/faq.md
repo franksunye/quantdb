@@ -27,8 +27,8 @@ pip install --upgrade quantdb
 ### Q: Why is the data sometimes not up-to-date?
 **A:** Due to caching. You can:
 - Clear cache: `qdb.clear_cache()`
-- Adjust TTL: `qdb.set_cache_expire(300)`  # 5 minutes
-- Temporarily disable cache: `qdb.disable_cache()`
+- Use fresh fetch where available: `qdb.get_realtime_data(symbol, force_refresh=True)`
+- Note: TTL is managed internally in this version; there are no `set_cache_expire` / `disable_cache` functions.
 
 ### Q: How do I fetch more historical data?
 **A:** Use date parameters:
@@ -58,15 +58,14 @@ data = qdb.stock_zh_a_hist(
 ### Q: Cache database grows too large, what can I do?
 **A:**
 - Clear cache periodically: `qdb.clear_cache()`
-- Use shorter TTL: `qdb.set_cache_expire(1800)`  # 30 minutes
-- Manually delete the SQLite file (default: `./database/stock_data.db`)
+- Manually delete the cache DB file if needed (default: in your qdb cache dir)
+- Note: TTL is managed internally; there is no `set_cache_expire()` function in this version
 
 ### Q: How to inspect cache usage?
 **A:**
 ```python
-stats = qdb.get_cache_stats()
-print(f"Cache hit rate: {stats['hit_rate']:.2%}")
-print(f"Cache size: {stats['cache_size']} records")
+stats = qdb.cache_stats()
+print(stats)  # e.g. {'cache_dir': '...', 'cache_size_mb': 12.34, 'initialized': True, 'status': 'Running'}
 ```
 
 ## 🐛 Errors & Troubleshooting
@@ -96,17 +95,17 @@ print(f"Cache size: {stats['cache_size']} records")
 ### Q: How to ensure latest data?
 **A:**
 ```python
-# Option 1: Clear specific symbol cache
-qdb.clear_cache(symbol="000001")
+# Option 1: Force refresh where supported
+rt = qdb.get_realtime_data("000001", force_refresh=True)
 
-# Option 2: Use shorter TTL
-qdb.set_cache_expire(60)  # 1 minute
+# Option 2: Clear all cache (symbol-level clearing not yet implemented in simplified mode)
+qdb.clear_cache()
 
-# Option 3: Temporarily disable cache
-qdb.disable_cache()
-data = qdb.stock_zh_a_hist("000001")
-qdb.enable_cache()
+# Option 3: Bypass cache by using a narrower date range if needed
+hist = qdb.stock_zh_a_hist("000001", start_date="20250101", end_date="20250131")
 ```
+
+Note: TTL is managed internally in this version.
 
 ### Q: Update frequency?
 **A:**

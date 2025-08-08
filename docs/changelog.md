@@ -17,8 +17,8 @@
 - API compatibility: multiple calling signatures validated
 
 ### 📦 Release
-- Version consistency: all files updated to v2.2.8
-- PyPI ready: stable version with UX improvements
+- Repository updated to v2.2.8 (source code)
+- PyPI: latest published is v2.2.7; v2.2.8 publication pending
 
 ## [2.2.7] - PyPI Release + Version Sync (2025-08-07)
 
