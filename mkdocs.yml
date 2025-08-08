@@ -19,6 +19,7 @@ theme:
 
 plugins:
   - search
+  - sitemap
 
 markdown_extensions:
   - admonition
