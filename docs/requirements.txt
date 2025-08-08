@@ -1,0 +1,5 @@
+# Docs build dependencies
+# Pin to versions that include the built-in sitemap plugin
+mkdocs>=1.6.0
+mkdocs-material>=9.5.0
+
