@@ -64,9 +64,9 @@ setup(
     project_urls={
         "Bug Reports": "https://github.com/franksunye/quantdb/issues",
         "Source": "https://github.com/franksunye/quantdb",
-        "Documentation": "https://github.com/franksunye/quantdb/docs",
+        "Documentation": "https://franksunye.github.io/quantdb/",
     },
-    
+
     # Package configuration
     packages=find_packages(include=['qdb', 'qdb.*', 'core', 'core.*']),
     include_package_data=True,

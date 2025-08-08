@@ -62,7 +62,7 @@ docs = [
 [project.urls]
 Homepage = "https://github.com/franksunye/quantdb"
 Repository = "https://github.com/franksunye/quantdb"
-Documentation = "https://github.com/franksunye/quantdb/docs"
+Documentation = "https://franksunye.github.io/quantdb/"
 "Bug Reports" = "https://github.com/franksunye/quantdb/issues"
 
 
