@@ -2,6 +2,15 @@
 
 **当前Sprint**: Sprint 4 | **版本**: v2.2.8 | **更新**: 2025-08-08
 
+## ⏱️ Top-3 下一最小可交付项（本 Sprint）
+1. 三平台推广发布（Reddit r/Python、知乎、CSDN）
+   - 验收标准：三个已发布链接（含UTM参数）记录于 docs/promo/links.md；截图存档 docs/promo/screenshots/
+2. 建立反馈入口（README 增加 Feedback/Support；开启 GitHub Discussions；群组指引）
+   - 验收标准：README 出现 Feedback 段落并链接到 Issues/Discussions；Discussions 可访问；群二维码或加入指引存档于 docs/community/
+3. 技术文章初稿（“AKShare 性能优化实战”）
+   - 验收标准：初稿存于 docs/blog/akshare-performance-optimization.md；包含背景/方法/性能对比（表/图）/使用示例；完成一次内部评审
+
+
 ## 🎯 产品现状
 
 ✅ **里程碑2.2.8完成**: 用户体验优化完成 (100%)
@@ -24,6 +33,14 @@
 
 
 #### 4.2 社区推广和营销
+
+- 用户故事：
+  - 作为潜在开发者，我希望在主流平台看到 QuantDB 的对比与价值，从而决定是否尝试。
+  - 作为量化从业者，我希望有清晰的上手路径与示例，能够快速验证价值。
+- 验收标准：
+  - 至少 3 个平台发布（Reddit、知乎、CSDN），内容包含核心卖点、安装命令、最小示例、性能/功能对比要点。
+  - 发布链接与截图均可访问并存档（docs/promo/）。
+
 - [ ] **Python社区推广**: 在Python开发者社区分享QuantDB
   - [ ] 在Reddit r/Python发布介绍帖
   - [ ] 在知乎Python话题分享使用经验
@@ -41,6 +58,16 @@
   - [ ] 建立用户案例和最佳实践文档
 
 #### 4.3 用户反馈和产品优化
+
+- 用户故事：
+  - 作为用户，我希望有便捷的渠道反馈问题/建议，并能看到他人问题与处理状态。
+  - 作为维护者，我希望集中收集反馈并可按类型与优先级管理，便于迭代。
+- 验收标准：
+  - README 增加 Feedback/Support 段落（Issues、Discussions 链接）。
+  - 启用 GitHub Discussions 并在仓库可见（Q&A/Ideas/Show & Tell 分类）。
+  - 建立满意度调查表（如 Google Forms）并在 README 或 docs/community/ 提供链接。
+  - 群组加入指引或二维码可用并存档（docs/community/）。
+
 - [ ] **用户反馈收集**: 建立用户反馈渠道
 
   - [ ] 建立用户QQ群/微信群
@@ -81,7 +108,7 @@
 - [ ] **开源社区建设**: 完善GitHub项目
 - [ ] **用户反馈收集**: 建立反馈渠道和需求收集机制
 
-#### 中优先级 (下月)  
+#### 中优先级 (下月)
 - [ ] **API服务部署**: 企业级API上线
 - [ ] **商业化准备**: 制定商业模式
 
