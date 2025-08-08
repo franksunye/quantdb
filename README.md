@@ -1,6 +1,8 @@
-# QuantDB
+# QuantDB - High-Performance Python Stock Data Toolkit 🚀
 
 *English | [中文版本](README.zh-CN.md)*
+
+> **Intelligent caching wrapper for AKShare with 90%+ performance boost** - Complete stock data ecosystem with smart SQLite caching for Chinese financial markets. Perfect for quantitative trading, financial analysis, and algorithmic trading in Python.
 
 ![Version](https://img.shields.io/badge/version-2.2.7-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)

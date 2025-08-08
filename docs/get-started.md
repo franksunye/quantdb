@@ -1,3 +1,9 @@
+---
+title: Get Started with QuantDB - Python Stock Data Installation Guide
+description: Quick installation guide for QuantDB Python package. Learn how to install and use QuantDB for high-performance stock data caching in minutes.
+keywords: quantdb installation, python stock data setup, akshare cache install, quantitative trading python setup
+---
+
 # Get Started
 
 A quick guide to install and use QuantDB in minutes.

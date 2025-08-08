@@ -19,6 +19,9 @@ theme:
 
 plugins:
   - search
+  - sitemap:
+      map_pages: true
+  - meta
 
 markdown_extensions:
   - admonition
@@ -26,6 +29,17 @@ markdown_extensions:
       permalink: true
   - codehilite
   - tables
+
+extra:
+  analytics:
+    provider: google
+    property: G-PLACEHOLDER  # TODO: Replace with actual GA4 property ID
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/franksunye/quantdb
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/quantdb/
+  generator: false
 
 nav:
   - Home: index.md

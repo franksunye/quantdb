@@ -1,3 +1,18 @@
+---
+title: QuantDB - High-Performance Python Stock Data Toolkit
+description: Intelligent caching wrapper for AKShare with 90%+ performance boost. Complete stock data ecosystem with smart SQLite caching for Chinese financial markets.
+keywords: python stock data, akshare cache, quantitative trading, financial data api, stock market python, trading data cache
+author: Ye Sun
+og:title: QuantDB - 90% Faster Stock Data for Python
+og:description: Intelligent caching wrapper for AKShare with 90%+ performance boost. Complete stock data ecosystem with smart SQLite caching.
+og:image: https://franksunye.github.io/quantdb/assets/quantdb-social-card.png
+og:url: https://franksunye.github.io/quantdb/
+twitter:card: summary_large_image
+twitter:title: QuantDB - 90% Faster Stock Data for Python
+twitter:description: Intelligent caching wrapper for AKShare with 90%+ performance boost. Complete stock data ecosystem with smart SQLite caching.
+twitter:image: https://franksunye.github.io/quantdb/assets/quantdb-social-card.png
+---
+
 # QuantDB Documentation
 
 High-performance, developer-friendly stock data toolkit. QuantDB adds 90%+ speedup to AKShare via local SQLite intelligent caching. Import name is `qdb`.

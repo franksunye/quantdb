@@ -5,18 +5,20 @@
 ## 📊 发布状态跟踪
 
 ### Reddit r/Python
-- **状态**: 🔄 准备中
+- **状态**: ✅ 内容已准备 → 🚀 可立即发布
 - **标题**: [Release] QuantDB: 98% faster stock data caching for Python (AKShare compatible)
+- **内容文件**: `reddit-post-content.md`
 - **发布链接**: [待发布]
 - **UTM跟踪**:
-  - PyPI: https://pypi.org/project/quantdb/?utm_source=reddit&utm_medium=social&utm_campaign=sprint4
-  - GitHub: https://github.com/franksunye/quantdb?utm_source=reddit&utm_medium=social&utm_campaign=sprint4
-  - Docs: https://franksunye.github.io/quantdb/?utm_source=reddit&utm_medium=social&utm_campaign=sprint4
+  - PyPI: https://pypi.org/project/quantdb/?utm_source=reddit&utm_medium=social&utm_campaign=launch
+  - GitHub: https://github.com/franksunye/quantdb?utm_source=reddit&utm_medium=social&utm_campaign=launch
+  - Docs: https://franksunye.github.io/quantdb/?utm_source=reddit&utm_medium=social&utm_campaign=launch
 - **截图**: `screenshots/reddit_post.png`
 
 ### 知乎
-- **状态**: 🔄 准备中
+- **状态**: ✅ 内容已准备 → 🚀 可立即发布
 - **标题**: QuantDB：让AKShare快98%的Python股票数据缓存工具
+- **内容文件**: `zhihu-article-content.md`
 - **发布链接**: [待发布]
 - **UTM跟踪**:
   - PyPI: https://pypi.org/project/quantdb/?utm_source=zhihu&utm_medium=article&utm_campaign=sprint4
