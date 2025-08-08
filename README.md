@@ -244,15 +244,30 @@ For detailed architecture design, please refer to [System Architecture Documenta
 
 ## 💬 Support & Feedback
 
-- Issues (bugs/feature requests): https://github.com/franksunye/quantdb/issues
-- Discussions (Q&A, Ideas, Show & Tell): https://github.com/franksunye/quantdb/discussions
-- Community & Survey: see docs/community/ (group join instructions, satisfaction survey)
-- Direct links:
-  - Q&A: https://github.com/franksunye/quantdb/discussions/categories/q-a
-  - Ideas: https://github.com/franksunye/quantdb/discussions/categories/ideas
-  - Show & Tell: https://github.com/franksunye/quantdb/discussions/categories/show-and-tell
+We welcome your feedback and are here to help! Choose the best channel for your needs:
 
-- Promotion links & screenshots: see docs/promo/links.md and docs/promo/screenshots/
+### 🐛 Bug Reports & Feature Requests
+- **GitHub Issues**: [Report bugs or request features](https://github.com/franksunye/quantdb/issues)
+- Please include version info, error messages, and reproduction steps
+
+### 💭 Community Discussion
+- **GitHub Discussions**: [Join the conversation](https://github.com/franksunye/quantdb/discussions)
+  - [🙏 Q&A](https://github.com/franksunye/quantdb/discussions/categories/q-a) - Get help with usage questions
+  - [💡 Ideas](https://github.com/franksunye/quantdb/discussions/categories/ideas) - Share feature ideas and suggestions
+  - [🙌 Show and Tell](https://github.com/franksunye/quantdb/discussions/categories/show-and-tell) - Share your projects using QuantDB
+  - [📣 Announcements](https://github.com/franksunye/quantdb/discussions/categories/announcements) - Stay updated with latest news
+
+### 📚 Documentation & Resources
+- **Quick Help**: [FAQ](./docs/faq.md) | [Cheat Sheet](./docs/cheatsheet.md)
+- **Migration Guide**: [AKShare → QuantDB](./docs/guides/migration_akshare_to_quantdb.md)
+- **Full Documentation**: [https://franksunye.github.io/quantdb/](https://franksunye.github.io/quantdb/)
+
+### 🚀 Stay Connected
+- **PyPI Package**: [https://pypi.org/project/quantdb/](https://pypi.org/project/quantdb/)
+- **Live Demo**: [https://quantdb-cloud.streamlit.app/](https://quantdb-cloud.streamlit.app/)
+
+---
+*Response time: We aim to respond to issues within 24-48 hours. For urgent matters, please use GitHub Issues.*
 
 ## 🎯 Project Status
 
