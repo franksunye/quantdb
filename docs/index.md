@@ -1,43 +1,41 @@
-# QuantDB 文档
+# QuantDB Documentation
 
-高性能、易用的股票数据开发者工具。QuantDB 通过本地 SQLite 智能缓存为 AKShare 带来 90%+ 的性能提升，导入名简洁为 `qdb`。
+High-performance, developer-friendly stock data toolkit. QuantDB adds 90%+ speedup to AKShare via local SQLite intelligent caching. Import name is `qdb`.
 
 - PyPI: https://pypi.org/project/quantdb/
-- 源码与 Issue: https://github.com/franksunye/quantdb
+- Source & Issues: https://github.com/franksunye/quantdb
 
-## 30 秒上手
+## 30-second Quickstart
 
 ```python
 pip install quantdb
 
 import qdb
 
-# 获取最近 30 天数据（自动缓存）
+# Recent 30 days (auto cache)
 df = qdb.get_stock_data("000001", days=30)
 
-# 实时行情
+# Realtime quote
 tick = qdb.get_realtime_data("000001")
 
-# 股票列表
+# Stock list
 stocks = qdb.get_stock_list()
 ```
 
-更多使用示例见「快速开始」与「示例」。
+See Get Started and Examples for more usage.
 
-## 为什么选择 QuantDB
-- 90%+ 加速：缓存命中毫秒级响应
-- AKShare 兼容：无缝迁移常用接口
-- 简洁 API：qdb.get_stock_data / get_realtime_data 等
-- 离线友好：本地缓存可离线访问
+## Why QuantDB
+- 90%+ faster: millisecond response on cache hits
+- AKShare-compatible: seamless migration of common interfaces
+- Simple API: qdb.get_stock_data / get_realtime_data etc.
+- Offline-friendly: local cache supports offline access
 
-## 产品形态
-- Python 包（qdb）：开发者首选
-- API 服务（FastAPI）：企业级集成
-- 云平台（Streamlit）：零安装可视化
+## Products
+- Python package (qdb): for developers
+- API service (FastAPI): for integration
+- Cloud app (Streamlit): zero-install visualization
 
-## 文档导航
-- 快速开始：安装、初始化、常见调用
-- API 参考：公开函数说明与参数
-- 示例：可运行脚本与输出
-- 变更日志、架构：了解演进与设计
-
+## Docs Navigation
+- Get Started: installation, init, common calls
+- API Reference: public functions and parameters
+- Examples: runnable scripts and outputs

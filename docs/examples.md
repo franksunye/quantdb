@@ -1,6 +1,6 @@
-# 示例目录
+# Examples
 
-以下示例脚本可直接运行，展示常见用法。建议在虚拟环境/Windows PowerShell 中运行。
+Run the following scripts locally to try common features. Windows PowerShell / virtual env recommended.
 
 ```bash
 python examples/basic_usage.py
@@ -10,5 +10,5 @@ python examples/finance.py
 python examples/cache_management.py
 ```
 
-示例输出会随数据源与时间变化而不同，如需复现实验请固定日期或使用缓存。
+Outputs depend on data source and time. For reproducibility, pin dates or rely on cache.
 

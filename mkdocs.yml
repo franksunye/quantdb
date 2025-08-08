@@ -1,13 +1,15 @@
 site_name: QuantDB
-site_description: 智能缓存的 AKShare 包装器（qdb），面向开发者的高性能股票数据访问
+site_description: High-performance stock data toolkit with intelligent AKShare caching (import as 'qdb')
 site_url: https://franksunye.github.io/quantdb/
 repo_url: https://github.com/franksunye/quantdb
 repo_name: franksunye/quantdb
 copyright: "Copyright © 2025 Ye Sun"
 
+use_directory_urls: true
+
 theme:
   name: material
-  language: zh
+  language: en
   features:
     - navigation.tabs
     - navigation.instant
@@ -17,6 +19,7 @@ theme:
 
 plugins:
   - search
+  - sitemap
 
 markdown_extensions:
   - admonition
@@ -26,12 +29,7 @@ markdown_extensions:
   - tables
 
 nav:
-  - 首页: index.md
-  - 快速开始: get-started.md
-  - API 参考: api-reference.md
-  - 示例: examples.md
-  - 变更日志: 01_CHANGELOG.md
-  - 架构: 10_ARCHITECTURE.md
-  - API 文档: 20_API.md
-  - Python 包指南: 05_PYTHON_PACKAGE_GUIDE.md
-
+  - Home: index.md
+  - Get Started: get-started.md
+  - API Reference: api-reference.md
+  - Examples: examples.md
