@@ -241,6 +241,14 @@ For detailed architecture design, please refer to [System Architecture Documenta
 | [🛠️ Development Guide](./docs/30_DEVELOPMENT.md) | Development environment and workflow |
 | [🧪 Testing Guide](./docs/31_TESTING.md) | Test execution and writing |
 
+
+## 💬 Support & Feedback
+
+- Issues (bugs/feature requests): https://github.com/franksunye/quantdb/issues
+- Discussions (Q&A, Ideas, Show & Tell): https://github.com/franksunye/quantdb/discussions
+- Community & Survey: see docs/community/ (group join instructions, satisfaction survey)
+- Promotion links & screenshots: see docs/promo/links.md and docs/promo/screenshots/
+
 ## 🎯 Project Status
 
 **Current Version**: v2.2.7 (Complete Multi-Feature Extension)

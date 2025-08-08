@@ -225,6 +225,14 @@ QuantDB 采用现代化的微服务架构，包含以下核心组件：
 | [🛠️ 开发指南](./docs/30_DEVELOPMENT.md) | 开发环境和流程 |
 | [🧪 测试指南](./docs/31_TESTING.md) | 测试运行和编写 |
 
+## 💬 反馈与支持（Support & Feedback）
+
+- 问题/需求（Issues）：https://github.com/franksunye/quantdb/issues
+- 讨论（Discussions：问答/Q&A、想法/Ideas、展示/Show & Tell）：https://github.com/franksunye/quantdb/discussions
+- 社区与调研：见 docs/community/（入群指引、满意度调查）
+- 推广链接与截图：见 docs/promo/links.md 和 docs/promo/screenshots/
+
+
 ## 🎯 项目状态
 
 **当前版本**: v2.0.1 (已完整支持港股)
