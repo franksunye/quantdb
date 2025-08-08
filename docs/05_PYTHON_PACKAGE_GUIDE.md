@@ -100,7 +100,7 @@ pip install quantdb
 
 ### 基础使用
 ```python
-import quantdb as qdb
+import qdb  # 注意：包名是 'quantdb'，导入名是 'qdb'
 
 # 自动初始化（可选，首次使用时自动调用）
 qdb.init()
