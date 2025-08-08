@@ -231,6 +231,11 @@ QuantDB 采用现代化的微服务架构，包含以下核心组件：
 - 讨论（Discussions：问答/Q&A、想法/Ideas、展示/Show & Tell）：https://github.com/franksunye/quantdb/discussions
 - 社区与调研：见 docs/community/（入群指引、满意度调查）
 - 推广链接与截图：见 docs/promo/links.md 和 docs/promo/screenshots/
+- 直达链接：
+  - Q&A: https://github.com/franksunye/quantdb/discussions/categories/q-a
+  - Ideas: https://github.com/franksunye/quantdb/discussions/categories/ideas
+  - Show & Tell: https://github.com/franksunye/quantdb/discussions/categories/show-and-tell
+
 
 
 ## 🎯 项目状态

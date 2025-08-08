@@ -247,6 +247,11 @@ For detailed architecture design, please refer to [System Architecture Documenta
 - Issues (bugs/feature requests): https://github.com/franksunye/quantdb/issues
 - Discussions (Q&A, Ideas, Show & Tell): https://github.com/franksunye/quantdb/discussions
 - Community & Survey: see docs/community/ (group join instructions, satisfaction survey)
+- Direct links:
+  - Q&A: https://github.com/franksunye/quantdb/discussions/categories/q-a
+  - Ideas: https://github.com/franksunye/quantdb/discussions/categories/ideas
+  - Show & Tell: https://github.com/franksunye/quantdb/discussions/categories/show-and-tell
+
 - Promotion links & screenshots: see docs/promo/links.md and docs/promo/screenshots/
 
 ## 🎯 Project Status
