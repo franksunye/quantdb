@@ -29,6 +29,12 @@ markdown_extensions:
 
 nav:
   - Home: index.md
-  - Get Started: get-started.md
-  - API Reference: api-reference.md
-  - Examples: examples.md
+  - Installation: 01_installation.md
+  - Quick Start: 02_quickstart.md
+  - User Guide: 03_user-guide.md
+  - API Reference: 04_api-reference.md
+  - Examples: 05_examples.md
+  - FAQ: 06_faq.md
+  - Blog: blog/
+  - Community: community/
+  - Changelog: 99_changelog.md
