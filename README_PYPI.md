@@ -18,7 +18,11 @@ pip install quantdb  # One command, instant 90%+ speed boost!
 
 ```python
 import qdb  # Note: import name is 'qdb' for simplicity
-df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
+
+# Multiple ways to get stock data - all 90%+ faster than AKShare!
+df = qdb.get_stock_data("000001", days=30)  # Simple: last 30 days
+df = qdb.get_stock_data("000001", "20240101", "20240131")  # Date range
+df = qdb.get_stock_data("000001", start_date="20240101", end_date="20240131")  # Keywords
 ```
 
 ## ✨ Key Features
@@ -31,6 +35,9 @@ df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
 - **🔄 Full AKShare Compatibility**: Drop-in replacement with same API interface
 - **🌍 100% English Codebase**: International developer friendly
 - **🎯 Multi-Market Support**: A-shares + Hong Kong stocks unified API
+- **📈 Real-time Data**: Live stock prices with intelligent caching
+- **📊 Financial Indicators**: Comprehensive financial metrics and ratios
+- **🔍 Stock Discovery**: Complete stock list with market filtering
 
 ## 📊 Performance Comparison
 
@@ -46,8 +53,10 @@ df = qdb.get_stock_data("000001", days=30)  # 90%+ faster than AKShare!
 ```python
 import qdb
 
-# Get stock data (with intelligent caching)
-df = qdb.get_stock_data("000001", days=30)
+# Historical stock data (multiple call patterns supported)
+df = qdb.get_stock_data("000001", days=30)  # Last 30 days
+df = qdb.get_stock_data("000001", "20240101", "20240131")  # Date range
+df = qdb.get_stock_data("000001", start_date="20240101", end_date="20240131")  # Keywords
 df = qdb.get_stock_data("600000", start_date="20240101", end_date="20240201")
 
 # Multiple stocks
@@ -61,20 +70,22 @@ stats = qdb.cache_stats()  # View cache statistics
 qdb.clear_cache()         # Clear cache if needed
 ```
 
-### New Features (v2.2.6)
+### Advanced Features (v2.2.8)
 ```python
 import qdb
 
-# Real-time stock quotes
+# Real-time stock quotes with intelligent caching
 realtime = qdb.get_realtime_data("000001")
 batch_realtime = qdb.get_realtime_data_batch(["000001", "000002"])
 
-# Complete stock list
-stock_list = qdb.get_stock_list()
+# Complete stock list with market filtering
+all_stocks = qdb.get_stock_list()  # All markets
+shse_stocks = qdb.get_stock_list(market="SHSE")  # Shanghai Stock Exchange
+szse_stocks = qdb.get_stock_list(market="SZSE")  # Shenzhen Stock Exchange
 
-# Financial data
-financial_summary = qdb.get_financial_summary("000001")
-financial_indicators = qdb.get_financial_indicators("000001")
+# Financial data and indicators
+financial_summary = qdb.get_financial_summary("000001")  # Key metrics
+financial_indicators = qdb.get_financial_indicators("000001")  # Detailed ratios
 ```
 
 ### AKShare Compatibility
