@@ -16,11 +16,11 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
-      - name: Install MkDocs Material
+          python-version: '3.12'
+      - name: Install docs dependencies
         run: |
           pip install --upgrade pip
-          pip install mkdocs-material
+          pip install -r docs/requirements.txt
       - name: Build & Deploy
         run: |
           mkdocs gh-deploy --force
