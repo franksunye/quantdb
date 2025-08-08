@@ -19,7 +19,8 @@ jobs:
           python-version: '3.x'
       - name: Install MkDocs Material
         run: |
-          pip install mkdocs-material mkdocs-sitemap-plugin
+          pip install --upgrade pip
+          pip install mkdocs-material
       - name: Build & Deploy
         run: |
           mkdocs gh-deploy --force
