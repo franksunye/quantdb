@@ -179,9 +179,22 @@ print(data[['收盘', 'MA5', 'MA20', 'RSI']].tail())
 3. Cache database may grow over time; consider periodic cleanup
 4. Respect data source rate limits and terms
 
+## Run the examples
+
+The repository includes runnable scripts to try common features:
+
+```bash
+python examples/basic_usage.py
+python examples/realtime.py
+python examples/stock_list.py
+python examples/finance.py
+python examples/cache_management.py
+```
+
+Outputs depend on data source and time. For reproducibility, pin dates or rely on cache.
+
 ## 📚 More Resources
 
-- [04_api-reference.md](04_api-reference.md) — API Reference
-- [05_examples.md](05_examples.md) — More examples
-- [06_faq.md](06_faq.md) — FAQ
-- [99_changelog.md](99_changelog.md) — Changelog
+- [api-reference.md](api-reference.md) — API Reference
+- [faq.md](faq.md) — FAQ
+- [changelog.md](changelog.md) — Changelog

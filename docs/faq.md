@@ -1,81 +1,151 @@
-# QuantDB FAQ（常见问题）
+# Frequently Asked Questions (FAQ)
 
-最后更新：2025-08-08 | 适用版本：v2.2.8
+## 🔧 Installation & Setup
 
-## 1. 如何安装？
+### Q: How do I resolve dependency conflicts?
+**A:** Use a virtual environment to isolate dependencies:
 ```bash
+python -m venv quantdb_env
+# Linux/Mac
+source quantdb_env/bin/activate
+# Windows (PowerShell)
+quantdb_env\Scripts\Activate.ps1
 pip install quantdb
 ```
 
-## 2. 包名与导入名不一致？
-- 包名：`quantdb`
-- 导入名：`qdb`
-- 示例：
+### Q: How can I upgrade to the latest version?
+**A:**
+```bash
+pip install --upgrade quantdb
+```
+
+### Q: Which Python versions are supported?
+**A:** Python 3.8 and above. We recommend Python 3.9+ for best performance.
+
+## 📊 Data Fetching
+
+### Q: Why is the data sometimes not up-to-date?
+**A:** Due to caching. You can:
+- Clear cache: `qdb.clear_cache()`
+- Adjust TTL: `qdb.set_cache_expire(300)`  # 5 minutes
+- Temporarily disable cache: `qdb.disable_cache()`
+
+### Q: How do I fetch more historical data?
+**A:** Use date parameters:
 ```python
-import qdb  # 正确
+data = qdb.stock_zh_a_hist(
+    symbol="000001",
+    start_date="20200101",
+    end_date="20241231"
+)
 ```
 
-## 3. 首次调用很慢是正常的吗？
-- 正常。首次获取会请求 AKShare，通常需要 1-2 秒；随后命中本地缓存为毫秒级（~18ms）。
+### Q: Which markets are supported?
+**A:** Currently focusing on:
+- Mainland China A-shares (SSE/SZSE)
+- Hong Kong market
+- US market (partial support)
 
-## 4. 如何指定/查看缓存目录？
+## ⚡ Performance
+
+### Q: How can I speed up data fetching?
+**A:** Tips:
+1. Keep cache enabled (default)
+2. Use reasonable intervals when fetching in batch
+3. Warm up cache for frequently used symbols
+4. Periodically purge expired cache
+
+### Q: Cache database grows too large, what can I do?
+**A:**
+- Clear cache periodically: `qdb.clear_cache()`
+- Use shorter TTL: `qdb.set_cache_expire(1800)`  # 30 minutes
+- Manually delete the SQLite file (default: `./database/stock_data.db`)
+
+### Q: How to inspect cache usage?
+**A:**
 ```python
-import qdb
-qdb.init(cache_dir="./my_qdb_cache")
-# 或在任意时刻：
-qdb.set_cache_dir("./my_qdb_cache")
+stats = qdb.get_cache_stats()
+print(f"Cache hit rate: {stats['hit_rate']:.2%}")
+print(f"Cache size: {stats['cache_size']} records")
 ```
 
-## 5. 如何清除缓存？
+## 🐛 Errors & Troubleshooting
+
+### Q: Network errors?
+**A:** Check:
+1. Network connectivity
+2. Firewall/Proxy constraints
+3. Data source availability
+4. Consider using a proxy or VPN if needed
+
+### Q: Unexpected data format?
+**A:** Possible reasons:
+- Invalid symbol format (e.g., use "000001" not "1")
+- Wrong date format (use "YYYYMMDD")
+- Temporary data source changes
+
+### Q: It runs slow, how to diagnose?
+**A:**
+1. First run downloads data — subsequent runs will be faster
+2. Ensure cache is enabled
+3. Check network speed
+4. Reduce time range
+
+## 🔄 Keeping data fresh
+
+### Q: How to ensure latest data?
+**A:**
 ```python
-qdb.clear_cache()          # 清除所有缓存
-qdb.clear_cache("000001")  # 清除指定股票缓存
+# Option 1: Clear specific symbol cache
+qdb.clear_cache(symbol="000001")
+
+# Option 2: Use shorter TTL
+qdb.set_cache_expire(60)  # 1 minute
+
+# Option 3: Temporarily disable cache
+qdb.disable_cache()
+data = qdb.stock_zh_a_hist("000001")
+qdb.enable_cache()
 ```
 
-## 6. 与 AKShare 是否兼容？
-- 是。QuantDB 保持与 AKShare 一致的数据结构和语义，并提供同名接口：
-```python
-# 兼容接口示例
-qdb.stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
-```
+### Q: Update frequency?
+**A:**
+- Realtime quotes: often delayed ~15 minutes
+- Daily data: updated after market close
+- Financials: quarterly updates
 
-## 7. 支持哪些市场？
-- A 股与港股（自动识别代码格式，统一 API）。
+## 🛠️ Integration
 
-## 8. 如何获取实时数据和股票列表？
-```python
-rt = qdb.get_realtime_data("000001")
-all_stocks = qdb.get_stock_list()
-```
+### Q: Production usage best practices?
+**A:**
+1. Use a dedicated database path
+2. Tune TTL to your workload
+3. Add retry logic
+4. Monitor cache usage regularly
 
-## 9. 常见错误与排查
-- ImportError: `ModuleNotFoundError: No module named 'qdb'`
-  - 请确认已执行 `pip install quantdb`，并使用 `import qdb` 导入。
-- 网络超时/数据为空：
-  - 检查本地网络与 AKShare 源的连通性；稍后重试。
-- 权限问题（Windows）：
-  - 避免将缓存目录放在需要管理员权限的路径，建议使用用户目录或项目内路径。
+### Q: Can I combine with other data sources?
+**A:** Yes. QuantDB is primarily a cache layer for AKShare, but you can:
+- Combine multiple sources
+- Validate and clean data
+- Build your own data pipelines
 
-## 10. 如何查看缓存统计与性能？
-```python
-stats = qdb.cache_stats()
-print(stats)
-```
+### Q: How to contribute or report issues?
+**A:**
+- GitHub Issues: https://github.com/franksunye/quantdb/issues
+- Pull Requests welcome
+- Join Discussions
 
-## 11. 如何在 Windows PowerShell 使用？
-- 建议使用虚拟环境：
-```powershell
-python -m venv .venv
-. .venv\Scripts\Activate.ps1
-pip install quantdb
-```
+## 📚 More help
 
-## 12. 与企业/生产环境相关的问题
-- 是否支持 API 服务化？支持，可参考 docs/03_API_SERVICE_GUIDE.md 与 Dockerfile。
-- 是否支持指标监控？可通过 `cache_stats()` 获取基础指标，更多监控可在 API/云平台版本实现。
+If you didn’t find your answer:
 
-## 13. 获取帮助
-- Issues: https://github.com/franksunye/quantdb/issues
-- Discussions: https://github.com/franksunye/quantdb/discussions
-- 文档站点: https://franksunye.github.io/quantdb/
+1. See the [User Guide](user-guide.md)
+2. See the [API Reference](api-reference.md)
+3. Open an Issue on GitHub
 
+## 🔗 Links
+
+- [Project Home](https://github.com/franksunye/quantdb)
+- [PyPI](https://pypi.org/project/quantdb/)
+- [AKShare Docs](https://akshare.akfamily.xyz/)
+- [Community](community/)

@@ -2,9 +2,44 @@
 
 A quick guide to install and use QuantDB in minutes.
 
-## Install
+## 📦 Install from PyPI (recommended)
+
 ```bash
 pip install quantdb
+```
+
+## 🔧 Install from source
+
+```bash
+# Clone the repository
+git clone https://github.com/franksunye/quantdb.git
+cd quantdb
+
+# Install dependencies (optional)
+pip install -r requirements.txt
+
+# Install the package in editable mode
+pip install -e .
+```
+
+## 📋 Requirements
+
+- Python 3.8+
+- OS: Windows, macOS, or Linux
+- Memory: 4GB+ recommended
+- Disk: 1GB+ recommended (for local cache)
+
+## 🔍 Verify installation
+
+```python
+import qdb
+
+# Check version
+print(qdb.__version__)
+
+# Basic test
+data = qdb.stock_zh_a_hist("000001")
+print(data.head())
 ```
 
 ## Import and Initialize
@@ -62,4 +97,25 @@ python examples/finance.py
 python examples/cache_management.py
 ```
 
-If you run into issues, please check FAQ or open an issue.
+## 🚨 Troubleshooting
+
+### Dependency conflicts
+Use a virtual environment to isolate dependencies:
+
+```bash
+python -m venv quantdb_env
+# Linux/Mac
+source quantdb_env/bin/activate
+# Windows (PowerShell)
+quantdb_env\Scripts\Activate.ps1
+
+pip install quantdb
+```
+
+### Slow downloads
+If you experience slow downloads due to regional network issues, consider using a closer mirror or a stable network.
+
+## 📚 What's next
+- [user-guide.md](user-guide.md) — comprehensive user guide
+- [api-reference.md](api-reference.md) — complete API reference
+- [faq.md](faq.md) — frequently asked questions
