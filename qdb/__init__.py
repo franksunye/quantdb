@@ -35,6 +35,11 @@ from .client import (
     # Stock list functionality
     get_stock_list,
 
+    # Index data functionality
+    get_index_data,
+    get_index_realtime,
+    get_index_list,
+
     # Financial data functionality
     get_financial_summary,
     get_financial_indicators,
@@ -78,6 +83,11 @@ __all__ = [
 
     # Stock list functionality
     "get_stock_list",
+
+    # Index data functionality
+    "get_index_data",
+    "get_index_realtime",
+    "get_index_list",
 
     # Financial data functionality
     "get_financial_summary",
