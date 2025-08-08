@@ -19,9 +19,6 @@ theme:
 
 plugins:
   - search
-  - sitemap:
-      map_pages: true
-  - meta
 
 markdown_extensions:
   - admonition
