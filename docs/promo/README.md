@@ -6,33 +6,59 @@ This directory contains professional marketing and promotional materials for Qua
 
 ```
 docs/promo/
-├── README.md                              # This file
-├── GTM_Performance_Materials_Guide.md     # Comprehensive guide for using GTM materials
-├── quantdb_vs_akshare_performance.png     # Main performance comparison chart
+├── README.md                              # This file - Main directory guide
+├── performance-benchmarks/                # ✅ VERIFIED performance materials
+│   ├── README.md                          # Usage guide for performance charts
+│   ├── enhanced_performance_analysis.png  # 4-panel comprehensive analysis
+│   ├── executive_summary_performance.png  # Executive-level summary
+│   ├── realistic_performance_comparison.png # Clean comparison chart
+│   ├── PERFORMANCE_DATA_ANALYSIS.md      # Detailed data interpretation
+│   ├── realistic_performance_benchmark.py # Chart generation script
+│   └── enhanced_gtm_benchmark.py         # Advanced benchmark script
+├── archive/                               # ❌ DEPRECATED materials (reference only)
+│   ├── README.md                          # Archive explanation
+│   ├── performance_comparison_gtm.png     # Old chart with data issues
+│   ├── performance_infographic_gtm.png    # Deprecated infographic
+│   └── speedup_visualization_gtm.png      # Old speedup chart
+├── quantdb_vs_akshare_performance.png     # General comparison chart
 ├── quantdb_speedup_factors.png            # Speedup factor visualization
 ├── quantdb_gtm_infographic.png           # Comprehensive GTM infographic
 ├── quantdb_roi_analysis.png              # ROI and time savings analysis
-└── performance_*.png                      # Additional performance charts
+└── [other marketing materials]            # Content templates, social media, etc.
 ```
 
 ## 🎯 Quick Reference
 
-### Primary GTM Charts
+### ✅ RECOMMENDED: Verified Performance Charts
+
+| Chart | Use Case | Key Message | Location |
+|-------|----------|-------------|----------|
+| `enhanced_performance_analysis.png` | **Technical Documentation** | 99.9% improvement, 1,288× speedup | `performance-benchmarks/` |
+| `executive_summary_performance.png` | **Business Presentations** | Executive-level verified metrics | `performance-benchmarks/` |
+| `realistic_performance_comparison.png` | **Website Hero, Marketing** | Clean, verified performance data | `performance-benchmarks/` |
+
+### 📊 General GTM Charts
 
 | Chart | Use Case | Key Message |
 |-------|----------|-------------|
-| `quantdb_vs_akshare_performance.png` | **Website Hero, Main Presentations** | Up to 99.7% performance improvement |
-| `quantdb_speedup_factors.png` | **Technical Documentation** | Up to 357× speedup factor |
-| `quantdb_gtm_infographic.png` | **Social Media, Marketing** | Comprehensive overview with features |
+| `quantdb_vs_akshare_performance.png` | **General Presentations** | Performance comparison overview |
+| `quantdb_speedup_factors.png` | **Technical Documentation** | Speedup factor visualization |
+| `quantdb_gtm_infographic.png` | **Social Media, Marketing** | Comprehensive feature overview |
 | `quantdb_roi_analysis.png` | **Business Presentations** | Time savings and ROI analysis |
 
-### Key Performance Metrics
+### 🚀 Verified Performance Metrics (Latest)
 
-- **Average Performance Improvement**: 99.3%
-- **Maximum Speedup Factor**: 357×
-- **Cache Response Time**: <50ms
+- **Average Performance Improvement**: **99.9%** (verified)
+- **Maximum Speedup Factor**: **1,288×** (measured)
+- **Cache Response Time**: **<10ms** (consistent)
 - **Installation Complexity**: 1 line (`pip install quantdb`)
 - **API Compatibility**: 100% AKShare compatible
+
+### 📍 Where to Find Materials
+
+- **✅ VERIFIED CHARTS**: Use `performance-benchmarks/` directory
+- **📊 GENERAL CHARTS**: Use main directory charts
+- **❌ AVOID**: `archive/` directory (deprecated materials)
 
 ## 🚀 Usage Guidelines
 

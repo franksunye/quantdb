@@ -32,7 +32,7 @@ Created **realistic, verified performance benchmarks** with proper methodology:
 
 ## 🎨 Final GTM Materials Portfolio
 
-### Primary Charts (High-Impact)
+### ✅ Primary Charts (High-Impact) - `performance-benchmarks/`
 1. **`enhanced_performance_analysis.png`** (661KB)
    - **4-panel comprehensive analysis**
    - Response time comparison, improvements, speedup factors, scalability
@@ -46,6 +46,11 @@ Created **realistic, verified performance benchmarks** with proper methodology:
 3. **`realistic_performance_comparison.png`** (301KB)
    - **Clean, focused comparison** chart
    - **Best for**: Website hero sections, marketing materials
+
+### 📁 Organized Structure
+- **`performance-benchmarks/`**: Verified charts with reproduction scripts
+- **`archive/`**: Deprecated materials (reference only)
+- **Main directory**: General GTM materials and content templates
 
 ### Supporting Materials
 - **`PERFORMANCE_DATA_ANALYSIS.md`**: Comprehensive data interpretation guide
