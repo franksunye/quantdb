@@ -33,7 +33,7 @@ uvicorn>=0.15.0
 httpx>=0.18.0
 
 # 重试机制（core服务需要）
-tenacity>=9.1.0
+tenacity>=8.2.3,<9.0.0,!=8.4.0
 
 # 认证相关（core模块可能需要）
 python-jose>=3.3.0

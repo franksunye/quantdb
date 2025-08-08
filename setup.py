@@ -22,10 +22,10 @@ def read_requirements(filename):
 # Basic dependencies
 install_requires = [
     "pandas>=1.3.0",
-    "numpy>=1.20.0", 
+    "numpy>=1.20.0",
     "akshare>=1.0.0",
     "sqlalchemy>=1.4.0",
-    "tenacity>=9.1.0",
+    "tenacity>=8.2.3,<9.0.0,!=8.4.0",
     "python-dateutil>=2.8.0",
 ]
 
