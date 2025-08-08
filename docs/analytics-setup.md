@@ -41,7 +41,6 @@ extra:
 - PyPI: `https://pypi.org/project/quantdb/?utm_source=csdn&utm_medium=blog&utm_campaign=launch`
 - GitHub: `https://github.com/franksunye/quantdb?utm_source=csdn&utm_medium=blog&utm_campaign=launch`
 - Docs: `https://franksunye.github.io/quantdb/?utm_source=csdn&utm_medium=blog&utm_campaign=launch`
-
 ## Key Metrics to Track
 
 ### Primary KPIs
@@ -50,17 +49,21 @@ extra:
 - **GitHub metrics**: Stars, forks, issues, PRs
 - **Search rankings**: Position for target keywords
 
+<<<<<<< HEAD
 ### Secondary KPIs
 - **Bounce rate**: Documentation engagement
 - **Session duration**: User engagement depth
 - **Conversion rate**: Docs → PyPI downloads
 - **Geographic distribution**: User locations
 
+=======
+>>>>>>> 732b31e (🚀 Comprehensive SEO Optimization for GTM Launch)
 ### Target Goals (3 months)
 - Documentation: 1,000+ monthly visitors
 - PyPI downloads: 500+ monthly downloads
 - GitHub stars: 100+ stars
 - Search ranking: Top 3 pages for "python stock data cache"
+<<<<<<< HEAD
 
 ## Weekly Reporting Template
 
@@ -87,3 +90,5 @@ extra:
 - [ ] Item 2
 - [ ] Item 3
 ```
+=======
+>>>>>>> 732b31e (🚀 Comprehensive SEO Optimization for GTM Launch)
