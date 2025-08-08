@@ -33,7 +33,7 @@ markdown_extensions:
 extra:
   analytics:
     provider: google
-    property: G-PLACEHOLDER  # TODO: Replace with actual GA4 property ID
+    property: G-RFT3ZQSRX2  # TODO: Replace with actual GA4 property ID
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/franksunye/quantdb
