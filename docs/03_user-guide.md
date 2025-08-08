@@ -1,33 +1,33 @@
-# 用户指南
+# User Guide
 
-## 🎯 概述
+## 🎯 Overview
 
-QuantDB 是一个高性能的股票数据工具包，通过智能缓存机制为 AKShare 提供 90%+ 的性能提升。
+QuantDB is a high-performance stock data toolkit that provides 90%+ speedup for AKShare via intelligent local caching.
 
-## 🚀 核心特性
+## 🚀 Key Features
 
-### 智能缓存
-- 自动缓存股票数据，避免重复API调用
-- 支持多种缓存策略和过期时间设置
-- 显著提升数据获取速度
+### Smart Caching
+- Transparent caching to avoid repeated API calls
+- Multiple TTL strategies configurable
+- Significant speed improvement on repeated queries
 
-### 简单易用
-- 与 AKShare 完全兼容的API
-- 导入即用，无需修改现有代码
-- 支持所有 AKShare 的股票数据接口
+### Easy to Use
+- AKShare-compatible interfaces
+- Import and use, no code changes required
+- Works with common AKShare stock endpoints
 
-## 📊 基本用法
+## 📊 Basic Usage
 
-### 获取股票历史数据
+### Historical data
 
 ```python
 import qdb
 
-# 获取平安银行历史数据
+# Ping An Bank (000001) daily history
 data = qdb.stock_zh_a_hist("000001")
 print(data.head())
 
-# 指定时间范围
+# Specify time range
 data = qdb.stock_zh_a_hist(
     symbol="000001",
     start_date="20240101",
@@ -35,104 +35,102 @@ data = qdb.stock_zh_a_hist(
 )
 ```
 
-### 获取实时行情
+### Realtime quotes
 
 ```python
-# 获取实时行情
+# Market snapshot
 realtime = qdb.stock_zh_a_spot_em()
 print(realtime.head())
 
-# 获取特定股票实时数据
+# Single-symbol realtime info
 stock_info = qdb.stock_individual_info_em(symbol="000001")
 print(stock_info)
 ```
 
-### 获取财务数据
+### Financial data
 
 ```python
-# 获取财务指标
+# Financial indicators
 financial = qdb.stock_financial_em(symbol="000001")
 print(financial.head())
 
-# 获取资产负债表
+# Balance sheet
 balance = qdb.stock_balance_sheet_by_report_em(symbol="000001")
 print(balance.head())
 ```
 
-## ⚙️ 高级配置
+## ⚙️ Advanced Configuration
 
-### 缓存设置
+### Cache settings
 
 ```python
 import qdb
 
-# 设置缓存过期时间（秒）
-qdb.set_cache_expire(3600)  # 1小时
+# TTL in seconds
+qdb.set_cache_expire(3600)  # 1 hour
 
-# 清理缓存
+# Clear cache
 qdb.clear_cache()
 
-# 禁用缓存
+# Disable / enable cache
 qdb.disable_cache()
-
-# 启用缓存
 qdb.enable_cache()
 ```
 
-### 数据库配置
+### Database settings
 
 ```python
-# 自定义数据库路径
+# Custom database path
 qdb.set_database_path("./my_stock_data.db")
 
-# 查看缓存统计
+# Cache statistics
 stats = qdb.get_cache_stats()
-print(f"缓存命中率: {stats['hit_rate']:.2%}")
+print(f"Cache hit rate: {stats['hit_rate']:.2%}")
 ```
 
-## 🔧 性能优化
+## 🔧 Performance Tips
 
-### 批量数据获取
+### Batch fetching
 
 ```python
-# 批量获取多只股票数据
+# Fetch multiple symbols
 symbols = ["000001", "000002", "600000", "600036"]
 data_dict = {}
 
 for symbol in symbols:
     data_dict[symbol] = qdb.stock_zh_a_hist(symbol)
-    
-print(f"获取了 {len(data_dict)} 只股票的数据")
+
+print(f"Fetched {len(data_dict)} symbols")
 ```
 
-### 缓存预热
+### Cache warm-up
 
 ```python
-# 预先缓存常用数据
+# Preload commonly used symbols
 popular_stocks = ["000001", "000002", "600000", "600036", "000858"]
 
 for symbol in popular_stocks:
-    qdb.stock_zh_a_hist(symbol)  # 预热缓存
-    
-print("缓存预热完成")
+    qdb.stock_zh_a_hist(symbol)  # warm up cache
+
+print("Cache warm-up completed")
 ```
 
-## 📈 实际应用场景
+## 📈 Use Cases
 
-### 投资组合分析
+### Portfolio analysis
 
 ```python
 import pandas as pd
 import qdb
 
-# 定义投资组合
+# Example portfolio
 portfolio = {
-    "000001": 0.3,  # 平安银行 30%
-    "600000": 0.4,  # 浦发银行 40%
-    "000858": 0.3   # 五粮液 30%
+    "000001": 0.3,  # 30%
+    "600000": 0.4,  # 40%
+    "000858": 0.3   # 30%
 }
 
-# 获取各股票数据
+# Fetch data
 portfolio_data = {}
 for symbol, weight in portfolio.items():
     data = qdb.stock_zh_a_hist(symbol)
@@ -142,26 +140,26 @@ for symbol, weight in portfolio.items():
         'latest_price': data['收盘'].iloc[-1]
     }
 
-# 计算投资组合表现
-total_value = sum(info['latest_price'] * info['weight'] 
+# Compute a simple metric
+total_value = sum(info['latest_price'] * info['weight']
                  for info in portfolio_data.values())
-print(f"投资组合当前价值: {total_value:.2f}")
+print(f"Portfolio current value: {total_value:.2f}")
 ```
 
-### 技术指标计算
+### Technical indicators
 
 ```python
 import qdb
 import pandas as pd
 
-# 获取股票数据
+# Data
 data = qdb.stock_zh_a_hist("000001")
 
-# 计算移动平均线
+# Moving averages
 data['MA5'] = data['收盘'].rolling(window=5).mean()
 data['MA20'] = data['收盘'].rolling(window=20).mean()
 
-# 计算RSI
+# RSI
 def calculate_rsi(prices, window=14):
     delta = prices.diff()
     gain = (delta.where(delta > 0, 0)).rolling(window=window).mean()
@@ -174,16 +172,16 @@ data['RSI'] = calculate_rsi(data['收盘'])
 print(data[['收盘', 'MA5', 'MA20', 'RSI']].tail())
 ```
 
-## 🚨 注意事项
+## 🚨 Notes
 
-1. **数据更新频率**：缓存数据可能不是最新的，根据需要调整缓存过期时间
-2. **网络依赖**：首次获取数据需要网络连接
-3. **存储空间**：长期使用会积累大量缓存数据，定期清理
-4. **API限制**：遵守数据源的使用条款和频率限制
+1. Data freshness depends on TTL; adjust as needed
+2. Network is required for first-time fetches
+3. Cache database may grow over time; consider periodic cleanup
+4. Respect data source rate limits and terms
 
-## 📚 更多资源
+## 📚 More Resources
 
-- [API参考](04_api-reference.md) - 完整的API文档
-- [示例代码](05_examples.md) - 更多实用示例
-- [常见问题](06_faq.md) - 问题解答
-- [更新日志](99_changelog.md) - 版本历史
+- [04_api-reference.md](04_api-reference.md) — API Reference
+- [05_examples.md](05_examples.md) — More examples
+- [06_faq.md](06_faq.md) — FAQ
+- [99_changelog.md](99_changelog.md) — Changelog
