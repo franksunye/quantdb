@@ -60,9 +60,6 @@ coverage_reports/
 # Temporary files
 =
 
-# Examples directory (for development only)
-examples/
-
 # IDE workspace files
 *.code-workspace
 
