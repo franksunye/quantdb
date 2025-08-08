@@ -1,0 +1,77 @@
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "QuantDB",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Cross-platform",
+  "description": "Intelligent caching wrapper for AKShare with 90%+ performance boost. Complete stock data ecosystem with smart SQLite caching for Chinese financial markets.",
+  "url": "https://franksunye.github.io/quantdb/",
+  "downloadUrl": "https://pypi.org/project/quantdb/",
+  "softwareVersion": "2.2.8",
+  "datePublished": "2025-08-08",
+  "dateModified": "2025-08-08",
+  "author": {
+    "@type": "Person",
+    "name": "Ye Sun",
+    "email": "franksunye@hotmail.com",
+    "url": "https://github.com/franksunye"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Ye Sun"
+  },
+  "license": "https://opensource.org/licenses/MIT",
+  "programmingLanguage": "Python",
+  "runtimePlatform": "Python 3.8+",
+  "keywords": [
+    "python",
+    "stock data",
+    "akshare",
+    "cache",
+    "quantitative trading",
+    "financial data",
+    "trading",
+    "investment",
+    "sqlite",
+    "performance optimization"
+  ],
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": "5.0",
+    "ratingCount": "1",
+    "bestRating": "5",
+    "worstRating": "1"
+  },
+  "softwareRequirements": [
+    "Python >= 3.8",
+    "pandas >= 1.3.0",
+    "numpy >= 1.20.0",
+    "akshare >= 1.0.0",
+    "sqlalchemy >= 1.4.0"
+  ],
+  "featureList": [
+    "90%+ performance boost over AKShare",
+    "Intelligent SQLite caching",
+    "Real-time stock data",
+    "Complete stock list API",
+    "Financial indicators",
+    "Trading calendar integration",
+    "Zero configuration setup",
+    "AKShare compatibility"
+  ],
+  "screenshot": "https://franksunye.github.io/quantdb/assets/quantdb-screenshot.png",
+  "applicationSuite": "QuantDB Ecosystem",
+  "installUrl": "https://pypi.org/project/quantdb/",
+  "codeRepository": "https://github.com/franksunye/quantdb",
+  "supportingData": "https://franksunye.github.io/quantdb/",
+  "maintainer": {
+    "@type": "Person",
+    "name": "Ye Sun",
+    "email": "franksunye@hotmail.com"
+  }
+}
