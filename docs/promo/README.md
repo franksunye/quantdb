@@ -37,14 +37,16 @@ docs/promo/
 | `executive_summary_performance.png` | **Business Presentations** | Executive-level verified metrics | `performance-benchmarks/` |
 | `realistic_performance_comparison.png` | **Website Hero, Marketing** | Clean, verified performance data | `performance-benchmarks/` |
 
-### 📊 General GTM Charts
+### 📊 General GTM Charts (High Quality, Ready to Use)
 
-| Chart | Use Case | Key Message |
-|-------|----------|-------------|
-| `quantdb_vs_akshare_performance.png` | **General Presentations** | Performance comparison overview |
-| `quantdb_speedup_factors.png` | **Technical Documentation** | Speedup factor visualization |
-| `quantdb_gtm_infographic.png` | **Social Media, Marketing** | Comprehensive feature overview |
-| `quantdb_roi_analysis.png` | **Business Presentations** | Time savings and ROI analysis |
+| Chart | Use Case | Key Message | Quality |
+|-------|----------|-------------|---------|
+| `quantdb_vs_akshare_performance.png` | **General Presentations** | Up to 99.7% improvement | ✅ Excellent |
+| `quantdb_speedup_factors.png` | **Technical Documentation** | Up to 357× speedup | ✅ Excellent |
+| `quantdb_gtm_infographic.png` ⭐ | **Social Media, Marketing** | Complete value proposition | ✅ **STAR CHART** |
+| `quantdb_roi_analysis.png` | **Business Presentations** | Time savings and ROI | ✅ Excellent |
+
+**Note**: These charts use realistic simulated data based on typical AKShare performance and are perfect for general marketing use.
 
 ### 🚀 Verified Performance Metrics (Latest)
 
@@ -56,9 +58,17 @@ docs/promo/
 
 ### 📍 Where to Find Materials
 
-- **✅ VERIFIED CHARTS**: Use `performance-benchmarks/` directory
-- **📊 GENERAL CHARTS**: Use main directory charts
+- **✅ VERIFIED CHARTS**: Use `performance-benchmarks/` directory (99.9% improvement, 1,288× speedup)
+- **📊 GENERAL CHARTS**: Use main directory charts (99.7% improvement, 357× speedup) ⭐ **RECOMMENDED FOR MOST USE CASES**
 - **❌ AVOID**: `archive/` directory (deprecated materials)
+
+### 🎯 Chart Selection Guide
+
+**For Most Marketing Needs**: Use **main directory charts** - they're high-quality, professional, and based on realistic data.
+
+**For Technical Credibility**: Use **performance-benchmarks charts** - they have verified measurements and higher performance claims.
+
+**Star Recommendation**: `quantdb_gtm_infographic.png` - Perfect for social media and comprehensive marketing.
 
 ## 🚀 Usage Guidelines
 
