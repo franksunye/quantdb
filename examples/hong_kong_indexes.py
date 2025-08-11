@@ -35,11 +35,11 @@ def demo_hk_historical_data():
     
     # Major Hong Kong indexes
     hk_indexes = {
-        'HSI': '恒生指数',
-        'HSCEI': '恒生中国企业指数', 
-        'HSTECH': '恒生科技指数'
+        'HSI': 'Hang Seng Index',
+        'HSCEI': 'Hang Seng China Enterprises Index',
+        'HSTECH': 'Hang Seng TECH Index'
     }
-    
+
     for symbol, name in hk_indexes.items():
         print(f"\n📊 Fetching {symbol} ({name}) data...")
         try:

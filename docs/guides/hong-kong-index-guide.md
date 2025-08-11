@@ -5,9 +5,9 @@ QuantDB now provides comprehensive support for Hong Kong stock indexes, includin
 ## 🏷️ Supported Indexes
 
 ### Major Hong Kong Indexes
-- **HSI** - 恒生指数 (Hang Seng Index)
-- **HSCEI** - 恒生中国企业指数 (Hang Seng China Enterprises Index)
-- **HSTECH** - 恒生科技指数 (Hang Seng TECH Index)
+- **HSI** - Hang Seng Index
+- **HSCEI** - Hang Seng China Enterprises Index
+- **HSTECH** - Hang Seng TECH Index
 
 ## 🔤 Symbol Conventions
 
@@ -17,7 +17,7 @@ QuantDB follows international conventions for Hong Kong index symbols while supp
 ```python
 # Recommended standard symbols
 "HSI"      # Hang Seng Index
-"HSCEI"    # Hang Seng China Enterprises Index  
+"HSCEI"    # Hang Seng China Enterprises Index
 "HSTECH"   # Hang Seng TECH Index
 ```
 
@@ -72,7 +72,7 @@ for symbol in ['HSI', 'HSCEI', 'HSTECH']:
 
 ### Index List
 ```python
-# Get all Hong Kong indexes
+# Get all Hong Kong indexes (using internal category code)
 hk_indexes = qdb.get_index_list(category='香港指数')
 print(f"Found {len(hk_indexes)} Hong Kong indexes")
 
@@ -92,8 +92,8 @@ for idx in hk_indexes:
 
 # Example data:
 #        date     open     high      low    close    volume        name
-# 0  2024-01-01  16400.0  16600.0  16350.0  16500.0  1000000    恒生指数
-# 1  2024-01-02  16500.0  16700.0  16450.0  16600.0  1100000    恒生指数
+# 0  2024-01-01  16400.0  16600.0  16350.0  16500.0  1000000    Hang Seng Index
+# 1  2024-01-02  16500.0  16700.0  16450.0  16600.0  1100000    Hang Seng Index
 ```
 
 ### Realtime Data Structure
@@ -101,7 +101,7 @@ for idx in hk_indexes:
 # Returned dictionary keys:
 {
     'symbol': 'HSI',
-    'name': '恒生指数',
+    'name': 'Hang Seng Index',
     'price': 24906.811,
     'change': 100.0,
     'pct_change': 0.40,
@@ -119,14 +119,14 @@ for idx in hk_indexes:
 # Historical data
 GET /api/v1/index/historical/HSI?start_date=20240101&end_date=20240131&period=daily
 
-# Realtime data  
+# Realtime data
 GET /api/v1/index/realtime/HSI
 
-# Index categories (includes 香港指数)
+# Index categories (includes Hong Kong indexes)
 GET /api/v1/index/categories
 
-# Hong Kong index list
-GET /api/v1/index/list?category=香港指数
+# Hong Kong index list (using internal category code)
+GET /api/v1/index/list?category=%E9%A6%99%E6%B8%AF%E6%8C%87%E6%95%B0
 ```
 
 ## ⚡ Performance & Caching

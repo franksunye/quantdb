@@ -4,11 +4,11 @@
 
 ### Added
 - **Hong Kong Index Support**: Complete support for Hong Kong stock indexes
-  - HSI (恒生指数), HSCEI (恒生中国企业指数), HSTECH (恒生科技指数)
+  - HSI (Hang Seng Index), HSCEI (Hang Seng China Enterprises Index), HSTECH (Hang Seng TECH Index)
   - International symbol conventions with alias support (^HSI, HK.HSI, HANG SENG, etc.)
   - Historical data via AKShare stock_hk_index_daily_sina
   - Realtime data via AKShare stock_hk_index_spot_sina
-  - New "香港指数" category in API endpoints
+  - New "Hong Kong Indexes" category in API endpoints
   - Full backward compatibility with existing A-share indexes
 - Real-time Data API: Complete real-time stock data support
 - Financial Data API: Financial summary and metrics data support

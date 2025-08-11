@@ -32,7 +32,7 @@ The following functions are exported by qdb (see qdb/__init__.py). Parameters an
   - **Hong Kong Support**: Real-time quotes for HSI, HSCEI, HSTECH
 - get_index_list(category: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]
   - Daily-cached index list by category.
-  - **Categories**: "沪深重要指数", "上证系列指数", "深证系列指数", "中证系列指数", "香港指数"
+  - **Categories**: "Major Shanghai-Shenzhen Indexes", "Shanghai Stock Exchange Indexes", "Shenzhen Stock Exchange Indexes", "CSI Index Series", "Hong Kong Stock Indexes"
 
 ## Stock List
 - get_stock_list(market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]
