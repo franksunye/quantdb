@@ -36,19 +36,24 @@ class TestIndexDataService(unittest.TestCase):
     @patch('core.services.index_data_service.logger')
     def test_get_index_data_cache_hit(self, logger_mock):
         """Test getting index data with cache hit."""
-        # Setup cached data
+        # Setup cached data with to_dict method
         mock_data = [MagicMock()]
-        mock_data[0].date = date(2023, 12, 31)
-        mock_data[0].close = 3000.0
-        
+        mock_data[0].to_dict.return_value = {
+            'date': date(2023, 12, 31),
+            'close': 3000.0,
+            'open': 2950.0,
+            'high': 3050.0,
+            'low': 2900.0
+        }
+
         self.db_mock.query.return_value.filter.return_value.order_by.return_value.all.return_value = mock_data
-        
+
         # Call method
         result = self.service.get_index_data('000001', '20231201', '20231231')
-        
-        # Verify result
+
+        # Verify result - should return DataFrame with cached data
         self.assertEqual(len(result), 1)
-        self.assertTrue(result['cache_hit'])
+        self.assertEqual(result.iloc[0]['close'], 3000.0)
 
     @patch('core.services.index_data_service.logger')
     def test_get_index_data_cache_miss(self, logger_mock):
@@ -205,16 +210,16 @@ class TestIndexDataService(unittest.TestCase):
         """Test handling AKShare errors in index data."""
         # Setup cache miss
         self.db_mock.query.return_value.filter.return_value.order_by.return_value.all.return_value = []
-        
+
         # Setup AKShare error
         self.akshare_adapter_mock.get_index_data.side_effect = Exception("AKShare error")
-        
-        # Call method
-        result = self.service.get_index_data('000001', '20231201', '20231231')
-        
-        # Verify error handling
-        self.assertIn('error', result)
-        self.assertEqual(result['symbol'], '000001')
+
+        # Call method and expect exception to be raised
+        with self.assertRaises(Exception) as context:
+            self.service.get_index_data('000001', '20231201', '20231231')
+
+        # Verify the exception message
+        self.assertIn("AKShare error", str(context.exception))
 
     @patch('core.services.index_data_service.logger')
     def test_get_realtime_index_data_akshare_error(self, logger_mock):
@@ -328,13 +333,17 @@ class TestIndexDataService(unittest.TestCase):
 
     def test_get_cached_index_list_all_categories(self):
         """Test getting cached index list for all categories."""
-        # Setup cached data
+        # Setup cached data with to_dict method
         mock_cache_data = [MagicMock(), MagicMock()]
-        self.db_mock.query.return_value.filter.return_value.all.return_value = mock_cache_data
-        
+        mock_cache_data[0].to_dict.return_value = {'symbol': '000001', 'name': 'Index 1'}
+        mock_cache_data[1].to_dict.return_value = {'symbol': '000002', 'name': 'Index 2'}
+
+        # Setup the complete mock chain for the query
+        self.db_mock.query.return_value.filter.return_value.order_by.return_value.all.return_value = mock_cache_data
+
         # Call method
         result = self.service._get_cached_index_list(None)
-        
+
         # Verify result
         self.assertEqual(len(result), 2)
 
@@ -350,37 +359,9 @@ class TestIndexDataService(unittest.TestCase):
         # Verify filtering was applied
         self.db_mock.query.return_value.filter.assert_called()
 
-    def test_convert_index_data_to_dict(self):
-        """Test converting index data to dictionary format."""
-        # Setup mock index data
-        mock_data = MagicMock()
-        mock_data.date = date(2023, 12, 31)
-        mock_data.open = 2950.0
-        mock_data.close = 3000.0
-        mock_data.volume = 1000000
-        
-        # Call internal method
-        result = self.service._convert_index_data_to_dict([mock_data])
-        
-        # Verify result structure
-        self.assertIsInstance(result, list)
-        self.assertEqual(len(result), 1)
-
-    def test_convert_realtime_data_to_dict(self):
-        """Test converting realtime data to dictionary format."""
-        # Setup mock realtime data
-        mock_data = MagicMock()
-        mock_data.symbol = '000001'
-        mock_data.name = 'Test Index'
-        mock_data.price = 3000.0
-        mock_data.change = 50.0
-        
-        # Call internal method
-        result = self.service._convert_realtime_data_to_dict(mock_data)
-        
-        # Verify result structure
-        self.assertIsInstance(result, dict)
-        self.assertEqual(result['symbol'], '000001')
+    # Note: _convert_index_data_to_dict and _convert_realtime_data_to_dict methods
+    # do not exist in the actual IndexDataService implementation.
+    # These tests have been removed as they test non-existent functionality.
         self.assertEqual(result['name'], 'Test Index')
 
 

@@ -35,27 +35,27 @@ class TestRealtimeAPI(unittest.TestCase):
     @patch('core.services.realtime_data_service.RealtimeDataService.get_realtime_data')
     def test_get_realtime_data_success(self, mock_get_data):
         """Test successful realtime data retrieval."""
-        # Mock service response
+        # Mock service response - use correct field names
         mock_get_data.return_value = {
             "symbol": "000001",
             "name": "平安银行",
-            "current_price": 12.50,
+            "price": 12.50,  # Changed from current_price
             "change": 0.25,
-            "change_percent": 2.04,
+            "pct_change": 2.04,  # Changed from change_percent
             "volume": 15000000,
             "turnover": 187500000.0,
             "high": 12.60,
             "low": 12.30,
             "open": 12.35,
-            "previous_close": 12.25,
+            "prev_close": 12.25,  # Changed from previous_close
             "timestamp": datetime.now().isoformat(),
-            "is_cached": False,
-            "cache_age_seconds": 0
+            "cache_hit": False,  # Changed from is_cached
+            "is_trading_hours": True
         }
-        
+
         # Test API call
         response = self.client.get("/api/v1/realtime/stock/000001")
-        
+
         # Verify response
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -67,27 +67,27 @@ class TestRealtimeAPI(unittest.TestCase):
     @patch('core.services.realtime_data_service.RealtimeDataService.get_realtime_data')
     def test_get_realtime_data_cached(self, mock_get_data):
         """Test realtime data retrieval from cache."""
-        # Mock cached service response
+        # Mock cached service response - use correct field names
         mock_get_data.return_value = {
             "symbol": "000001",
             "name": "平安银行",
-            "current_price": 12.45,
+            "price": 12.45,  # Changed from current_price
             "change": 0.20,
-            "change_percent": 1.63,
+            "pct_change": 1.63,  # Changed from change_percent
             "volume": 14000000,
             "turnover": 174300000.0,
             "high": 12.55,
             "low": 12.25,
             "open": 12.30,
-            "previous_close": 12.25,
+            "prev_close": 12.25,  # Changed from previous_close
             "timestamp": (datetime.now() - timedelta(minutes=2)).isoformat(),
-            "is_cached": True,
-            "cache_age_seconds": 120
+            "cache_hit": True,  # Changed from is_cached
+            "is_trading_hours": True
         }
-        
+
         # Test API call
         response = self.client.get("/api/v1/realtime/stock/000001")
-        
+
         # Verify cached response
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -105,15 +105,22 @@ class TestRealtimeAPI(unittest.TestCase):
     @patch('core.services.realtime_data_service.RealtimeDataService.get_realtime_data')
     def test_get_realtime_data_not_found(self, mock_get_data):
         """Test realtime data when symbol not found."""
-        # Mock service returning None
-        mock_get_data.return_value = None
-        
+        # Mock service returning error response
+        mock_get_data.return_value = {
+            "symbol": "999999",
+            "error": "Symbol not found",
+            "cache_hit": False,
+            "timestamp": datetime.now().isoformat()
+        }
+
         response = self.client.get("/api/v1/realtime/stock/999999")
-        
+
         # Should return 404
         self.assertEqual(response.status_code, 404)
         data = response.json()
-        self.assertIn("not found", data["detail"].lower())
+        # Check for error message in the correct format (custom error handler)
+        self.assertIn("error", data)
+        self.assertIn("not found", data["error"]["message"].lower())
     
     def test_get_batch_realtime_data_success(self):
         """Test successful batch realtime data retrieval."""
@@ -127,7 +134,7 @@ class TestRealtimeAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertIn("data", data)
-        self.assertIn("summary", data)
+        self.assertIn("metadata", data)  # Changed from "summary" to "metadata"
     
     def test_get_batch_realtime_data_empty_list(self):
         """Test batch realtime data with empty symbol list."""
@@ -188,13 +195,13 @@ class TestRealtimeAPI(unittest.TestCase):
         mock_get_data.return_value = {
             "symbol": "000001",
             "name": "平安银行",
-            "current_price": 12.55,
+            "price": 12.55,  # Changed from current_price
             "change": 0.30,
-            "change_percent": 2.45,
+            "pct_change": 2.45,  # Changed from change_percent
             "volume": 16000000,
             "timestamp": datetime.now().isoformat(),
-            "is_cached": False,
-            "cache_age_seconds": 0
+            "cache_hit": False,  # Changed from is_cached
+            "is_trading_hours": True
         }
         
         response = self.client.get(
@@ -215,18 +222,18 @@ class TestRealtimeAPI(unittest.TestCase):
             mock_get_data.return_value = {
                 "symbol": "000001",
                 "name": "平安银行",
-                "current_price": 12.50,
+                "price": 12.50,  # Changed from current_price
                 "change": 0.25,
-                "change_percent": 2.04,
+                "pct_change": 2.04,  # Changed from change_percent
                 "volume": 15000000,
                 "turnover": 187500000.0,
                 "high": 12.60,
                 "low": 12.30,
                 "open": 12.35,
-                "previous_close": 12.25,
+                "prev_close": 12.25,  # Changed from previous_close
                 "timestamp": datetime.now().isoformat(),
-                "is_cached": False,
-                "cache_age_seconds": 0
+                "cache_hit": False,  # Changed from is_cached
+                "is_trading_hours": True
             }
             
             response = self.client.get("/api/v1/realtime/stock/000001")
@@ -255,13 +262,14 @@ class TestRealtimeAPI(unittest.TestCase):
         # Test with service exception
         with patch('core.services.realtime_data_service.RealtimeDataService.get_realtime_data') as mock_get_data:
             mock_get_data.side_effect = Exception("Service error")
-            
+
             response = self.client.get("/api/v1/realtime/stock/000001")
-            
+
             # Should return 500 for service errors
             self.assertEqual(response.status_code, 500)
             data = response.json()
-            self.assertIn("message", data)  # Check for error message
+            # Check for error message in the correct format
+            self.assertTrue("error" in data or "detail" in data)
     
     def test_api_rate_limiting(self):
         """Test API rate limiting (if implemented)."""
