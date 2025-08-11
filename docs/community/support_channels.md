@@ -9,7 +9,7 @@
 ### 🐛 遇到问题？
 - **Bug 报告**: [GitHub Issues](https://github.com/franksunye/quantdb/issues) 
 - **使用问题**: [Q&A 讨论区](https://github.com/franksunye/quantdb/discussions/categories/q-a)
-- **快速查询**: [FAQ](../faq.md) | [Cheat Sheet](../cheatsheet.md)
+- **快速查询**: [FAQ](../faq.md)
 
 ### 💡 有想法？
 - **功能建议**: [Ideas 讨论区](https://github.com/franksunye/quantdb/discussions/categories/ideas)
@@ -52,7 +52,7 @@
 ### 文档资源
 - **在线文档**: https://franksunye.github.io/quantdb/
 - **FAQ**: [docs/faq.md](../faq.md)
-- **速查表**: [docs/cheatsheet.md](../cheatsheet.md)
+
 - **迁移指南**: [docs/guides/migration_akshare_to_quantdb.md](../guides/migration_akshare_to_quantdb.md)
 
 ## 🤝 社区准则

@@ -306,7 +306,7 @@ We welcome your feedback and are here to help! Choose the best channel for your 
   - [📣 Announcements](https://github.com/franksunye/quantdb/discussions/categories/announcements) - Stay updated with latest news
 
 ### 📚 Documentation & Resources
-- **Quick Help**: [FAQ](./docs/faq.md) | [Cheat Sheet](./docs/cheatsheet.md)
+- **Quick Help**: [FAQ](./docs/faq.md)
 - **Migration Guide**: [AKShare → QuantDB](./docs/guides/migration_akshare_to_quantdb.md)
 - **Full Documentation**: [https://franksunye.github.io/quantdb/](https://franksunye.github.io/quantdb/)
 

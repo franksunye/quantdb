@@ -23,7 +23,6 @@ This directory contains the core documentation for the QuantDB project.
 ### 🛠️ Development Resources
 | Document | Description |
 |----------|-------------|
-| [📝 Cheat Sheet](./cheatsheet.md) | Quick reference for common operations |
 | [🔄 Migration Guide](./guides/migration_akshare_to_quantdb.md) | Migrating from AKShare to QuantDB |
 
 ## 🎯 Project Overview
