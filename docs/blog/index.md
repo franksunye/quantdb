@@ -12,6 +12,11 @@ In-depth exploration of QuantDB's architecture design, performance optimization 
 - [**QuantDB Architecture Deep Dive: How We Achieved 98% Performance Improvement**](architecture-deep-dive.md) - Detailed analysis of caching strategies, database design, and incremental update mechanisms
 - [**Performance Optimization Guide for Financial Data Processing**](performance-optimization-guide.md) - Smart caching and trading calendar-aware optimization methods
 
+### 💼 Business Value & ROI
+Quantified analysis of QuantDB's business impact, cost savings, and return on investment for organizations.
+
+- [**Business Value Quantified: How QuantDB Saves Time and Costs**](business-value-quantified-time-cost-savings.md) - Comprehensive ROI analysis with real-world scenarios and productivity improvements
+
 ### 📖 User Guides
 Practical tutorials and best practices to help users get started quickly and use QuantDB efficiently.
 
