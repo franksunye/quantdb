@@ -207,6 +207,52 @@ python run_tests.py
 python scripts/test_runner.py --performance
 ```
 
+## 🤖 For AI Agents
+
+QuantDB is optimized for AI agent integration with comprehensive machine-readable documentation and standardized APIs.
+
+### ✨ AI Agent Features
+- **📋 Standardized Docstrings**: All functions use Google Style format with detailed parameter constraints
+- **🔧 Machine-Readable Schema**: Complete API specification in JSON format
+- **💡 Usage Examples**: Comprehensive examples for financial and index data analysis
+- **⚠️ Error Handling**: Detailed exception documentation with recovery strategies
+- **🎯 Type Safety**: Full type hints for all function parameters and return values
+
+### 🚀 Quick AI Agent Integration
+```python
+import qdb
+
+# AI agents can access complete documentation
+help(qdb.get_stock_data)  # Detailed function documentation
+help(qdb.get_financial_summary)  # Financial analysis functions
+help(qdb.get_index_data)  # Market index functions
+
+# Example: AI agent can generate this code confidently
+df = qdb.get_stock_data("000001", days=30)  # Get recent stock data
+summary = qdb.get_financial_summary("000001")  # Get financial metrics
+realtime = qdb.get_realtime_data("000001")  # Get current quotes
+```
+
+### 📚 AI Agent Resources
+- **API Schema**: [qdb-ai-agent-schema.json](docs/qdb-ai-agent-schema.json) - Machine-readable API specification
+- **Usage Examples**: [AI Agent Examples](examples/ai_agent_usage_examples.py) - Complete usage patterns
+- **Financial Analysis**: [Financial Examples](examples/financial_and_index_analysis.py) - Advanced analysis workflows
+- **Documentation Guide**: [AI Agent Guide](docs/ai-agent-documentation-guide.md) - Integration best practices
+
+### 🎯 AI Agent Capabilities
+With QuantDB, AI agents can:
+- ✅ **Understand precise API functionality** with detailed parameter constraints
+- ✅ **Generate correct code** with proper error handling
+- ✅ **Perform advanced financial analysis** with 80+ financial indicators
+- ✅ **Access comprehensive market data** including stocks, indices, and real-time quotes
+- ✅ **Optimize performance** using intelligent caching strategies
+
+### 📊 Supported Analysis Types
+- **Stock Analysis**: Historical data, real-time quotes, technical indicators
+- **Financial Analysis**: Quarterly reports, financial ratios, profitability metrics
+- **Index Analysis**: Market indices, sector performance, trend analysis
+- **Portfolio Management**: Multi-stock analysis, performance comparison
+
 ## 🏗️ Architecture Overview
 
 QuantDB adopts modern microservice architecture with the following core components:

@@ -1,12 +1,12 @@
 # QDB AI Agent Documentation Guide
 
-## 概述
+## Overview
 
-本文档提供了让AI agent更好理解和使用QDB包的文档标准和最佳实践。
+This document provides documentation standards and best practices for helping AI agents better understand and use the QDB package.
 
-## AI Agent友好的Docstring标准
+## AI Agent-Friendly Docstring Standards
 
-### 1. 使用Google Style Docstring格式
+### 1. Use Google Style Docstring Format
 
 ```python
 def get_stock_data(
@@ -77,7 +77,7 @@ def get_stock_data(
     """
 ```
 
-### 2. 返回值结构详细说明
+### 2. Detailed Return Value Structure Description
 
 ```python
 def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
@@ -117,24 +117,24 @@ def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any
     """
 ```
 
-### 3. 异常处理详细说明
+### 3. Detailed Exception Handling Description
 
-所有函数都应该明确说明：
-- 什么情况下抛出什么异常
-- 异常的具体含义
-- 如何处理这些异常
+All functions should clearly specify:
+- What exceptions are thrown under what circumstances
+- The specific meaning of each exception
+- How to handle these exceptions
 
-### 4. 参数验证规则
+### 4. Parameter Validation Rules
 
-明确说明每个参数的：
-- 数据类型
-- 有效值范围
-- 格式要求
-- 默认值含义
+Clearly specify for each parameter:
+- Data type
+- Valid value range
+- Format requirements
+- Default value meaning
 
-## AI Agent Schema定义
+## AI Agent Schema Definition
 
-为了让AI agent更好地理解API，建议创建JSON Schema定义：
+To help AI agents better understand the API, it is recommended to create JSON Schema definitions:
 
 ```json
 {
@@ -179,11 +179,11 @@ def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any
 }
 ```
 
-## 实施建议
+## Implementation Recommendations
 
-1. **优先级1**: 标准化所有公共API的docstring格式
-2. **优先级2**: 添加详细的参数约束和返回值结构说明
-3. **优先级3**: 创建JSON Schema文件供AI agent使用
-4. **优先级4**: 添加更多实际使用示例
+1. **Priority 1**: Standardize docstring format for all public APIs
+2. **Priority 2**: Add detailed parameter constraints and return value structure descriptions
+3. **Priority 3**: Create JSON Schema files for AI agent use
+4. **Priority 4**: Add more practical usage examples
 
-这样的改进将大大提升AI agent理解和使用你的包的能力。
+These improvements will greatly enhance AI agents' ability to understand and use your package.
