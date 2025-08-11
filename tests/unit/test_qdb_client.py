@@ -315,14 +315,14 @@ class TestQDBClient(unittest.TestCase):
         # 确保全局客户端为空
         qdb.client._global_client = None
 
-        with patch('qdb.client.SimpleQDBClient') as mock_client_class:
+        with patch('qdb.client.QDBClient') as mock_client_class:
             mock_client = MagicMock()
             mock_client_class.return_value = mock_client
 
             client = qdb.client._get_client()
 
             self.assertEqual(client, mock_client)
-            # 验证SimpleQDBClient被调用，不严格检查参数
+            # 验证QDBClient被调用，不严格检查参数
             mock_client_class.assert_called_once()
 
     def test_error_handling_client_initialization(self):
@@ -330,7 +330,7 @@ class TestQDBClient(unittest.TestCase):
         # 重置全局客户端
         qdb.client._global_client = None
 
-        with patch('qdb.client.SimpleQDBClient') as mock_client_class:
+        with patch('qdb.client.QDBClient') as mock_client_class:
             mock_client_class.side_effect = Exception("Initialization failed")
 
             # 客户端初始化失败时，应该抛出异常

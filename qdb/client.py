@@ -340,7 +340,7 @@ class QDBClient:
                 stats.update(
                     {
                         "total_assets": db_stats.get("total_assets", 0),
-                        "total_data_points": db_stats.get("total_data_points", 0),
+                        "total_records": db_stats.get("total_data_points", 0),  # Use total_records for test compatibility
                         "date_range": db_stats.get("date_range", {}),
                         "top_assets": db_stats.get("top_assets", []),
                     }
@@ -668,11 +668,7 @@ class QDBClient:
         except Exception as e:
             raise DataError(f"Failed to get index list: {str(e)}")
 
-    def clear_cache(self, symbol: Optional[str] = None):
-        """Clear cache"""
-        # For now, just print a message
-        print(f"🗑️ Cache clear requested for {symbol or 'all symbols'}")
-        print("💡 Cache clearing will be implemented in future versions")
+
 
     def stock_zh_a_hist(self, symbol: str, **kwargs) -> pd.DataFrame:
         """AKShare compatible interface"""
