@@ -53,11 +53,17 @@ nav:
   - Blog:
     - Overview: blog/index.md
     - Technical Deep Dive:
+      - Performance Benchmark Report: blog/quantdb-performance-benchmark-report.md
+      - Visual Performance Guide: blog/visual-guide-quantdb-performance-advantages.md
       - Architecture Analysis: blog/architecture-deep-dive.md
       - Performance Optimization: blog/performance-optimization-guide.md
+    - Business Value & ROI:
+      - Business Value Quantified: blog/business-value-quantified-time-cost-savings.md
     - User Guides:
       - Migration Guide: blog/migration-guide-practical.md
       - Performance Comparison: blog/performance-comparison-study.md
+      - AKShare vs QuantDB: blog/akshare_vs_quantdb_performance_and_devexp.md
+      - AKShare Performance Optimization: blog/akshare-performance-optimization.md
     - Industry Insights:
       - Future of Financial Data: blog/future-of-financial-data.md
   - FAQ: faq.md
