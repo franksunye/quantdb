@@ -25,6 +25,32 @@ router = APIRouter(
 # Create cache components
 akshare_adapter = AKShareAdapter()
 
+# Simple cache implementations for this old file
+class SimpleCacheEngine:
+    def __init__(self):
+        self._cache = {}
+
+    def get(self, key):
+        return self._cache.get(key)
+
+    def set(self, key, value, ttl=None):
+        self._cache[key] = value
+
+class SimpleFreshnessTracker:
+    def __init__(self):
+        self._freshness = {}
+
+    def is_fresh(self, key, policy="relaxed"):
+        # For this old file, always return False to force fresh data
+        return False
+
+    def mark_updated(self, key, ttl=None):
+        self._freshness[key] = True
+
+# Initialize cache components
+cache_engine = SimpleCacheEngine()
+freshness_tracker = SimpleFreshnessTracker()
+
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 async def get_historical_stock_data(
     symbol: str,

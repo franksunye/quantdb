@@ -15,7 +15,7 @@ from core.models.system_metrics import RequestLog, DataCoverage, SystemMetrics
 from core.utils.logger import logger
 
 # Import API schemas
-# from ..schemas import CacheStatusResponse, SystemMetrics as SystemMetricsSchema
+from api.schemas import SystemMetricsSchema
 from typing import Dict, Any
 
 # Create router

@@ -146,7 +146,6 @@ class EnhancedLogger:
         self.metrics = {}
         
         # Store context
-        global _log_context
         _log_context[context_id] = {
             'start_time': self.start_time,
             'metadata': metadata or {},

@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 from datetime import datetime
 
 # Enhanced logger functionality migrated to core
-from core.utils.logger import get_logger
+from core.utils.logger import get_logger, EnhancedLogger, setup_enhanced_logger, log_function
 
 # Skip this test as enhanced logger is now simplified
 import pytest

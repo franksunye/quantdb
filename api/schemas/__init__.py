@@ -15,7 +15,8 @@ from .response import (
     IntradayStockDataCreate,
     HistoricalDataPoint,
     HistoricalDataResponse,
-    HealthResponse
+    HealthResponse,
+    SystemMetricsSchema
 )
 
 __all__ = [
@@ -33,5 +34,6 @@ __all__ = [
     "IntradayStockDataCreate",
     "HistoricalDataPoint",
     "HistoricalDataResponse",
-    "HealthResponse"
+    "HealthResponse",
+    "SystemMetricsSchema"
 ]

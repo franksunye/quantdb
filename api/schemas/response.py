@@ -161,3 +161,18 @@ class HealthResponse(BaseModel):
     version: str
 
 
+# System metrics schema
+class SystemMetricsSchema(BaseModel):
+    """Schema for system metrics response"""
+    total_symbols: int = Field(default=0, description="Total number of symbols")
+    total_records: int = Field(default=0, description="Total number of records")
+    db_size_mb: float = Field(default=0.0, description="Database size in MB")
+    avg_response_time_ms: float = Field(default=0.0, description="Average response time in milliseconds")
+    cache_hit_rate: float = Field(default=0.0, description="Cache hit rate (0-1)")
+    akshare_requests_today: int = Field(default=0, description="AKShare requests today")
+    requests_today: int = Field(default=0, description="Total requests today")
+    active_symbols_today: int = Field(default=0, description="Active symbols today")
+    performance_improvement: float = Field(default=0.0, description="Performance improvement ratio")
+    cost_savings: float = Field(default=0.0, description="Cost savings (request reduction)")
+
+
