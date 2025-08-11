@@ -234,10 +234,10 @@ realtime = qdb.get_realtime_data("000001")  # Get current quotes
 ```
 
 ### 📚 AI Agent Resources
-- **API Schema**: [qdb-ai-agent-schema.json](docs/qdb-ai-agent-schema.json) - Machine-readable API specification
+- **API Schema**: [qdb-ai-agent-schema.json](docs/ai-agent/qdb-ai-agent-schema.json) - Machine-readable API specification
 - **Usage Examples**: [AI Agent Examples](examples/ai_agent_usage_examples.py) - Complete usage patterns
 - **Financial Analysis**: [Financial Examples](examples/financial_and_index_analysis.py) - Advanced analysis workflows
-- **Documentation Guide**: [AI Agent Guide](docs/ai-agent-documentation-guide.md) - Integration best practices
+- **Documentation Guide**: [AI Agent Guide](docs/ai-agent/ai-agent-documentation-guide.md) - Integration best practices
 
 ### 🎯 AI Agent Capabilities
 With QuantDB, AI agents can:

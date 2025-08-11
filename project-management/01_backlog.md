@@ -78,8 +78,8 @@
   - [x] examples/realtime_optimized.py (高级版)
   - [x] examples/realtime_test.py (测试版)
 - [x] **编写优化指南** (已完成)
-  - [x] docs/realtime_optimization_guide.md
-  - [x] docs/upgrade_strategy.md
+  - [x] dev-docs/50_realtime_optimization_guide.md (moved from docs/)
+  - [x] project-management/upgrade_strategy.md (moved from docs/)
 - [ ] **更新项目文档** (预计2小时)
   - [ ] 更新 README.md 添加性能优化章节
   - [ ] 更新 API 文档

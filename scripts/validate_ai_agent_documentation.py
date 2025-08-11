@@ -263,7 +263,7 @@ def check_ai_agent_schema():
     """Check if AI agent schema file exists and is valid."""
     print("\n📋 Checking AI Agent Schema...")
     
-    schema_path = project_root / "docs" / "qdb-ai-agent-schema.json"
+    schema_path = project_root / "docs" / "ai-agent" / "qdb-ai-agent-schema.json"
     
     if not schema_path.exists():
         print("❌ AI agent schema file not found")

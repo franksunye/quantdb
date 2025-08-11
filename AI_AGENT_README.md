@@ -39,10 +39,10 @@ realtime = qdb.get_realtime_data("000001")
 
 ## 🔧 Machine-Readable Resources
 
-- **API Schema**: [docs/qdb-ai-agent-schema.json](docs/qdb-ai-agent-schema.json)
+- **API Schema**: [docs/ai-agent/qdb-ai-agent-schema.json](docs/ai-agent/qdb-ai-agent-schema.json)
 - **Usage Examples**: [examples/ai_agent_usage_examples.py](examples/ai_agent_usage_examples.py)
 - **Financial Analysis**: [examples/financial_and_index_analysis.py](examples/financial_and_index_analysis.py)
-- **Documentation Guide**: [docs/ai-agent-documentation-guide.md](docs/ai-agent-documentation-guide.md)
+- **Documentation Guide**: [docs/ai-agent/ai-agent-documentation-guide.md](docs/ai-agent/ai-agent-documentation-guide.md)
 
 ## 📊 Common Use Cases
 

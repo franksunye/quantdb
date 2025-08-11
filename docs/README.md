@@ -17,8 +17,8 @@ This directory contains the core documentation for the QuantDB project.
 |----------|-------------|
 | [📊 API Reference](./api-reference.md) | Complete API usage guide |
 | [📊 Detailed API Reference](./api-reference-detailed.md) | In-depth API documentation |
-| [🤖 AI Agent Guide](./ai-agent-documentation-guide.md) | AI agent integration documentation |
-| [⚡ Realtime Optimization](./realtime_optimization_guide.md) | Performance optimization guide |
+| [🤖 AI Agent Guide](./ai-agent/ai-agent-documentation-guide.md) | AI agent integration documentation |
+| [⚡ Realtime Optimization](../dev-docs/50_realtime_optimization_guide.md) | Performance optimization guide |
 
 ### 🛠️ Development Resources
 | Document | Description |
@@ -74,7 +74,7 @@ QuantDB provides excellent AI agent integration with:
 - Comprehensive usage examples
 - Detailed error handling patterns
 
-See the [AI Agent Guide](./ai-agent-documentation-guide.md) for details.
+See the [AI Agent Guide](./ai-agent/ai-agent-documentation-guide.md) for details.
 
 ## 📋 Agile Development Principles
 
