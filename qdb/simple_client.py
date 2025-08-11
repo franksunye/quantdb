@@ -72,8 +72,8 @@ class SimpleQDBClient:
             raise CacheError(f"Database initialization failed: {str(e)}")
     
     def get_stock_data(
-        self, 
-        symbol: str, 
+        self,
+        symbol: str,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         days: Optional[int] = None,
@@ -83,7 +83,7 @@ class SimpleQDBClient:
         Get stock historical data
 
         Args:
-            symbol: Stock code
+            symbol: Stock code (supports both A-shares and HK stocks)
             start_date: Start date, format "20240101"
             end_date: End date, format "20240201"
             days: Get recent N days data
@@ -94,7 +94,7 @@ class SimpleQDBClient:
         """
         if not AKSHARE_AVAILABLE:
             raise DataError("AKShare not installed, cannot get stock data")
-        
+
         try:
             # Handle days parameter
             if days is not None:
@@ -107,12 +107,36 @@ class SimpleQDBClient:
             # If cache is incomplete, fetch from AKShare
             if cached_data.empty or len(cached_data) < (days or 5):
                 print(f"📡 Fetching {symbol} data from AKShare...")
-                fresh_data = ak.stock_zh_a_hist(
-                    symbol=symbol,
-                    start_date=start_date,
-                    end_date=end_date,
-                    adjust=adjust
-                )
+
+                # Detect market and use appropriate AKShare function
+                market = self._classify_market(symbol)
+
+                if market == 'HKEX':
+                    # Use HK stock API - don't pass dates for better reliability
+                    fresh_data = ak.stock_hk_hist(
+                        symbol=symbol,
+                        period="daily"
+                    )
+                    # Filter by date range if we got data
+                    if not fresh_data.empty and start_date and end_date:
+                        try:
+                            fresh_data['日期'] = pd.to_datetime(fresh_data['日期'])
+                            start_dt = pd.to_datetime(start_date)
+                            end_dt = pd.to_datetime(end_date)
+                            fresh_data = fresh_data[
+                                (fresh_data['日期'] >= start_dt) &
+                                (fresh_data['日期'] <= end_dt)
+                            ]
+                        except Exception as e:
+                            print(f"⚠️ Date filtering failed: {e}, using all data")
+                else:
+                    # Use A-share API
+                    fresh_data = ak.stock_zh_a_hist(
+                        symbol=symbol,
+                        start_date=start_date,
+                        end_date=end_date,
+                        adjust=adjust
+                    )
 
                 if not fresh_data.empty:
                     # Standardize column names
@@ -127,7 +151,7 @@ class SimpleQDBClient:
             else:
                 print(f"🚀 Loading {symbol} data from cache ({len(cached_data)} records)")
                 return cached_data
-                
+
         except Exception as e:
             raise DataError(f"Failed to get stock data for {symbol}: {str(e)}")
 
