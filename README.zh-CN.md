@@ -224,6 +224,7 @@ QuantDB 采用现代化的微服务架构，包含以下核心组件：
 | [📊 API 文档](./docs/20_API.md) | 完整 API 使用指南 |
 | [🛠️ 开发指南](./docs/30_DEVELOPMENT.md) | 开发环境和流程 |
 | [🧪 测试指南](./docs/31_TESTING.md) | 测试运行和编写 |
+| [📖 **DeepWiki知识库**](https://deepwiki.com/franksunye/quantdb) | 综合知识库和文档 |
 
 ## 💬 反馈与支持（Support & Feedback）
 

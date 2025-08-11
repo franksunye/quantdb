@@ -19,6 +19,7 @@ High-performance, developer-friendly stock data toolkit. QuantDB adds 90%+ speed
 
 - PyPI: https://pypi.org/project/quantdb/
 - Source & Issues: https://github.com/franksunye/quantdb
+- **DeepWiki Knowledge Base**: https://deepwiki.com/franksunye/quantdb
 
 ## Quickstart
 

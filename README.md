@@ -288,6 +288,7 @@ For detailed architecture design, please refer to [System Architecture Documenta
 | [📊 API Documentation](./docs/20_API.md) | Complete API usage guide |
 | [🛠️ Development Guide](./docs/30_DEVELOPMENT.md) | Development environment and workflow |
 | [🧪 Testing Guide](./docs/31_TESTING.md) | Test execution and writing |
+| [📖 **DeepWiki Knowledge Base**](https://deepwiki.com/franksunye/quantdb) | Comprehensive knowledge base and documentation |
 
 
 ## 💬 Support & Feedback

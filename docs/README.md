@@ -11,6 +11,7 @@ This directory contains the core documentation for the QuantDB project.
 | [🚀 Get Started](./get-started.md) | Quick start guide and installation |
 | [📖 User Guide](./user-guide.md) | Comprehensive usage documentation |
 | [❓ FAQ](./faq.md) | Frequently asked questions |
+| [📖 **DeepWiki Knowledge Base**](https://deepwiki.com/franksunye/quantdb) | Comprehensive knowledge base and documentation |
 
 ### 🏗️ Technical Documentation
 | Document | Description |
