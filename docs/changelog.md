@@ -52,7 +52,8 @@
 
 ### 📦 Release
 - Repository updated to v2.2.8 (source code)
-- PyPI: latest published is v2.2.7; v2.2.8 publication pending
+- PyPI: ready for v2.2.8 publication
+- All version numbers unified to v2.2.8
 
 ## [2.2.7] - PyPI Release + Version Sync (2025-08-07)
 

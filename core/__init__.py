@@ -12,7 +12,7 @@ Architecture:
 - utils/: Shared utilities and helpers
 """
 
-__version__ = "2.0.0-alpha"
+__version__ = "2.2.8"
 __author__ = "QuantDB Team"
 
 # Core module imports for easy access

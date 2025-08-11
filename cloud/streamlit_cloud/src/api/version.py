@@ -51,7 +51,7 @@ class VersionInfo(BaseModel):
 # Version information for each API version
 VERSION_INFO: Dict[APIVersion, VersionInfo] = {
     APIVersion.V1: VersionInfo(
-        version="2.1.0",
+        version="2.2.8",
         api_version="v1",
         release_date="2025-08-04",
         deprecated=False,
@@ -59,7 +59,7 @@ VERSION_INFO: Dict[APIVersion, VersionInfo] = {
         description="Production-ready version with Streamlit Cloud deployment, Core/API architecture, and comprehensive testing."
     ),
     APIVersion.V2: VersionInfo(
-        version="2.1.0",
+        version="2.2.8",
         api_version="v2",
         release_date="2025-08-04",
         deprecated=False,

@@ -120,7 +120,7 @@ docs/promo/
 ### Benchmark Environment
 - **Python Version**: 3.10.12
 - **Operating System**: Ubuntu Linux
-- **QuantDB Version**: v2.2.7
+- **QuantDB Version**: v2.2.8
 - **Test Date**: 2025-08-08
 - **Methodology**: Real-world usage scenarios
 
@@ -202,6 +202,6 @@ Track the effectiveness of promotional materials:
 
 **Last Updated**: 2025-08-08  
 **Material Version**: v1.0  
-**QuantDB Version**: v2.2.7
+**QuantDB Version**: v2.2.8
 
 For the most up-to-date materials and guidelines, always refer to this repository.

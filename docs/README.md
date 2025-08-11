@@ -50,7 +50,7 @@ QuantDB is a high-performance stock data caching service with a **phased release
 
 ## 📊 Current Status
 
-- **Version**: v2.3.0-dev (in development)
+- **Version**: v2.2.8 (current stable release)
 - **Test Coverage**: 50% coverage with 100% passing tests
 - **Performance**: 99.9% faster than AKShare
 - **Features**: Stock data, real-time quotes, financial data, index data

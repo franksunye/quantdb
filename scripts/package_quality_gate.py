@@ -30,7 +30,7 @@ class PackageQualityGate:
         self.project_root = Path(__file__).parent.parent
         self.results = {
             "timestamp": datetime.now().isoformat(),
-            "version": "2.1.0-stable",
+            "version": "2.2.8-stable",
             "quality_gates": {},
             "overall_status": "UNKNOWN",
             "recommendations": []

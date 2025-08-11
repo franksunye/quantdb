@@ -4,7 +4,7 @@
 
 > **Intelligent caching wrapper for AKShare with 90%+ performance boost** - Complete stock data ecosystem with smart SQLite caching for Chinese financial markets. Perfect for quantitative trading, financial analysis, and algorithmic trading in Python.
 
-![Version](https://img.shields.io/badge/version-2.2.7-blue)
+![Version](https://img.shields.io/badge/version-2.2.8-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -319,7 +319,7 @@ We welcome your feedback and are here to help! Choose the best channel for your 
 
 ## 🎯 Project Status
 
-**Current Version**: v2.2.7 (Complete Multi-Feature Extension)
+**Current Version**: v2.2.8 (Complete Multi-Feature Extension)
 **Next Version**: v2.3.0 (Enhanced Analytics and Performance)
 **MVP Score**: 10/10 (Core features complete, cloud deployment ready)
 **Test Coverage**: 259/259 passed (100%) - 222 backend + 37 frontend
