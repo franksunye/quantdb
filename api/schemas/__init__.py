@@ -16,7 +16,7 @@ from .response import (
     HistoricalDataPoint,
     HistoricalDataResponse,
     HealthResponse,
-    SystemMetricsSchema
+    SystemMetricsSchema,
 )
 
 __all__ = [
@@ -35,5 +35,5 @@ __all__ = [
     "HistoricalDataPoint",
     "HistoricalDataResponse",
     "HealthResponse",
-    "SystemMetricsSchema"
+    "SystemMetricsSchema",
 ]

@@ -12,7 +12,12 @@ from . import helpers
 
 # Import commonly used functions for convenience
 from .logger import logger
-from .validators import validate_stock_symbol, validate_date_format, detect_market_type, normalize_symbol
+from .validators import (
+    validate_stock_symbol,
+    validate_date_format,
+    detect_market_type,
+    normalize_symbol,
+)
 from .helpers import format_currency, format_percentage, format_large_number, timing_decorator
 
 __all__ = [
@@ -27,5 +32,5 @@ __all__ = [
     "format_currency",
     "format_percentage",
     "format_large_number",
-    "timing_decorator"
+    "timing_decorator",
 ]

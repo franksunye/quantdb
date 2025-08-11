@@ -9,4 +9,4 @@ like AKShare, optimizing data acquisition and caching processes.
 
 from core.cache.akshare_adapter import AKShareAdapter
 
-__all__ = ['AKShareAdapter']
+__all__ = ["AKShareAdapter"]

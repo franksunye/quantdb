@@ -1,6 +1,7 @@
 """
 Historical stock data API routes
 """
+
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -25,6 +26,7 @@ router = APIRouter(
 # Create cache components
 akshare_adapter = AKShareAdapter()
 
+
 # Simple cache implementations for this old file
 class SimpleCacheEngine:
     def __init__(self):
@@ -35,6 +37,7 @@ class SimpleCacheEngine:
 
     def set(self, key, value, ttl=None):
         self._cache[key] = value
+
 
 class SimpleFreshnessTracker:
     def __init__(self):
@@ -47,17 +50,22 @@ class SimpleFreshnessTracker:
     def mark_updated(self, key, ttl=None):
         self._freshness[key] = True
 
+
 # Initialize cache components
 cache_engine = SimpleCacheEngine()
 freshness_tracker = SimpleFreshnessTracker()
+
 
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 async def get_historical_stock_data(
     symbol: str,
     start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
-    adjust: Optional[str] = Query("", description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment"),
-    db: Session = Depends(get_db)
+    adjust: Optional[str] = Query(
+        "",
+        description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment",
+    ),
+    db: Session = Depends(get_db),
 ):
     """
     Get historical stock data for a specific symbol
@@ -90,13 +98,12 @@ async def get_historical_stock_data(
                 return cached_data
 
         # Fetch data from AKShare
-        logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}")
+        logger.info(
+            f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}"
+        )
         try:
             df = akshare_adapter.get_stock_data(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
+                symbol=symbol, start_date=start_date, end_date=end_date, adjust=adjust
             )
 
             if df.empty:
@@ -111,25 +118,25 @@ async def get_historical_stock_data(
                     "metadata": {
                         "count": 0,
                         "status": "success",
-                        "message": "No data found for the specified parameters"
-                    }
+                        "message": "No data found for the specified parameters",
+                    },
                 }
 
             # Convert DataFrame to response format
             data_points = []
             for _, row in df.iterrows():
                 data_point = HistoricalDataPoint(
-                    date=row.get('date', None),
-                    open=row.get('open', None),
-                    high=row.get('high', None),
-                    low=row.get('low', None),
-                    close=row.get('close', None),
-                    volume=row.get('volume', None),
-                    turnover=row.get('turnover', None),
-                    amplitude=row.get('amplitude', None),
-                    pct_change=row.get('pct_change', None),
-                    change=row.get('change', None),
-                    turnover_rate=row.get('turnover_rate', None)
+                    date=row.get("date", None),
+                    open=row.get("open", None),
+                    high=row.get("high", None),
+                    low=row.get("low", None),
+                    close=row.get("close", None),
+                    volume=row.get("volume", None),
+                    turnover=row.get("turnover", None),
+                    amplitude=row.get("amplitude", None),
+                    pct_change=row.get("pct_change", None),
+                    change=row.get("change", None),
+                    turnover_rate=row.get("turnover_rate", None),
                 )
                 data_points.append(data_point)
 
@@ -144,8 +151,8 @@ async def get_historical_stock_data(
                 "metadata": {
                     "count": len(data_points),
                     "status": "success",
-                    "message": f"Successfully retrieved {len(data_points)} data points"
-                }
+                    "message": f"Successfully retrieved {len(data_points)} data points",
+                },
             }
 
             # Cache the response

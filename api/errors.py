@@ -18,7 +18,7 @@ from api.error_handlers import (
     validation_exception_handler,
     http_exception_handler,
     global_exception_handler,
-    register_exception_handlers
+    register_exception_handlers,
 )
 
 __all__ = [
@@ -34,5 +34,5 @@ __all__ = [
     "validation_exception_handler",
     "http_exception_handler",
     "global_exception_handler",
-    "register_exception_handlers"
+    "register_exception_handlers",
 ]

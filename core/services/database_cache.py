@@ -66,10 +66,14 @@ class DatabaseCache:
             date_objects = [datetime.strptime(date, "%Y%m%d").date() for date in dates]
 
             # Query database for all dates at once using IN clause
-            query_results = self.db.query(DailyStockData).filter(
-                DailyStockData.asset_id == asset.asset_id,
-                DailyStockData.trade_date.in_(date_objects)
-            ).all()
+            query_results = (
+                self.db.query(DailyStockData)
+                .filter(
+                    DailyStockData.asset_id == asset.asset_id,
+                    DailyStockData.trade_date.in_(date_objects),
+                )
+                .all()
+            )
 
             logger.info(f"Found {len(query_results)} records in database for {symbol}")
 
@@ -88,7 +92,7 @@ class DatabaseCache:
                     "amplitude": result.amplitude,
                     "pct_change": result.pct_change,
                     "change": result.change,
-                    "turnover_rate": result.turnover_rate
+                    "turnover_rate": result.turnover_rate,
                 }
 
             return results
@@ -125,18 +129,22 @@ class DatabaseCache:
             # Process each data point
             for date_str, item in data.items():
                 # Convert date string to date object if it's not already
-                if isinstance(item['date'], str):
-                    date_obj = datetime.strptime(item['date'], "%Y%m%d").date()
-                elif isinstance(item['date'], pd.Timestamp):
-                    date_obj = item['date'].date()
+                if isinstance(item["date"], str):
+                    date_obj = datetime.strptime(item["date"], "%Y%m%d").date()
+                elif isinstance(item["date"], pd.Timestamp):
+                    date_obj = item["date"].date()
                 else:
-                    date_obj = item['date']
+                    date_obj = item["date"]
 
                 # Check if data already exists
-                existing_data = self.db.query(DailyStockData).filter(
-                    DailyStockData.asset_id == asset.asset_id,
-                    DailyStockData.trade_date == date_obj
-                ).first()
+                existing_data = (
+                    self.db.query(DailyStockData)
+                    .filter(
+                        DailyStockData.asset_id == asset.asset_id,
+                        DailyStockData.trade_date == date_obj,
+                    )
+                    .first()
+                )
 
                 if existing_data:
                     # Skip if data already exists
@@ -148,17 +156,17 @@ class DatabaseCache:
                 stock_data = DailyStockData(
                     asset_id=asset.asset_id,
                     trade_date=date_obj,
-                    open=item.get('open'),
-                    high=item.get('high'),
-                    low=item.get('low'),
-                    close=item.get('close'),
-                    volume=item.get('volume'),
-                    adjusted_close=item.get('adjusted_close'),
-                    turnover=item.get('turnover'),
-                    amplitude=item.get('amplitude'),
-                    pct_change=item.get('pct_change'),
-                    change=item.get('change'),
-                    turnover_rate=item.get('turnover_rate')
+                    open=item.get("open"),
+                    high=item.get("high"),
+                    low=item.get("low"),
+                    close=item.get("close"),
+                    volume=item.get("volume"),
+                    adjusted_close=item.get("adjusted_close"),
+                    turnover=item.get("turnover"),
+                    amplitude=item.get("amplitude"),
+                    pct_change=item.get("pct_change"),
+                    change=item.get("change"),
+                    turnover_rate=item.get("turnover_rate"),
                 )
 
                 self.db.add(stock_data)
@@ -167,8 +175,10 @@ class DatabaseCache:
 
             # Commit changes
             self.db.commit()
-            logger.info(f"Successfully saved {saved_count} new records to database for {symbol} "
-                       f"(skipped {skipped_count} existing records)")
+            logger.info(
+                f"Successfully saved {saved_count} new records to database for {symbol} "
+                f"(skipped {skipped_count} existing records)"
+            )
             return True
 
         except Exception as e:
@@ -176,7 +186,9 @@ class DatabaseCache:
             logger.error(f"Error saving data to database: {e}")
             return False
 
-    def get_date_range_coverage(self, symbol: str, start_date: str, end_date: str) -> Dict[str, Any]:
+    def get_date_range_coverage(
+        self, symbol: str, start_date: str, end_date: str
+    ) -> Dict[str, Any]:
         """
         Get coverage information for a date range.
 
@@ -211,11 +223,15 @@ class DatabaseCache:
             total_dates = delta.days + 1
 
             # Count covered days
-            covered_dates = self.db.query(DailyStockData).filter(
-                DailyStockData.asset_id == asset.asset_id,
-                DailyStockData.trade_date >= start_date_obj,
-                DailyStockData.trade_date <= end_date_obj
-            ).count()
+            covered_dates = (
+                self.db.query(DailyStockData)
+                .filter(
+                    DailyStockData.asset_id == asset.asset_id,
+                    DailyStockData.trade_date >= start_date_obj,
+                    DailyStockData.trade_date <= end_date_obj,
+                )
+                .count()
+            )
 
             # Calculate coverage
             coverage = covered_dates / total_dates if total_dates > 0 else 0
@@ -223,7 +239,7 @@ class DatabaseCache:
             return {
                 "coverage": coverage,
                 "total_dates": total_dates,
-                "covered_dates": covered_dates
+                "covered_dates": covered_dates,
             }
 
         except Exception as e:
@@ -245,55 +261,48 @@ class DatabaseCache:
             total_data_points = self.db.query(DailyStockData).count()
 
             # Get date range
-            min_date = self.db.query(DailyStockData.trade_date).order_by(DailyStockData.trade_date.asc()).first()
-            max_date = self.db.query(DailyStockData.trade_date).order_by(DailyStockData.trade_date.desc()).first()
+            min_date = (
+                self.db.query(DailyStockData.trade_date)
+                .order_by(DailyStockData.trade_date.asc())
+                .first()
+            )
+            max_date = (
+                self.db.query(DailyStockData.trade_date)
+                .order_by(DailyStockData.trade_date.desc())
+                .first()
+            )
 
             min_date_str = min_date[0].strftime("%Y-%m-%d") if min_date else None
             max_date_str = max_date[0].strftime("%Y-%m-%d") if max_date else None
 
             # Get top assets by data points
-            asset_counts = self.db.query(
-                DailyStockData.asset_id,
-                func.count(DailyStockData.id).label('count')
-            ).group_by(
-                DailyStockData.asset_id
-            ).subquery()
+            asset_counts = (
+                self.db.query(DailyStockData.asset_id, func.count(DailyStockData.id).label("count"))
+                .group_by(DailyStockData.asset_id)
+                .subquery()
+            )
 
-            top_assets_query = self.db.query(
-                Asset.symbol,
-                Asset.name,
-                Asset.asset_id,
-                asset_counts.c.count
-            ).join(
-                asset_counts,
-                Asset.asset_id == asset_counts.c.asset_id
-            ).order_by(
-                asset_counts.c.count.desc()
-            ).limit(5)
+            top_assets_query = (
+                self.db.query(Asset.symbol, Asset.name, Asset.asset_id, asset_counts.c.count)
+                .join(asset_counts, Asset.asset_id == asset_counts.c.asset_id)
+                .order_by(asset_counts.c.count.desc())
+                .limit(5)
+            )
 
             top_assets = []
             for symbol, name, asset_id, count in top_assets_query:
-                top_assets.append({
-                    "symbol": symbol,
-                    "name": name,
-                    "data_points": count
-                })
+                top_assets.append({"symbol": symbol, "name": name, "data_points": count})
 
             return {
                 "total_assets": total_assets,
                 "total_data_points": total_data_points,
-                "date_range": {
-                    "min_date": min_date_str,
-                    "max_date": max_date_str
-                },
-                "top_assets": top_assets
+                "date_range": {"min_date": min_date_str, "max_date": max_date_str},
+                "top_assets": top_assets,
             }
 
         except Exception as e:
             logger.error(f"Error getting database cache statistics: {e}")
-            return {
-                "error": str(e)
-            }
+            return {"error": str(e)}
 
     def _get_or_create_asset(self, symbol: str) -> Optional[Asset]:
         """
@@ -317,6 +326,7 @@ class DatabaseCache:
             logger.info(f"Creating new asset for {symbol} using AssetInfoService")
 
             from .asset_info_service import AssetInfoService
+
             asset_service = AssetInfoService(self.db)
             asset, _ = asset_service.get_or_create_asset(symbol)
 
@@ -351,9 +361,9 @@ class DatabaseCache:
                 name=f"Stock {symbol}",
                 isin=f"CN{symbol}",
                 asset_type="stock",
-                exchange="SHSE" if symbol.startswith('6') else "SZSE",
+                exchange="SHSE" if symbol.startswith("6") else "SZSE",
                 currency="CNY",
-                data_source="fallback"
+                data_source="fallback",
             )
 
             self.db.add(asset)

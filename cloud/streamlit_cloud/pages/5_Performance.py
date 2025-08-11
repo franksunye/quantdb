@@ -20,6 +20,7 @@ sys.path.insert(0, str(project_root))
 try:
     import plotly.graph_objects as go
     import plotly.express as px
+
     ADVANCED_FEATURES = True
 except ImportError:
     ADVANCED_FEATURES = False
@@ -29,21 +30,20 @@ CLOUD_MODE = True
 try:
     # Detect if in Streamlit Cloud environment
     import os
-    if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
+
+    if "STREAMLIT_SHARING" in os.environ or "STREAMLIT_CLOUD" in os.environ:
         CLOUD_MODE = True
     else:
         # Test if core modules can be imported
         from core.services import StockDataService
+
         CLOUD_MODE = False
 except Exception:
     CLOUD_MODE = True
 
 # 页面配置
-st.set_page_config(
-    page_title="Performance - QuantDB",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Performance - QuantDB", page_icon="📊", layout="wide")
+
 
 @st.cache_resource
 def init_services():
@@ -59,10 +59,10 @@ def init_services():
             akshare_adapter = AKShareAdapter()
 
             return {
-                'stock_service': StockDataService(db_session, akshare_adapter),
-                'cache_service': DatabaseCache(db_session),
-                'db_session': db_session,
-                'mode': 'full'
+                "stock_service": StockDataService(db_session, akshare_adapter),
+                "cache_service": DatabaseCache(db_session),
+                "db_session": db_session,
+                "mode": "full",
             }
         else:
             # Cloud mode: simplified service initialization
@@ -83,42 +83,38 @@ def init_services():
             # Get asset count
             asset_count = 0
             data_count = 0
-            if 'assets' in tables:
+            if "assets" in tables:
                 cursor.execute("SELECT COUNT(*) FROM assets")
                 asset_count = cursor.fetchone()[0]
 
-            if 'daily_stock_data' in tables:
+            if "daily_stock_data" in tables:
                 cursor.execute("SELECT COUNT(*) FROM daily_stock_data")
                 data_count = cursor.fetchone()[0]
 
             conn.close()
 
             return {
-                'db_path': str(db_path),
-                'tables': tables,
-                'asset_count': asset_count,
-                'data_count': data_count,
-                'mode': 'cloud'
+                "db_path": str(db_path),
+                "tables": tables,
+                "asset_count": asset_count,
+                "data_count": data_count,
+                "mode": "cloud",
             }
 
     except Exception as e:
         st.error(f"Service initialization failed: {e}")
         # Return minimal service object to avoid page crash
-        return {
-            'mode': 'minimal',
-            'error': str(e),
-            'asset_count': 0,
-            'data_count': 0
-        }
+        return {"mode": "minimal", "error": str(e), "asset_count": 0, "data_count": 0}
+
 
 def main():
     """主页面函数"""
-    
+
     # Page title
     st.title("⚡ Performance Monitoring")
     st.markdown("Monitor system performance metrics, cache efficiency and response time")
     st.markdown("---")
-    
+
     # Initialize services
     services = init_services()
     if not services:
@@ -126,12 +122,12 @@ def main():
         return
 
     # Display running mode
-    mode = services.get('mode', 'unknown')
-    if mode == 'full':
+    mode = services.get("mode", "unknown")
+    if mode == "full":
         st.info("🖥️ Running Mode: Full Mode (using core services)")
-    elif mode == 'cloud':
+    elif mode == "cloud":
         st.info("☁️ Running Mode: Cloud Mode (SQLite direct connection)")
-    elif mode == 'minimal':
+    elif mode == "minimal":
         st.warning("⚠️ Running Mode: Minimal Mode (limited functionality)")
         st.error(f"Initialization error: {services.get('error', 'Unknown error')}")
 
@@ -142,56 +138,60 @@ def main():
         st.markdown("### 📊 Real-time Performance Monitoring")
 
     with col2:
-        auto_refresh = st.checkbox("Auto Refresh", value=False, help="Auto refresh data every 30 seconds")
+        auto_refresh = st.checkbox(
+            "Auto Refresh", value=False, help="Auto refresh data every 30 seconds"
+        )
 
     with col3:
         if st.button("🔄 Refresh Now", use_container_width=True):
             st.session_state.force_refresh = True
             # Clear cache to get latest data
             init_services.clear()
-    
+
     # 自动刷新逻辑
     if auto_refresh:
         time.sleep(30)
         st.rerun()
-    
+
     # Display performance monitoring data
     display_performance_monitoring(services)
+
 
 def display_performance_monitoring(services):
     """Display performance monitoring data"""
 
     try:
-        mode = services.get('mode', 'unknown')
+        mode = services.get("mode", "unknown")
 
         # Get cache statistics
         with st.spinner("Getting performance data..."):
-            if mode == 'full':
+            if mode == "full":
                 # Full mode: use cache_service
-                cache_stats = services['cache_service'].get_stats()
-            elif mode == 'cloud':
+                cache_stats = services["cache_service"].get_stats()
+            elif mode == "cloud":
                 # Cloud mode: construct statistics data
                 cache_stats = {
-                    'total_assets': services.get('asset_count', 0),
-                    'total_data_points': services.get('data_count', 0),
-                    'date_range': {'min_date': 'N/A', 'max_date': 'N/A'},
-                    'top_assets': []
+                    "total_assets": services.get("asset_count", 0),
+                    "total_data_points": services.get("data_count", 0),
+                    "date_range": {"min_date": "N/A", "max_date": "N/A"},
+                    "top_assets": [],
                 }
 
                 # Try to get more detailed statistics
                 try:
                     import sqlite3
-                    conn = sqlite3.connect(services['db_path'])
+
+                    conn = sqlite3.connect(services["db_path"])
                     cursor = conn.cursor()
 
                     # Get date range
-                    if 'daily_stock_data' in services.get('tables', []):
+                    if "daily_stock_data" in services.get("tables", []):
                         cursor.execute("SELECT MIN(date), MAX(date) FROM daily_stock_data")
                         date_range = cursor.fetchone()
                         if date_range[0] and date_range[1]:
-                            cache_stats['date_range'] = {
-                                'min_date': str(date_range[0]),
-                                'max_date': str(date_range[1])
+                            cache_stats["date_range"] = {
+                                "min_date": str(date_range[0]),
+                                "max_date": str(date_range[1]),
                             }
 
                     conn.close()
@@ -200,12 +200,12 @@ def display_performance_monitoring(services):
             else:
                 # Minimal mode: use default values
                 cache_stats = {
-                    'total_assets': 0,
-                    'total_data_points': 0,
-                    'date_range': {'min_date': 'N/A', 'max_date': 'N/A'},
-                    'top_assets': []
+                    "total_assets": 0,
+                    "total_data_points": 0,
+                    "date_range": {"min_date": "N/A", "max_date": "N/A"},
+                    "top_assets": [],
                 }
-        
+
         # Core performance metrics
         st.subheader("🚀 Core Performance Metrics")
 
@@ -215,14 +215,18 @@ def display_performance_monitoring(services):
             # Test database response time
             start_time = time.time()
 
-            if mode == 'full':
+            if mode == "full":
                 # Full mode: use SQLAlchemy
                 from sqlalchemy import text
-                test_query = services['db_session'].execute(text("SELECT COUNT(*) FROM assets")).scalar()
-            elif mode == 'cloud':
+
+                test_query = (
+                    services["db_session"].execute(text("SELECT COUNT(*) FROM assets")).scalar()
+                )
+            elif mode == "cloud":
                 # Cloud mode: use SQLite direct connection
                 import sqlite3
-                conn = sqlite3.connect(services['db_path'])
+
+                conn = sqlite3.connect(services["db_path"])
                 cursor = conn.cursor()
                 cursor.execute("SELECT COUNT(*) FROM assets")
                 test_query = cursor.fetchone()[0]
@@ -236,43 +240,47 @@ def display_performance_monitoring(services):
                 label="Database Response Time",
                 value=f"{cache_response_time:.1f}ms",
                 delta="Excellent" if cache_response_time < 50 else "Fast",
-                help="Response time for getting data from SQLite database"
+                help="Response time for getting data from SQLite database",
             )
-        
+
         with col2:
             # Simulate AKShare response time
             akshare_response_time = 1200.0
             st.metric(
                 label="AKShare Response Time",
                 value=f"{akshare_response_time:.1f}ms",
-                help="Estimated response time for getting data directly from AKShare"
+                help="Estimated response time for getting data directly from AKShare",
             )
 
         with col3:
             # Calculate performance improvement
-            performance_improvement = ((akshare_response_time - cache_response_time) / akshare_response_time * 100)
+            performance_improvement = (
+                (akshare_response_time - cache_response_time) / akshare_response_time * 100
+            )
             st.metric(
                 label="Performance Improvement",
                 value=f"{performance_improvement:.1f}%",
                 delta="Excellent",
-                help="Performance improvement of local cache compared to AKShare direct calls"
+                help="Performance improvement of local cache compared to AKShare direct calls",
             )
 
         with col4:
             # Data coverage rate
-            total_assets = cache_stats.get('total_assets', 0)
-            total_data_points = cache_stats.get('total_data_points', 0)
-            coverage_rate = min(100, (total_data_points / 1000) * 100) if total_data_points > 0 else 0
+            total_assets = cache_stats.get("total_assets", 0)
+            total_data_points = cache_stats.get("total_data_points", 0)
+            coverage_rate = (
+                min(100, (total_data_points / 1000) * 100) if total_data_points > 0 else 0
+            )
 
             st.metric(
                 label="Data Coverage Rate",
                 value=f"{coverage_rate:.1f}%",
                 delta="Good" if coverage_rate > 50 else "Building",
-                help="Coverage level of data in database"
+                help="Coverage level of data in database",
             )
-        
+
         st.markdown("---")
-        
+
         # Performance comparison charts
         if ADVANCED_FEATURES:
             st.subheader("📊 Performance Comparison Analysis")
@@ -281,7 +289,9 @@ def display_performance_monitoring(services):
 
             with col1:
                 st.markdown("#### Response Time Comparison")
-                perf_chart = create_performance_comparison_chart(cache_response_time, akshare_response_time)
+                perf_chart = create_performance_comparison_chart(
+                    cache_response_time, akshare_response_time
+                )
                 st.plotly_chart(perf_chart, use_container_width=True)
 
             with col2:
@@ -292,8 +302,10 @@ def display_performance_monitoring(services):
                 cache_pie = create_cache_hit_pie_chart(cache_hits, cache_misses)
                 st.plotly_chart(cache_pie, use_container_width=True)
         else:
-            st.info("📊 Chart functionality requires plotly support, currently using simplified display mode")
-        
+            st.info(
+                "📊 Chart functionality requires plotly support, currently using simplified display mode"
+            )
+
         # System resource monitoring
         st.markdown("---")
         st.subheader("💻 System Resource Monitoring")
@@ -306,21 +318,21 @@ def display_performance_monitoring(services):
             st.metric(
                 label="Database Size",
                 value=f"{db_size:.1f} MB",
-                help="Estimated SQLite database size"
+                help="Estimated SQLite database size",
             )
 
         with col2:
             st.metric(
                 label="Total Records",
                 value=f"{total_data_points:,}",
-                help="Total historical data records in database"
+                help="Total historical data records in database",
             )
 
         with col3:
             st.metric(
                 label="Cached Assets",
                 value=f"{total_assets:,}",
-                help="Number of cached stock assets"
+                help="Number of cached stock assets",
             )
 
         with col4:
@@ -329,9 +341,9 @@ def display_performance_monitoring(services):
             st.metric(
                 label="Average Data Density",
                 value=f"{data_density:.0f} records/stock",
-                help="Average historical data records per stock"
+                help="Average historical data records per stock",
             )
-        
+
         # Real-time performance testing
         st.markdown("---")
         st.subheader("🧪 Real-time Performance Testing")
@@ -359,7 +371,7 @@ def display_performance_monitoring(services):
 
             with col1:
                 st.markdown("#### 📊 Data Statistics")
-                date_range = cache_stats.get('date_range', {})
+                date_range = cache_stats.get("date_range", {})
                 st.write(f"**Earliest Data**: {date_range.get('min_date', 'N/A')}")
                 st.write(f"**Latest Data**: {date_range.get('max_date', 'N/A')}")
                 st.write(f"**Total Assets**: {total_assets:,}")
@@ -367,10 +379,12 @@ def display_performance_monitoring(services):
 
             with col2:
                 st.markdown("#### 🏆 Popular Assets")
-                top_assets = cache_stats.get('top_assets', [])
+                top_assets = cache_stats.get("top_assets", [])
                 if top_assets:
                     for i, asset in enumerate(top_assets[:5], 1):
-                        st.write(f"{i}. **{asset['symbol']}** - {asset['name']} ({asset['data_points']} records)")
+                        st.write(
+                            f"{i}. **{asset['symbol']}** - {asset['name']} ({asset['data_points']} records)"
+                        )
                 else:
                     st.write("No data available")
 
@@ -378,25 +392,32 @@ def display_performance_monitoring(services):
         st.error(f"Failed to get performance data: {str(e)}")
         st.info("Please check database connection status")
 
+
 def test_database_performance(services):
     """Test database query performance"""
     with st.spinner("Testing database query performance..."):
         try:
-            mode = services.get('mode', 'unknown')
+            mode = services.get("mode", "unknown")
             times = []
 
             # Perform multiple tests to get average
             for i in range(5):
                 start_time = time.time()
 
-                if mode == 'full':
+                if mode == "full":
                     # Full mode: use SQLAlchemy
                     from sqlalchemy import text
-                    result = services['db_session'].execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
-                elif mode == 'cloud':
+
+                    result = (
+                        services["db_session"]
+                        .execute(text("SELECT COUNT(*) FROM daily_stock_data"))
+                        .scalar()
+                    )
+                elif mode == "cloud":
                     # Cloud mode: use SQLite direct connection
                     import sqlite3
-                    conn = sqlite3.connect(services['db_path'])
+
+                    conn = sqlite3.connect(services["db_path"])
                     cursor = conn.cursor()
                     cursor.execute("SELECT COUNT(*) FROM daily_stock_data")
                     result = cursor.fetchone()[0]
@@ -426,29 +447,37 @@ def test_database_performance(services):
             with st.expander("🔍 Error Details"):
                 st.code(str(e))
 
+
 def test_data_query_performance(services):
     """测试数据查询性能"""
     with st.spinner("测试数据查询性能..."):
         try:
-            mode = services.get('mode', 'unknown')
+            mode = services.get("mode", "unknown")
             start_time = time.time()
 
-            if mode == 'full':
+            if mode == "full":
                 # 完整模式：使用stock_service
-                stock_data = services['stock_service'].get_stock_data("600000", "20240101", "20240105")
-                record_count = len(stock_data) if stock_data is not None and not stock_data.empty else 0
-            elif mode == 'cloud':
+                stock_data = services["stock_service"].get_stock_data(
+                    "600000", "20240101", "20240105"
+                )
+                record_count = (
+                    len(stock_data) if stock_data is not None and not stock_data.empty else 0
+                )
+            elif mode == "cloud":
                 # 云端模式：直接查询数据库
                 import sqlite3
-                conn = sqlite3.connect(services['db_path'])
+
+                conn = sqlite3.connect(services["db_path"])
                 cursor = conn.cursor()
 
                 # 查询600000的数据
-                cursor.execute("""
+                cursor.execute(
+                    """
                     SELECT COUNT(*) FROM daily_stock_data d
                     JOIN assets a ON d.asset_id = a.asset_id
                     WHERE a.symbol = '600000' AND d.date BETWEEN '2024-01-01' AND '2024-01-05'
-                """)
+                """
+                )
                 record_count = cursor.fetchone()[0]
                 conn.close()
             else:
@@ -465,7 +494,11 @@ def test_data_query_performance(services):
             with col2:
                 st.metric("Data Records", f"{record_count}")
             with col3:
-                status = "Excellent" if response_time < 100 else "Good" if response_time < 1000 else "Needs Optimization"
+                status = (
+                    "Excellent"
+                    if response_time < 100
+                    else "Good" if response_time < 1000 else "Needs Optimization"
+                )
                 st.metric("Performance Level", status)
 
         except Exception as e:
@@ -473,30 +506,37 @@ def test_data_query_performance(services):
             with st.expander("🔍 Error Details"):
                 st.code(str(e))
 
+
 def test_cache_performance(services):
     """测试缓存性能"""
     with st.spinner("测试缓存性能..."):
         try:
-            mode = services.get('mode', 'unknown')
+            mode = services.get("mode", "unknown")
             symbol = "600000"
             times = []
 
             for i in range(3):
                 start_time = time.time()
 
-                if mode == 'full':
+                if mode == "full":
                     # 完整模式：使用stock_service
-                    stock_data = services['stock_service'].get_stock_data(symbol, "20240101", "20240105")
-                elif mode == 'cloud':
+                    stock_data = services["stock_service"].get_stock_data(
+                        symbol, "20240101", "20240105"
+                    )
+                elif mode == "cloud":
                     # 云端模式：SQLite查询（本身就是缓存）
                     import sqlite3
-                    conn = sqlite3.connect(services['db_path'])
+
+                    conn = sqlite3.connect(services["db_path"])
                     cursor = conn.cursor()
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         SELECT COUNT(*) FROM daily_stock_data d
                         JOIN assets a ON d.asset_id = a.asset_id
                         WHERE a.symbol = ? AND d.date BETWEEN '2024-01-01' AND '2024-01-05'
-                    """, (symbol,))
+                    """,
+                        (symbol,),
+                    )
                     result = cursor.fetchone()[0]
                     conn.close()
                 else:
@@ -521,13 +561,14 @@ def test_cache_performance(services):
 
             if improvement > 0:
                 st.info(f"🚀 Cache Effect: Performance improvement {improvement:.1f}%")
-            elif mode == 'cloud':
+            elif mode == "cloud":
                 st.info("💾 SQLite database itself provides efficient data caching")
 
         except Exception as e:
             st.error(f"Cache performance test failed: {str(e)}")
             with st.expander("🔍 Error Details"):
                 st.code(str(e))
+
 
 # Simplified chart creation functions
 def create_performance_comparison_chart(cache_time, akshare_time):
@@ -538,21 +579,34 @@ def create_performance_comparison_chart(cache_time, akshare_time):
     try:
         import plotly.graph_objects as go
 
-        fig = go.Figure(data=[
-            go.Bar(name='SQLite Cache', x=['Response Time'], y=[cache_time], marker_color='lightblue'),
-            go.Bar(name='AKShare Direct', x=['Response Time'], y=[akshare_time], marker_color='lightcoral')
-        ])
+        fig = go.Figure(
+            data=[
+                go.Bar(
+                    name="SQLite Cache",
+                    x=["Response Time"],
+                    y=[cache_time],
+                    marker_color="lightblue",
+                ),
+                go.Bar(
+                    name="AKShare Direct",
+                    x=["Response Time"],
+                    y=[akshare_time],
+                    marker_color="lightcoral",
+                ),
+            ]
+        )
 
         fig.update_layout(
-            title='Response Time Comparison (milliseconds)',
-            yaxis_title='Response Time (ms)',
-            barmode='group',
-            height=400
+            title="Response Time Comparison (milliseconds)",
+            yaxis_title="Response Time (ms)",
+            barmode="group",
+            height=400,
         )
 
         return fig
     except Exception:
         return None
+
 
 def create_cache_hit_pie_chart(hits, misses):
     """Create cache hit rate pie chart"""
@@ -562,21 +616,23 @@ def create_cache_hit_pie_chart(hits, misses):
     try:
         import plotly.graph_objects as go
 
-        fig = go.Figure(data=[go.Pie(
-            labels=['数据覆盖', '待补充'],
-            values=[hits, misses],
-            hole=.3,
-            marker_colors=['lightgreen', 'lightgray']
-        )])
-
-        fig.update_layout(
-            title='数据覆盖分布',
-            height=400
+        fig = go.Figure(
+            data=[
+                go.Pie(
+                    labels=["数据覆盖", "待补充"],
+                    values=[hits, misses],
+                    hole=0.3,
+                    marker_colors=["lightgreen", "lightgray"],
+                )
+            ]
         )
+
+        fig.update_layout(title="数据覆盖分布", height=400)
 
         return fig
     except Exception:
         return None
+
 
 if __name__ == "__main__":
     main()

@@ -8,4 +8,3 @@ print(df.head())
 # Batch retrieval
 data = qdb.get_multiple_stocks(["000001", "000002", "600000"], days=30)
 print("Batch keys:", list(data.keys()))
-

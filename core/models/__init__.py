@@ -32,5 +32,5 @@ __all__ = [
     "IndexListCacheManager",
     "FinancialSummary",
     "FinancialIndicators",
-    "FinancialDataCache"
+    "FinancialDataCache",
 ]

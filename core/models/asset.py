@@ -1,8 +1,22 @@
 """
 Asset data model for QuantDB core
 """
+
 import enum
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Text, Boolean, DateTime, Enum, JSON, BigInteger
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Float,
+    Date,
+    ForeignKey,
+    Text,
+    Boolean,
+    DateTime,
+    Enum,
+    JSON,
+    BigInteger,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -11,6 +25,7 @@ from ..database.connection import Base
 
 class Asset(Base):
     """Asset model representing stocks, indices, etc."""
+
     __tablename__ = "assets"
 
     asset_id = Column(Integer, primary_key=True, index=True)
@@ -23,7 +38,7 @@ class Asset(Base):
 
     # Basic information fields
     industry = Column(String)  # Industry classification
-    concept = Column(String)   # Concept classification
+    concept = Column(String)  # Concept classification
     listing_date = Column(Date)  # Listing date
 
     # Market data fields
@@ -34,7 +49,7 @@ class Asset(Base):
     # Financial indicator fields
     pe_ratio = Column(Float)  # Price-to-earnings ratio
     pb_ratio = Column(Float)  # Price-to-book ratio
-    roe = Column(Float)       # Return on equity
+    roe = Column(Float)  # Return on equity
 
     # Metadata
     last_updated = Column(DateTime, default=func.now())

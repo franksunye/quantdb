@@ -4,40 +4,45 @@ Core Configuration Module
 This module contains configuration settings and environment variables
 for the QuantDB core layer.
 """
+
 import os
 from pathlib import Path
 
 # Base paths - compatible with cloud deployment
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-DATABASE_PATH = os.path.join(BASE_DIR, 'database/stock_data.db')
+DATABASE_PATH = os.path.join(BASE_DIR, "database/stock_data.db")
+
 
 # Database configuration with fallback paths for cloud deployment
 def get_database_url():
     """Get database URL with multiple fallback paths"""
     # Check environment variable first
-    env_url = os.getenv('DATABASE_URL')
+    env_url = os.getenv("DATABASE_URL")
     if env_url:
         return env_url
 
     # Try multiple possible paths for different deployment scenarios
     possible_paths = [
         DATABASE_PATH,  # Standard path from BASE_DIR
-        os.path.join(BASE_DIR, 'database', 'stock_data.db'),  # Alternative
-        os.path.join(BASE_DIR, 'cloud', 'streamlit_cloud', 'database', 'stock_data.db'),  # Cloud deployment
-        'database/stock_data.db',  # Relative path
-        './database/stock_data.db',  # Current dir relative
-        'cloud/streamlit_cloud/database/stock_data.db',  # Cloud relative path
+        os.path.join(BASE_DIR, "database", "stock_data.db"),  # Alternative
+        os.path.join(
+            BASE_DIR, "cloud", "streamlit_cloud", "database", "stock_data.db"
+        ),  # Cloud deployment
+        "database/stock_data.db",  # Relative path
+        "./database/stock_data.db",  # Current dir relative
+        "cloud/streamlit_cloud/database/stock_data.db",  # Cloud relative path
     ]
 
     for path in possible_paths:
         if os.path.exists(path):
-            return f'sqlite:///{path}'
+            return f"sqlite:///{path}"
 
     # Fallback to standard path even if file doesn't exist
-    return f'sqlite:///{DATABASE_PATH}'
+    return f"sqlite:///{DATABASE_PATH}"
+
 
 DATABASE_URL = get_database_url()
-DB_TYPE = 'supabase' if DATABASE_URL.startswith('postgresql') else 'sqlite'
+DB_TYPE = "supabase" if DATABASE_URL.startswith("postgresql") else "sqlite"
 
 # API configuration
 API_HOST = os.getenv("API_HOST", "0.0.0.0")
@@ -63,13 +68,16 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here")
 ALGORITHM = os.getenv("ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+
 def get_log_level() -> str:
     """Get the logging level for the current environment."""
     return LOG_LEVEL
 
+
 def is_development() -> bool:
     """Check if running in development mode."""
     return os.getenv("ENVIRONMENT", "development").lower() == "development"
+
 
 def is_production() -> bool:
     """Check if running in production mode."""

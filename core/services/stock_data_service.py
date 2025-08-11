@@ -19,6 +19,7 @@ from ..utils.logger import logger
 from .database_cache import DatabaseCache
 from .trading_calendar import get_trading_calendar
 
+
 class StockDataService:
     """
     Stock data service that provides stock historical data with intelligent data fetching.
@@ -67,7 +68,9 @@ class StockDataService:
         Returns:
             DataFrame with stock data
         """
-        logger.info(f"Getting stock data for {symbol} from {start_date} to {end_date} with adjust={adjust}")
+        logger.info(
+            f"Getting stock data for {symbol} from {start_date} to {end_date} with adjust={adjust}"
+        )
 
         # Validate and standardize parameters
         symbol = self._standardize_stock_symbol(symbol)
@@ -76,7 +79,9 @@ class StockDataService:
 
         # Get trading days in the requested date range (now excludes weekends and holidays)
         trading_days = self._get_trading_days(start_date, end_date)
-        logger.info(f"Identified {len(trading_days)} trading days for {symbol} from {start_date} to {end_date}")
+        logger.info(
+            f"Identified {len(trading_days)} trading days for {symbol} from {start_date} to {end_date}"
+        )
 
         # Check database for existing data
         existing_data = self.db_cache.get(symbol, trading_days)
@@ -99,10 +104,7 @@ class StockDataService:
 
                 # Fetch data from AKShare
                 akshare_data = self.akshare_adapter.get_stock_data(
-                    symbol=symbol,
-                    start_date=group_start,
-                    end_date=group_end,
-                    adjust=adjust
+                    symbol=symbol, start_date=group_start, end_date=group_end, adjust=adjust
                 )
 
                 if not akshare_data.empty:
@@ -117,16 +119,24 @@ class StockDataService:
                     # Update existing data
                     existing_data.update(data_dict)
                 else:
-                    logger.warning(f"No data returned from AKShare for {symbol} from {group_start} to {group_end}")
+                    logger.warning(
+                        f"No data returned from AKShare for {symbol} from {group_start} to {group_end}"
+                    )
 
                     # Check if this is a future date range
-                    today = datetime.now().strftime('%Y%m%d')
+                    today = datetime.now().strftime("%Y%m%d")
                     if group_start > today and group_end > today:
-                        logger.info(f"Date range {group_start} to {group_end} is in the future. No data expected.")
+                        logger.info(
+                            f"Date range {group_start} to {group_end} is in the future. No data expected."
+                        )
                     else:
-                        logger.info(f"Date range {group_start} to {group_end} may be a holiday or have no trading data.")
+                        logger.info(
+                            f"Date range {group_start} to {group_end} may be a holiday or have no trading data."
+                        )
         else:
-            logger.info(f"All requested trading day data for {symbol} already exists in database - CACHE HIT!")
+            logger.info(
+                f"All requested trading day data for {symbol} already exists in database - CACHE HIT!"
+            )
 
         # Convert dictionary to DataFrame
         if existing_data:
@@ -136,7 +146,7 @@ class StockDataService:
             result_df = self._filter_dataframe_by_date_range(result_df, start_date, end_date)
 
             # Sort by date
-            result_df = result_df.sort_values('date')
+            result_df = result_df.sort_values("date")
 
             logger.info(f"Returning {len(result_df)} rows for {symbol}")
             return result_df
@@ -176,12 +186,12 @@ class StockDataService:
         """
         if date_str is None:
             # Default to current date if end_date, or 1 year ago if start_date
-            if not hasattr(self, '_last_date_was_start'):
+            if not hasattr(self, "_last_date_was_start"):
                 self._last_date_was_start = True
-                return (datetime.now() - timedelta(days=365)).strftime('%Y%m%d')
+                return (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
             else:
                 self._last_date_was_start = not self._last_date_was_start
-                return datetime.now().strftime('%Y%m%d')
+                return datetime.now().strftime("%Y%m%d")
 
         # Ensure date is in YYYYMMDD format
         if len(date_str) != 8 or not date_str.isdigit():
@@ -215,8 +225,8 @@ class StockDataService:
             logger.warning(f"Failed to get trading calendar, using fallback: {e}")
 
             # Fallback to simple weekend filtering
-            start_dt = datetime.strptime(start_date, '%Y%m%d')
-            end_dt = datetime.strptime(end_date, '%Y%m%d')
+            start_dt = datetime.strptime(start_date, "%Y%m%d")
+            end_dt = datetime.strptime(end_date, "%Y%m%d")
 
             trading_days = []
             current_dt = start_dt
@@ -224,10 +234,12 @@ class StockDataService:
             while current_dt <= end_dt:
                 # Simple fallback: only skip weekends
                 if current_dt.weekday() < 5:  # Monday = 0, Friday = 4
-                    trading_days.append(current_dt.strftime('%Y%m%d'))
+                    trading_days.append(current_dt.strftime("%Y%m%d"))
                 current_dt += timedelta(days=1)
 
-            logger.warning(f"Using fallback calendar: found {len(trading_days)} potential trading days")
+            logger.warning(
+                f"Using fallback calendar: found {len(trading_days)} potential trading days"
+            )
             return trading_days
 
     def _group_consecutive_dates(self, dates: List[str]) -> List[Tuple[str, str]]:
@@ -253,7 +265,7 @@ class StockDataService:
         # Iterate through sorted dates
         for i in range(1, len(sorted_dates)):
             current_date = datetime.strptime(sorted_dates[i], "%Y%m%d")
-            prev_date = datetime.strptime(sorted_dates[i-1], "%Y%m%d")
+            prev_date = datetime.strptime(sorted_dates[i - 1], "%Y%m%d")
 
             # If dates are consecutive (allowing for weekends), add to current group
             if (current_date - prev_date).days <= 3:
@@ -281,7 +293,9 @@ class StockDataService:
         result = {}
 
         for _, row in df.iterrows():
-            date_str = row['date'].strftime('%Y%m%d') if isinstance(row['date'], datetime) else row['date']
+            date_str = (
+                row["date"].strftime("%Y%m%d") if isinstance(row["date"], datetime) else row["date"]
+            )
             result[date_str] = row.to_dict()
 
         return result
@@ -298,7 +312,9 @@ class StockDataService:
         """
         return pd.DataFrame(list(data_dict.values()))
 
-    def _filter_dataframe_by_date_range(self, df: pd.DataFrame, start_date: str, end_date: str) -> pd.DataFrame:
+    def _filter_dataframe_by_date_range(
+        self, df: pd.DataFrame, start_date: str, end_date: str
+    ) -> pd.DataFrame:
         """
         Filter DataFrame by date range.
 
@@ -314,15 +330,15 @@ class StockDataService:
             return df
 
         # Convert date column to datetime if it's not already
-        if not pd.api.types.is_datetime64_dtype(df['date']):
-            df['date'] = pd.to_datetime(df['date'])
+        if not pd.api.types.is_datetime64_dtype(df["date"]):
+            df["date"] = pd.to_datetime(df["date"])
 
         # Convert start_date and end_date to datetime
-        start_dt = datetime.strptime(start_date, '%Y%m%d')
-        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        start_dt = datetime.strptime(start_date, "%Y%m%d")
+        end_dt = datetime.strptime(end_date, "%Y%m%d")
 
         # Filter DataFrame
-        return df[(df['date'] >= start_dt) & (df['date'] <= end_dt)]
+        return df[(df["date"] >= start_dt) & (df["date"] <= end_dt)]
 
     def _is_weekend_or_holiday(self, start_date: str, end_date: str) -> bool:
         """
@@ -335,8 +351,8 @@ class StockDataService:
         Returns:
             True if date range contains weekends or holidays, False otherwise
         """
-        start_dt = datetime.strptime(start_date, '%Y%m%d')
-        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        start_dt = datetime.strptime(start_date, "%Y%m%d")
+        end_dt = datetime.strptime(end_date, "%Y%m%d")
 
         # Check if start or end date is a weekend
         if start_dt.weekday() >= 5 or end_dt.weekday() >= 5:

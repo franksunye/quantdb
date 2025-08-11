@@ -7,6 +7,4 @@ and data source integrations.
 
 from .akshare_adapter import AKShareAdapter
 
-__all__ = [
-    "AKShareAdapter"
-]
+__all__ = ["AKShareAdapter"]

@@ -1,6 +1,7 @@
 """
 Database initialization script
 """
+
 import os
 import sys
 from pathlib import Path
@@ -20,31 +21,33 @@ from core.utils.logger import get_logger
 # Setup logger
 logger = get_logger(__name__)
 
+
 def init_db():
     """
     Initialize the database by creating all tables
     """
     try:
         # Create database directory if it doesn't exist
-        if DATABASE_URL.startswith('sqlite'):
+        if DATABASE_URL.startswith("sqlite"):
             db_dir = os.path.dirname(DATABASE_PATH)
             if not os.path.exists(db_dir):
                 os.makedirs(db_dir)
                 logger.info(f"Created database directory: {db_dir}")
-        
+
         # Create all tables
         Base.metadata.create_all(bind=engine)
         logger.info("Database tables created successfully")
-        
+
         # Test database connection
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))
             logger.info(f"Database connection test: {result.fetchone()}")
-        
+
         return True
     except SQLAlchemyError as e:
         logger.error(f"Error initializing database: {e}")
         return False
+
 
 if __name__ == "__main__":
     logger.info("Initializing database...")

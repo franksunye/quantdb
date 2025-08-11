@@ -8,16 +8,18 @@ from pathlib import Path
 
 # Read PyPI-specific README file
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README_PYPI.md").read_text(encoding='utf-8')
+long_description = (this_directory / "README_PYPI.md").read_text(encoding="utf-8")
+
 
 # Read requirements
 def read_requirements(filename):
     """Read requirements file"""
     try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+        with open(filename, "r", encoding="utf-8") as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith("#")]
     except FileNotFoundError:
         return []
+
 
 # Basic dependencies
 install_requires = [
@@ -31,24 +33,24 @@ install_requires = [
 
 # Optional dependencies
 extras_require = {
-    'full': [
+    "full": [
         "fastapi>=0.68.0",
         "uvicorn>=0.15.0",
         "pydantic>=1.8.0",
         "httpx>=0.18.0",
         "python-dotenv>=0.19.0",
     ],
-    'dev': [
+    "dev": [
         "pytest>=6.2.0",
         "pytest-cov>=2.12.0",
         "black>=21.0.0",
         "flake8>=3.9.0",
         "mypy>=0.910",
     ],
-    'docs': [
+    "docs": [
         "sphinx>=4.0.0",
         "sphinx-rtd-theme>=0.5.0",
-    ]
+    ],
 }
 
 setup(
@@ -66,20 +68,17 @@ setup(
         "Source": "https://github.com/franksunye/quantdb",
         "Documentation": "https://franksunye.github.io/quantdb/",
     },
-
     # Package configuration
-    packages=find_packages(include=['qdb', 'qdb.*', 'core', 'core.*']),
+    packages=find_packages(include=["qdb", "qdb.*", "core", "core.*"]),
     include_package_data=True,
     package_data={
-        'qdb': ['*.md', '*.txt'],
-        'core': ['**/*.sql', '**/*.json'],
+        "qdb": ["*.md", "*.txt"],
+        "core": ["**/*.sql", "**/*.json"],
     },
-    
     # Dependency configuration
     python_requires=">=3.8",
     install_requires=install_requires,
     extras_require=extras_require,
-    
     # Classification information
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -95,20 +94,16 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Operating System :: OS Independent",
     ],
-    
     # Keywords
     keywords="stock, finance, akshare, cache, quantitative, trading, investment, qdb, quantdb",
-    
     # Entry points - temporarily removed CLI, focusing on library functionality
     # entry_points={
     #     'console_scripts': [
     #         'qdb=qdb.cli:main',
     #     ],
     # },
-    
     # License
     license="MIT",
-    
     # Other configuration
     zip_safe=False,
     platforms=["any"],

@@ -1,6 +1,7 @@
 """
 Pytest configuration file with shared fixtures
 """
+
 import sys
 from pathlib import Path
 import pytest
@@ -30,6 +31,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 # Create test client
 client = TestClient(app)
 
+
 # Override the get_db dependency
 def override_get_db():
     try:
@@ -38,8 +40,10 @@ def override_get_db():
     finally:
         db.close()
 
+
 # Apply the override to the app
 app.dependency_overrides[get_db] = override_get_db
+
 
 # Create a fixture to initialize the database before all tests
 @pytest.fixture(scope="session", autouse=True)
@@ -60,7 +64,7 @@ def initialize_test_db():
                 isin="CNE000000040",
                 asset_type="stock",
                 exchange="SZSE",
-                currency="CNY"
+                currency="CNY",
             ),
             Asset(
                 symbol="600519",
@@ -68,7 +72,7 @@ def initialize_test_db():
                 isin="CNE0000018R8",
                 asset_type="stock",
                 exchange="SHSE",
-                currency="CNY"
+                currency="CNY",
             ),
             Asset(
                 symbol="AAPL",
@@ -76,7 +80,7 @@ def initialize_test_db():
                 isin="US0378331005",
                 asset_type="stock",
                 exchange="NASDAQ",
-                currency="USD"
+                currency="USD",
             ),
             Asset(
                 symbol="MSFT",
@@ -84,7 +88,7 @@ def initialize_test_db():
                 isin="US5949181045",
                 asset_type="stock",
                 exchange="NASDAQ",
-                currency="USD"
+                currency="USD",
             ),
             Asset(
                 symbol="GOOG",
@@ -92,8 +96,8 @@ def initialize_test_db():
                 isin="US02079K1079",
                 asset_type="stock",
                 exchange="NASDAQ",
-                currency="USD"
-            )
+                currency="USD",
+            ),
         ]
 
         db.add_all(test_assets)
@@ -121,7 +125,7 @@ def initialize_test_db():
                         amplitude=5.0,
                         pct_change=1.0 + i * 0.1,
                         change=1.0 + i * 0.1,
-                        turnover_rate=0.5 + i * 0.01
+                        turnover_rate=0.5 + i * 0.01,
                     )
                 )
 
@@ -133,6 +137,7 @@ def initialize_test_db():
     yield
     # Clean up after all tests
     Base.metadata.drop_all(bind=engine)
+
 
 @pytest.fixture(scope="function")
 def test_db():
@@ -150,6 +155,7 @@ def test_db():
 
     # Clean up
     db.close()
+
 
 @pytest.fixture
 def mock_akshare_adapter():

@@ -15,8 +15,10 @@ from core.utils.logger import get_logger
 # Setup logger
 logger = get_logger(__name__)
 
+
 class APIVersion(str, Enum):
     """API version enum."""
+
     V1 = "v1"
     V2 = "v2"
 
@@ -39,14 +41,17 @@ class APIVersion(str, Enum):
         except ValueError:
             return False
 
+
 class VersionInfo(BaseModel):
     """API version information model."""
+
     version: str
     api_version: str
     release_date: str
     deprecated: bool = False
     sunset_date: Optional[str] = ""
     description: str
+
 
 # Version information for each API version
 VERSION_INFO: Dict[APIVersion, VersionInfo] = {
@@ -56,7 +61,7 @@ VERSION_INFO: Dict[APIVersion, VersionInfo] = {
         release_date="2025-08-04",
         deprecated=False,
         sunset_date="",
-        description="Production-ready version with Streamlit Cloud deployment, Core/API architecture, and comprehensive testing."
+        description="Production-ready version with Streamlit Cloud deployment, Core/API architecture, and comprehensive testing.",
     ),
     APIVersion.V2: VersionInfo(
         version="2.2.8",
@@ -64,9 +69,10 @@ VERSION_INFO: Dict[APIVersion, VersionInfo] = {
         release_date="2025-08-04",
         deprecated=False,
         sunset_date="",
-        description="Enhanced API version with improved features and performance optimizations."
-    )
+        description="Enhanced API version with improved features and performance optimizations.",
+    ),
 }
+
 
 def get_version_info(version: Union[APIVersion, str]) -> Optional[VersionInfo]:
     """
@@ -87,6 +93,7 @@ def get_version_info(version: Union[APIVersion, str]) -> Optional[VersionInfo]:
 
     return VERSION_INFO.get(version)
 
+
 def get_all_versions() -> Dict[str, VersionInfo]:
     """
     Get information about all API versions.
@@ -95,6 +102,7 @@ def get_all_versions() -> Dict[str, VersionInfo]:
         Dictionary with version information for all API versions.
     """
     return {v.value: info for v, info in VERSION_INFO.items()}
+
 
 def get_version_prefix(version: Union[APIVersion, str]) -> str:
     """
@@ -115,6 +123,7 @@ def get_version_prefix(version: Union[APIVersion, str]) -> str:
 
     return f"/api/{version.value}"
 
+
 def is_version_deprecated(version: Union[APIVersion, str]) -> bool:
     """
     Check if an API version is deprecated.
@@ -130,6 +139,7 @@ def is_version_deprecated(version: Union[APIVersion, str]) -> bool:
         return False
 
     return info.deprecated
+
 
 def get_latest_version_info() -> VersionInfo:
     """

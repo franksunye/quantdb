@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 class HistoricalDataPoint(BaseModel):
     """Single historical data point"""
+
     date: Optional[datetime] = Field(None, description="Trading date")
     open: Optional[float] = Field(None, description="Opening price")
     high: Optional[float] = Field(None, description="Highest price")
@@ -24,13 +25,12 @@ class HistoricalDataPoint(BaseModel):
     turnover_rate: Optional[float] = Field(None, description="Turnover rate")
 
     class Config:
-        json_encoders = {
-            datetime: lambda v: v.isoformat() if v else None
-        }
+        json_encoders = {datetime: lambda v: v.isoformat() if v else None}
 
 
 class HistoricalDataResponse(BaseModel):
     """Historical data response"""
+
     symbol: str = Field(..., description="Stock symbol")
     name: str = Field(..., description="Stock name")
     start_date: Optional[str] = Field(None, description="Start date")
@@ -42,6 +42,7 @@ class HistoricalDataResponse(BaseModel):
 
 class AssetInfo(BaseModel):
     """Asset information"""
+
     asset_id: int = Field(..., description="Asset ID")
     symbol: str = Field(..., description="Stock symbol")
     name: str = Field(..., description="Stock name")
@@ -65,18 +66,20 @@ class AssetInfo(BaseModel):
         from_attributes = True
         json_encoders = {
             datetime: lambda v: v.isoformat() if v else None,
-            date: lambda v: v.isoformat() if v else None
+            date: lambda v: v.isoformat() if v else None,
         }
 
 
 class AssetResponse(BaseModel):
     """Asset response with metadata"""
+
     asset: AssetInfo = Field(..., description="Asset information")
     metadata: Dict[str, Any] = Field(..., description="Response metadata")
 
 
 class CacheInfo(BaseModel):
     """Cache information"""
+
     cache_hit: bool = Field(..., description="Whether cache was hit")
     akshare_called: bool = Field(..., description="Whether AKShare was called")
     cache_hit_ratio: float = Field(..., description="Cache hit ratio")
@@ -87,6 +90,7 @@ class CacheInfo(BaseModel):
 
 class CacheStatusResponse(BaseModel):
     """Cache status response"""
+
     symbol: Optional[str] = Field(None, description="Stock symbol")
     start_date: Optional[str] = Field(None, description="Start date")
     end_date: Optional[str] = Field(None, description="End date")
@@ -99,6 +103,7 @@ class CacheStatusResponse(BaseModel):
 
 class SystemMetrics(BaseModel):
     """System metrics"""
+
     total_symbols: int = Field(..., description="Total number of symbols")
     total_records: int = Field(..., description="Total number of records")
     db_size_mb: float = Field(..., description="Database size in MB")
@@ -113,6 +118,7 @@ class SystemMetrics(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error response"""
+
     error: str = Field(..., description="Error type")
     message: str = Field(..., description="Error message")
     timestamp: float = Field(..., description="Error timestamp")
@@ -121,6 +127,7 @@ class ErrorResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
+
     status: str = Field(..., description="Service status")
     timestamp: float = Field(..., description="Check timestamp")
     service: str = Field(..., description="Service name")

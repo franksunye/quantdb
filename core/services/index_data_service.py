@@ -21,15 +21,15 @@ from ..utils.logger import logger
 class IndexDataService:
     """
     Service for managing index data operations.
-    
+
     This service handles both historical and realtime index data with
     intelligent caching strategies.
     """
-    
+
     def __init__(self, db: Session, akshare_adapter: AKShareAdapter):
         """
         Initialize the index data service.
-        
+
         Args:
             db: Database session
             akshare_adapter: AKShare adapter instance
@@ -37,172 +37,167 @@ class IndexDataService:
         self.db = db
         self.akshare_adapter = akshare_adapter
         logger.info("Index data service initialized")
-    
+
     def get_index_data(
         self,
         symbol: str,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         period: str = "daily",
-        force_refresh: bool = False
+        force_refresh: bool = False,
     ) -> pd.DataFrame:
         """
         Get historical index data with intelligent caching.
-        
+
         Args:
             symbol: Index symbol
             start_date: Start date in YYYYMMDD format
             end_date: End date in YYYYMMDD format
             period: Data frequency ("daily", "weekly", "monthly")
             force_refresh: If True, bypass cache and fetch fresh data
-            
+
         Returns:
             DataFrame with index data
         """
         try:
-            logger.info(f"Getting index data for {symbol}, period={period}, force_refresh={force_refresh}")
-            
+            logger.info(
+                f"Getting index data for {symbol}, period={period}, force_refresh={force_refresh}"
+            )
+
             # Parse dates
             if start_date:
-                start_dt = datetime.strptime(start_date, '%Y%m%d').date()
+                start_dt = datetime.strptime(start_date, "%Y%m%d").date()
             else:
                 start_dt = (datetime.now() - timedelta(days=365)).date()
-                
+
             if end_date:
-                end_dt = datetime.strptime(end_date, '%Y%m%d').date()
+                end_dt = datetime.strptime(end_date, "%Y%m%d").date()
             else:
                 end_dt = datetime.now().date()
-            
+
             # Check cache first (unless force refresh)
             if not force_refresh:
                 cached_data = self._get_cached_index_data(symbol, start_dt, end_dt)
                 if not cached_data.empty:
                     logger.info(f"Using cached index data for {symbol}")
                     return cached_data
-            
+
             # Fetch fresh data from AKShare
             logger.info(f"Fetching fresh index data from AKShare for {symbol}")
             df = self.akshare_adapter.get_index_data(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
-                period=period
+                symbol=symbol, start_date=start_date, end_date=end_date, period=period
             )
-            
+
             if df.empty:
                 logger.warning(f"No index data available for {symbol}")
                 return df
-            
+
             # Save to cache
             self._save_index_data_to_cache(symbol, df)
-            
+
             logger.info(f"Successfully retrieved {len(df)} rows of index data for {symbol}")
             return df
-            
+
         except Exception as e:
             logger.error(f"Error getting index data for {symbol}: {e}")
             raise
-    
-    def get_realtime_index_data(
-        self,
-        symbol: str,
-        force_refresh: bool = False
-    ) -> Dict[str, Any]:
+
+    def get_realtime_index_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Get realtime index data with intelligent caching.
-        
+
         Args:
             symbol: Index symbol
             force_refresh: If True, bypass cache and fetch fresh data
-            
+
         Returns:
             Dictionary with realtime index data
         """
         try:
             logger.info(f"Getting realtime index data for {symbol}, force_refresh={force_refresh}")
-            
+
             # Check cache first (unless force refresh)
             if not force_refresh:
                 cached_data = self._get_cached_realtime_index_data(symbol)
                 if cached_data:
                     logger.info(f"Using cached realtime index data for {symbol}")
                     return cached_data
-            
+
             # Fetch fresh data from AKShare
             logger.info(f"Fetching fresh realtime index data from AKShare for {symbol}")
             df = self.akshare_adapter.get_index_realtime_data(symbol)
-            
+
             if df.empty:
                 logger.warning(f"No realtime index data available for {symbol}")
                 return {
-                    'symbol': symbol,
-                    'error': 'No data available',
-                    'cache_hit': False,
-                    'timestamp': datetime.now().isoformat()
+                    "symbol": symbol,
+                    "error": "No data available",
+                    "cache_hit": False,
+                    "timestamp": datetime.now().isoformat(),
                 }
-            
+
             # Convert to dictionary
             data = df.iloc[0].to_dict()
-            data['cache_hit'] = False
-            data['timestamp'] = datetime.now().isoformat()
-            data['is_trading_hours'] = self._is_trading_hours()
-            
+            data["cache_hit"] = False
+            data["timestamp"] = datetime.now().isoformat()
+            data["is_trading_hours"] = self._is_trading_hours()
+
             # Save to cache
             self._save_realtime_index_data_to_cache(symbol, data)
-            
+
             logger.info(f"Successfully retrieved realtime index data for {symbol}")
             return data
-            
+
         except Exception as e:
             logger.error(f"Error getting realtime index data for {symbol}: {e}")
             return {
-                'symbol': symbol,
-                'error': str(e),
-                'cache_hit': False,
-                'timestamp': datetime.now().isoformat()
+                "symbol": symbol,
+                "error": str(e),
+                "cache_hit": False,
+                "timestamp": datetime.now().isoformat(),
             }
-    
+
     def get_index_list(
-        self,
-        category: Optional[str] = None,
-        force_refresh: bool = False
+        self, category: Optional[str] = None, force_refresh: bool = False
     ) -> List[Dict[str, Any]]:
         """
         Get index list with intelligent caching.
-        
+
         Args:
             category: Index category filter
             force_refresh: If True, bypass cache and fetch fresh data
-            
+
         Returns:
             List of dictionaries containing index information
         """
         try:
-            logger.info(f"Getting index list for category: {category or 'all'}, force_refresh={force_refresh}")
-            
+            logger.info(
+                f"Getting index list for category: {category or 'all'}, force_refresh={force_refresh}"
+            )
+
             # Check if cache is fresh (unless force refresh)
             if not force_refresh and self._is_index_list_cache_fresh():
                 logger.info("Using cached index list data")
                 return self._get_cached_index_list(category)
-            
+
             # Cache is stale or force refresh - fetch from AKShare
             logger.info("Cache is stale or force refresh requested, fetching from AKShare")
-            
+
             # Fetch fresh data from AKShare
             df = self.akshare_adapter.get_index_list(category=None)  # Get all categories first
-            
+
             if df.empty:
                 logger.warning("No index list data available from AKShare")
                 # Return cached data if available
                 return self._get_cached_index_list(category)
-            
+
             # Clear old cache and save new data
             self._clear_old_index_list_cache()
             self._save_index_list_to_cache(df)
-            
+
             # Return filtered data
             return self._get_cached_index_list(category)
-            
+
         except Exception as e:
             logger.error(f"Error getting index list: {e}")
             # Try to return cached data as fallback
@@ -212,72 +207,74 @@ class IndexDataService:
             except Exception as fallback_error:
                 logger.error(f"Fallback to cached data also failed: {fallback_error}")
                 raise e
-    
-    def _get_cached_index_data(
-        self,
-        symbol: str,
-        start_date: date,
-        end_date: date
-    ) -> pd.DataFrame:
+
+    def _get_cached_index_data(self, symbol: str, start_date: date, end_date: date) -> pd.DataFrame:
         """Get cached index data from database."""
         try:
-            query = self.db.query(IndexData).filter(
-                and_(
-                    IndexData.symbol == symbol,
-                    IndexData.date >= start_date,
-                    IndexData.date <= end_date
+            query = (
+                self.db.query(IndexData)
+                .filter(
+                    and_(
+                        IndexData.symbol == symbol,
+                        IndexData.date >= start_date,
+                        IndexData.date <= end_date,
+                    )
                 )
-            ).order_by(IndexData.date)
-            
+                .order_by(IndexData.date)
+            )
+
             results = query.all()
-            
+
             if not results:
                 return pd.DataFrame()
-            
+
             # Convert to DataFrame
             data = [result.to_dict() for result in results]
             df = pd.DataFrame(data)
-            
+
             logger.info(f"Retrieved {len(df)} cached index data rows for {symbol}")
             return df
-            
+
         except Exception as e:
             logger.error(f"Error getting cached index data: {e}")
             return pd.DataFrame()
-    
+
     def _save_index_data_to_cache(self, symbol: str, df: pd.DataFrame):
         """Save index data to database cache."""
         try:
             if df.empty:
                 return
-            
+
             # Get index name from first row if available
-            index_name = df.iloc[0].get('name', f'Index {symbol}') if 'name' in df.columns else f'Index {symbol}'
-            
+            index_name = (
+                df.iloc[0].get("name", f"Index {symbol}")
+                if "name" in df.columns
+                else f"Index {symbol}"
+            )
+
             for _, row in df.iterrows():
                 # Parse date
-                trade_date = pd.to_datetime(row['date']).date()
-                
+                trade_date = pd.to_datetime(row["date"]).date()
+
                 # Check if record already exists
-                existing = self.db.query(IndexData).filter(
-                    and_(
-                        IndexData.symbol == symbol,
-                        IndexData.date == trade_date
-                    )
-                ).first()
-                
+                existing = (
+                    self.db.query(IndexData)
+                    .filter(and_(IndexData.symbol == symbol, IndexData.date == trade_date))
+                    .first()
+                )
+
                 if existing:
                     # Update existing record
                     existing.name = index_name
-                    existing.open_price = row.get('open')
-                    existing.high_price = row.get('high')
-                    existing.low_price = row.get('low')
-                    existing.close_price = row.get('close')
-                    existing.volume = row.get('volume')
-                    existing.turnover = row.get('turnover')
-                    existing.change = row.get('change')
-                    existing.pct_change = row.get('pct_change')
-                    existing.amplitude = row.get('amplitude')
+                    existing.open_price = row.get("open")
+                    existing.high_price = row.get("high")
+                    existing.low_price = row.get("low")
+                    existing.close_price = row.get("close")
+                    existing.volume = row.get("volume")
+                    existing.turnover = row.get("turnover")
+                    existing.change = row.get("change")
+                    existing.pct_change = row.get("pct_change")
+                    existing.amplitude = row.get("amplitude")
                     existing.updated_at = datetime.utcnow()
                 else:
                     # Create new record
@@ -285,21 +282,21 @@ class IndexDataService:
                         symbol=symbol,
                         name=index_name,
                         date=trade_date,
-                        open_price=row.get('open'),
-                        high_price=row.get('high'),
-                        low_price=row.get('low'),
-                        close_price=row.get('close'),
-                        volume=row.get('volume'),
-                        turnover=row.get('turnover'),
-                        change=row.get('change'),
-                        pct_change=row.get('pct_change'),
-                        amplitude=row.get('amplitude')
+                        open_price=row.get("open"),
+                        high_price=row.get("high"),
+                        low_price=row.get("low"),
+                        close_price=row.get("close"),
+                        volume=row.get("volume"),
+                        turnover=row.get("turnover"),
+                        change=row.get("change"),
+                        pct_change=row.get("pct_change"),
+                        amplitude=row.get("amplitude"),
                     )
                     self.db.add(index_data)
-            
+
             self.db.commit()
             logger.info(f"Saved {len(df)} index data rows to cache for {symbol}")
-            
+
         except Exception as e:
             logger.error(f"Error saving index data to cache: {e}")
             self.db.rollback()
@@ -308,9 +305,12 @@ class IndexDataService:
     def _get_cached_realtime_index_data(self, symbol: str) -> Optional[Dict[str, Any]]:
         """Get cached realtime index data."""
         try:
-            cached = self.db.query(RealtimeIndexData).filter(
-                RealtimeIndexData.symbol == symbol
-            ).order_by(desc(RealtimeIndexData.timestamp)).first()
+            cached = (
+                self.db.query(RealtimeIndexData)
+                .filter(RealtimeIndexData.symbol == symbol)
+                .order_by(desc(RealtimeIndexData.timestamp))
+                .first()
+            )
 
             if cached and cached.is_cache_valid():
                 data = cached.to_dict()
@@ -327,9 +327,7 @@ class IndexDataService:
         """Save realtime index data to cache."""
         try:
             # Delete old cache for this symbol
-            self.db.query(RealtimeIndexData).filter(
-                RealtimeIndexData.symbol == symbol
-            ).delete()
+            self.db.query(RealtimeIndexData).filter(RealtimeIndexData.symbol == symbol).delete()
 
             # Determine cache TTL based on trading hours
             is_trading = self._is_trading_hours()
@@ -338,20 +336,20 @@ class IndexDataService:
             # Create new cache entry
             realtime_data = RealtimeIndexData(
                 symbol=symbol,
-                name=data.get('name', f'Index {symbol}'),
-                price=data.get('price', 0.0),
-                open_price=data.get('open'),
-                high_price=data.get('high'),
-                low_price=data.get('low'),
-                prev_close=data.get('prev_close'),
-                change=data.get('change'),
-                pct_change=data.get('pct_change'),
-                amplitude=data.get('amplitude'),
-                volume=data.get('volume'),
-                turnover=data.get('turnover'),
+                name=data.get("name", f"Index {symbol}"),
+                price=data.get("price", 0.0),
+                open_price=data.get("open"),
+                high_price=data.get("high"),
+                low_price=data.get("low"),
+                prev_close=data.get("prev_close"),
+                change=data.get("change"),
+                pct_change=data.get("pct_change"),
+                amplitude=data.get("amplitude"),
+                volume=data.get("volume"),
+                turnover=data.get("turnover"),
                 timestamp=datetime.utcnow(),
                 cache_ttl_minutes=cache_ttl,
-                is_trading_hours=is_trading
+                is_trading_hours=is_trading,
             )
 
             self.db.add(realtime_data)
@@ -366,9 +364,11 @@ class IndexDataService:
     def _is_index_list_cache_fresh(self) -> bool:
         """Check if index list cache is fresh (same day)."""
         try:
-            manager = self.db.query(IndexListCacheManager).filter(
-                IndexListCacheManager.is_current == True
-            ).first()
+            manager = (
+                self.db.query(IndexListCacheManager)
+                .filter(IndexListCacheManager.is_current == True)
+                .first()
+            )
 
             return manager and manager.is_cache_fresh() if manager else False
 
@@ -380,8 +380,7 @@ class IndexDataService:
         """Get cached index list data."""
         try:
             query = self.db.query(IndexListCache).filter(
-                IndexListCache.cache_date == date.today(),
-                IndexListCache.is_active == True
+                IndexListCache.cache_date == date.today(), IndexListCache.is_active == True
             )
 
             if category:
@@ -401,15 +400,11 @@ class IndexDataService:
         """Clear old index list cache."""
         try:
             # Mark old cache managers as not current
-            self.db.query(IndexListCacheManager).update(
-                {IndexListCacheManager.is_current: False}
-            )
+            self.db.query(IndexListCacheManager).update({IndexListCacheManager.is_current: False})
 
             # Delete old cache entries (keep last 7 days)
             cutoff_date = date.today() - timedelta(days=7)
-            self.db.query(IndexListCache).filter(
-                IndexListCache.cache_date < cutoff_date
-            ).delete()
+            self.db.query(IndexListCache).filter(IndexListCache.cache_date < cutoff_date).delete()
 
             self.db.commit()
             logger.info("Cleared old index list cache")
@@ -428,24 +423,22 @@ class IndexDataService:
 
             for _, row in df.iterrows():
                 index_cache = IndexListCache(
-                    symbol=row.get('symbol', ''),
-                    name=row.get('name', ''),
-                    category=row.get('category', 'Unknown'),
-                    price=row.get('price'),
-                    pct_change=row.get('pct_change'),
-                    change=row.get('change'),
-                    volume=row.get('volume'),
-                    turnover=row.get('turnover'),
+                    symbol=row.get("symbol", ""),
+                    name=row.get("name", ""),
+                    category=row.get("category", "Unknown"),
+                    price=row.get("price"),
+                    pct_change=row.get("pct_change"),
+                    change=row.get("change"),
+                    volume=row.get("volume"),
+                    turnover=row.get("turnover"),
                     cache_date=today,
-                    is_active=True
+                    is_active=True,
                 )
                 self.db.add(index_cache)
 
             # Create cache manager entry
             cache_manager = IndexListCacheManager(
-                cache_date=today,
-                total_count=len(df),
-                is_current=True
+                cache_date=today, total_count=len(df), is_current=True
             )
             self.db.add(cache_manager)
 
@@ -472,8 +465,9 @@ class IndexDataService:
             afternoon_start = datetime.strptime("13:00", "%H:%M").time()
             afternoon_end = datetime.strptime("15:00", "%H:%M").time()
 
-            return (morning_start <= current_time <= morning_end) or \
-                   (afternoon_start <= current_time <= afternoon_end)
+            return (morning_start <= current_time <= morning_end) or (
+                afternoon_start <= current_time <= afternoon_end
+            )
 
         except Exception as e:
             logger.error(f"Error checking trading hours: {e}")

@@ -11,10 +11,4 @@ from . import monitoring
 from . import system
 from . import index_data
 
-__all__ = [
-    "stock_data",
-    "assets",
-    "monitoring",
-    "system",
-    "index_data"
-]
+__all__ = ["stock_data", "assets", "monitoring", "system", "index_data"]

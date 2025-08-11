@@ -27,47 +27,37 @@ from .client import (
     get_stock_data,
     get_multiple_stocks,
     get_asset_info,
-
     # Realtime data functionality
     get_realtime_data,
     get_realtime_data_batch,
-
     # Stock list functionality
     get_stock_list,
-
     # Index data functionality
     get_index_data,
     get_index_realtime,
     get_index_list,
-
     # Financial data functionality
     get_financial_summary,
     get_financial_indicators,
-
     # Cache management
     cache_stats,
     clear_cache,
-
     # AKShare compatible interface
     stock_zh_a_hist,
-
     # Configuration management
     set_cache_dir,
     set_log_level,
 )
 
-from .exceptions import (
-    QDBError,
-    CacheError,
-    DataError,
-    NetworkError
-)
+from .exceptions import QDBError, CacheError, DataError, NetworkError
 
 # Version information
 __version__ = "2.2.8"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
-__description__ = "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
+__description__ = (
+    "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
+)
 
 # Public API
 __all__ = [
@@ -76,43 +66,35 @@ __all__ = [
     "get_stock_data",
     "get_multiple_stocks",
     "get_asset_info",
-
     # Realtime data functionality
     "get_realtime_data",
     "get_realtime_data_batch",
-
     # Stock list functionality
     "get_stock_list",
-
     # Index data functionality
     "get_index_data",
     "get_index_realtime",
     "get_index_list",
-
     # Financial data functionality
     "get_financial_summary",
     "get_financial_indicators",
-
     # Cache management
     "cache_stats",
     "clear_cache",
-
     # AKShare compatibility
     "stock_zh_a_hist",
-
     # Configuration
     "set_cache_dir",
     "set_log_level",
-
     # Exceptions
     "QDBError",
     "CacheError",
     "DataError",
     "NetworkError",
-
     # Meta information
     "__version__",
 ]
+
 
 # Auto-initialization prompt
 def _show_welcome():
@@ -124,9 +106,11 @@ def _show_welcome():
     print("🔧 Config: qdb.set_cache_dir('./my_cache')")
     print("💡 Tip: Package name quantdb, import name qdb (like sklearn)")
 
+
 # Optional welcome message (only displayed in interactive environment)
 import sys
-if hasattr(sys, 'ps1'):  # Check if in interactive environment
+
+if hasattr(sys, "ps1"):  # Check if in interactive environment
     try:
         _show_welcome()
     except:

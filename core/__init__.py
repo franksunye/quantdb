@@ -22,10 +22,4 @@ from . import database
 from . import cache
 from . import utils
 
-__all__ = [
-    "models",
-    "services", 
-    "database",
-    "cache",
-    "utils"
-]
+__all__ = ["models", "services", "database", "cache", "utils"]

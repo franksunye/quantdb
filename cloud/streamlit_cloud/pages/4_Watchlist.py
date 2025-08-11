@@ -22,19 +22,17 @@ try:
     from utils.charts import create_price_chart, calculate_basic_metrics
     from utils.config import config
     from utils.stock_validator import validate_stock_code, get_stock_recommendations
+
     ADVANCED_FEATURES = True
 except ImportError:
     ADVANCED_FEATURES = False
 
 # Page configuration
-st.set_page_config(
-    page_title="Watchlist - QuantDB",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Watchlist - QuantDB", page_icon="📊", layout="wide")
 
 # Watchlist data file path
 WATCHLIST_FILE = current_dir / "data" / "watchlist.json"
+
 
 @st.cache_data
 def load_watchlist():
@@ -42,16 +40,16 @@ def load_watchlist():
     try:
         # Ensure data directory exists
         WATCHLIST_FILE.parent.mkdir(exist_ok=True)
-        
+
         if WATCHLIST_FILE.exists():
-            with open(WATCHLIST_FILE, 'r', encoding='utf-8') as f:
+            with open(WATCHLIST_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         else:
             # Default watchlist
             default_watchlist = {
                 "600000": {"name": "SPDB", "added_date": "2024-01-01"},
                 "000001": {"name": "PAB", "added_date": "2024-01-01"},
-                "600519": {"name": "Kweichow Moutai", "added_date": "2024-01-01"}
+                "600519": {"name": "Kweichow Moutai", "added_date": "2024-01-01"},
             }
             save_watchlist(default_watchlist)
             return default_watchlist
@@ -59,16 +57,18 @@ def load_watchlist():
         st.error(f"Failed to load watchlist: {str(e)}")
         return {}
 
+
 def save_watchlist(watchlist):
     """Save watchlist"""
     try:
         WATCHLIST_FILE.parent.mkdir(exist_ok=True)
-        with open(WATCHLIST_FILE, 'w', encoding='utf-8') as f:
+        with open(WATCHLIST_FILE, "w", encoding="utf-8") as f:
             json.dump(watchlist, f, ensure_ascii=False, indent=2)
         # 清除缓存以便重新加载
         load_watchlist.clear()
     except Exception as e:
         st.error(f"Failed to save watchlist: {str(e)}")
+
 
 @st.cache_resource
 def init_services():
@@ -80,32 +80,33 @@ def init_services():
 
         db_session = next(get_db())
         akshare_adapter = AKShareAdapter()
-        
+
         return {
-            'stock_service': StockDataService(db_session, akshare_adapter),
-            'asset_service': AssetInfoService(db_session),
-            'db_session': db_session
+            "stock_service": StockDataService(db_session, akshare_adapter),
+            "asset_service": AssetInfoService(db_session),
+            "db_session": db_session,
         }
     except Exception as e:
         st.error(f"Service initialization failed: {e}")
         return None
 
+
 def main():
     """Main page function"""
-    
+
     # Page title
     st.title("🎯 Watchlist Management")
     st.markdown("Manage your watchlist stocks, perform batch analysis and monitoring")
     st.markdown("---")
-    
+
     # 初始化服务
     services = init_services()
     if not services:
         st.error("❌ Service initialization failed, please refresh the page and try again")
         return
-    
+
     # Load watchlist data
-    if 'watchlist' not in st.session_state:
+    if "watchlist" not in st.session_state:
         st.session_state.watchlist = load_watchlist()
 
     # Sidebar - Management operations
@@ -115,9 +116,7 @@ def main():
         # Add stock
         st.subheader("➕ Add Stock")
         new_symbol = st.text_input(
-            "Stock Code",
-            placeholder="Enter 6-digit stock code",
-            help="e.g.: 600000, 000001"
+            "Stock Code", placeholder="Enter 6-digit stock code", help="e.g.: 600000, 000001"
         )
 
         if st.button("Add to Watchlist", use_container_width=True):
@@ -129,7 +128,7 @@ def main():
             recommendations = get_stock_recommendations()
             for rec in recommendations[:3]:
                 if st.button(f"{rec['symbol']} - {rec['name']}", key=f"rec_{rec['symbol']}"):
-                    add_to_watchlist(rec['symbol'], services)
+                    add_to_watchlist(rec["symbol"], services)
 
         st.markdown("---")
 
@@ -143,7 +142,7 @@ def main():
             export_watchlist()
 
         if st.button("🗑️ Clear Watchlist", use_container_width=True):
-            if st.session_state.get('confirm_clear', False):
+            if st.session_state.get("confirm_clear", False):
                 st.session_state.watchlist = {}
                 save_watchlist({})
                 st.success("Watchlist cleared")
@@ -152,14 +151,15 @@ def main():
             else:
                 st.session_state.confirm_clear = True
                 st.warning("Click again to confirm clearing")
-    
+
     # Main content area
     display_watchlist_overview()
 
     # Batch query results
-    if st.session_state.get('batch_query', False):
+    if st.session_state.get("batch_query", False):
         display_batch_query_results(services)
         st.session_state.batch_query = False
+
 
 def add_to_watchlist(symbol, services):
     """Add stock to watchlist"""
@@ -170,7 +170,7 @@ def add_to_watchlist(symbol, services):
     # Validate stock code
     if ADVANCED_FEATURES:
         validation_result = validate_stock_code(symbol)
-        if not validation_result['is_valid']:
+        if not validation_result["is_valid"]:
             st.error("Please enter valid stock code (6 digits)")
             return
         symbol = symbol.strip()
@@ -187,13 +187,13 @@ def add_to_watchlist(symbol, services):
 
     # Get stock information
     try:
-        asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+        asset_info, metadata = services["asset_service"].get_or_create_asset(symbol)
 
         if asset_info:
             stock_name = asset_info.name
             st.session_state.watchlist[symbol] = {
                 "name": stock_name,
-                "added_date": datetime.now().strftime("%Y-%m-%d")
+                "added_date": datetime.now().strftime("%Y-%m-%d"),
             }
             save_watchlist(st.session_state.watchlist)
             st.success(f"✅ Added {stock_name} ({symbol}) to watchlist")
@@ -204,14 +204,16 @@ def add_to_watchlist(symbol, services):
     except Exception as e:
         st.error(f"Failed to add stock: {str(e)}")
 
+
 def remove_from_watchlist(symbol):
     """Remove stock from watchlist"""
     if symbol in st.session_state.watchlist:
-        stock_name = st.session_state.watchlist[symbol]['name']
+        stock_name = st.session_state.watchlist[symbol]["name"]
         del st.session_state.watchlist[symbol]
         save_watchlist(st.session_state.watchlist)
         st.success(f"✅ Removed {stock_name} ({symbol})")
         st.rerun()
+
 
 def display_watchlist_overview():
     """Display watchlist overview"""
@@ -233,28 +235,34 @@ def display_watchlist_overview():
         today = datetime.now()
         total_days = 0
         for stock in st.session_state.watchlist.values():
-            added_date = datetime.strptime(stock['added_date'], "%Y-%m-%d")
+            added_date = datetime.strptime(stock["added_date"], "%Y-%m-%d")
             days = (today - added_date).days
             total_days += days
-        avg_days = total_days // len(st.session_state.watchlist) if st.session_state.watchlist else 0
+        avg_days = (
+            total_days // len(st.session_state.watchlist) if st.session_state.watchlist else 0
+        )
         st.metric("Average Watch Days", f"{avg_days} days")
 
     with col3:
-        latest_added = max(st.session_state.watchlist.values(), key=lambda x: x['added_date'])['added_date']
+        latest_added = max(st.session_state.watchlist.values(), key=lambda x: x["added_date"])[
+            "added_date"
+        ]
         st.metric("Latest Added", latest_added)
-    
+
     # Stock list
     st.markdown("### 📊 Stock List")
 
     # Create table data
     table_data = []
     for symbol, info in st.session_state.watchlist.items():
-        table_data.append({
-            "Stock Code": symbol,
-            "Stock Name": info['name'],
-            "Added Date": info['added_date'],
-            "Actions": symbol
-        })
+        table_data.append(
+            {
+                "Stock Code": symbol,
+                "Stock Name": info["name"],
+                "Added Date": info["added_date"],
+                "Actions": symbol,
+            }
+        )
 
     if table_data:
         df = pd.DataFrame(table_data)
@@ -264,26 +272,27 @@ def display_watchlist_overview():
             col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 1, 1])
 
             with col1:
-                st.write(row['Stock Code'])
+                st.write(row["Stock Code"])
 
             with col2:
-                st.write(row['Stock Name'])
+                st.write(row["Stock Name"])
 
             with col3:
-                st.write(row['Added Date'])
+                st.write(row["Added Date"])
 
             with col4:
                 if st.button("📈 View", key=f"view_{row['Stock Code']}"):
-                    st.session_state.selected_stock = row['Stock Code']
+                    st.session_state.selected_stock = row["Stock Code"]
                     st.session_state.show_stock_detail = True
 
             with col5:
                 if st.button("🗑️ Remove", key=f"remove_{row['Stock Code']}"):
-                    remove_from_watchlist(row['Stock Code'])
-    
+                    remove_from_watchlist(row["Stock Code"])
+
     # Display selected stock details
-    if st.session_state.get('show_stock_detail', False) and st.session_state.get('selected_stock'):
+    if st.session_state.get("show_stock_detail", False) and st.session_state.get("selected_stock"):
         display_stock_detail(st.session_state.selected_stock)
+
 
 def display_stock_detail(symbol):
     """Display stock detailed information"""
@@ -302,37 +311,39 @@ def display_stock_detail(symbol):
         start_date = end_date - timedelta(days=7)
 
         with st.spinner("Getting stock data..."):
-            stock_data = services['stock_service'].get_stock_data(
+            stock_data = services["stock_service"].get_stock_data(
                 symbol=symbol,
-                start_date=start_date.strftime('%Y%m%d'),
-                end_date=end_date.strftime('%Y%m%d')
+                start_date=start_date.strftime("%Y%m%d"),
+                end_date=end_date.strftime("%Y%m%d"),
             )
-            asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+            asset_info, metadata = services["asset_service"].get_or_create_asset(symbol)
 
         if stock_data is not None and not stock_data.empty:
             df = stock_data.copy()
 
             # 确保日期列存在
-            if 'date' in df.columns:
-                df['trade_date'] = pd.to_datetime(df['date'])
-            elif 'trade_date' in df.columns:
-                df['trade_date'] = pd.to_datetime(df['trade_date'])
+            if "date" in df.columns:
+                df["trade_date"] = pd.to_datetime(df["date"])
+            elif "trade_date" in df.columns:
+                df["trade_date"] = pd.to_datetime(df["trade_date"])
 
             # 基础指标
             if ADVANCED_FEATURES:
                 metrics = calculate_basic_metrics(df)
             else:
                 # 简单指标计算
-                latest_price = df['close'].iloc[-1] if len(df) > 0 else 0
-                first_price = df['close'].iloc[0] if len(df) > 0 else latest_price
-                price_change = ((latest_price - first_price) / first_price * 100) if first_price != 0 else 0
+                latest_price = df["close"].iloc[-1] if len(df) > 0 else 0
+                first_price = df["close"].iloc[0] if len(df) > 0 else latest_price
+                price_change = (
+                    ((latest_price - first_price) / first_price * 100) if first_price != 0 else 0
+                )
 
                 metrics = {
-                    'latest_price': latest_price,
-                    'high_price': df['close'].max(),
-                    'low_price': df['close'].min(),
-                    'avg_price': df['close'].mean(),
-                    'price_change': price_change
+                    "latest_price": latest_price,
+                    "high_price": df["close"].max(),
+                    "low_price": df["close"].min(),
+                    "avg_price": df["close"].mean(),
+                    "price_change": price_change,
                 }
 
             col1, col2, col3, col4 = st.columns(4)
@@ -341,7 +352,7 @@ def display_stock_detail(symbol):
                 st.metric("Latest Price", f"¥{metrics.get('latest_price', 0):.2f}")
 
             with col2:
-                change = metrics.get('price_change', 0)
+                change = metrics.get("price_change", 0)
                 st.metric("Price Change", f"{change:.2f}%", delta=f"{change:.2f}%")
 
             with col3:
@@ -357,7 +368,8 @@ def display_stock_detail(symbol):
             else:
                 # Simple chart
                 import plotly.express as px
-                price_chart = px.line(df, x='trade_date', y='close', title=f"{symbol} Price Trend")
+
+                price_chart = px.line(df, x="trade_date", y="close", title=f"{symbol} Price Trend")
 
             st.plotly_chart(price_chart, use_container_width=True)
 
@@ -388,6 +400,7 @@ def display_stock_detail(symbol):
 
     except Exception as e:
         st.error(f"获取股票详情失败: {str(e)}")
+
 
 def display_batch_query_results(services):
     """显示批量查询结果（性能优化版本）"""
@@ -424,15 +437,19 @@ def display_batch_query_results(services):
                 watchlist_info = st.session_state.watchlist[symbol]
                 summary_info = summary_data.get(symbol, {})
 
-                batch_results.append({
-                    "股票代码": symbol,
-                    "股票名称": summary_info.get("name", watchlist_info.get("name", f"Stock {symbol}")),
-                    "行业": summary_info.get("industry", "其他"),
-                    "最新价格": summary_info.get("latest_price", "N/A"),
-                    "涨跌幅(%)": summary_info.get("price_change_pct", "N/A"),
-                    "数据来源": summary_info.get("data_source", "unknown"),
-                    "有价格数据": "✅" if summary_info.get("has_price_data") else "❌"
-                })
+                batch_results.append(
+                    {
+                        "股票代码": symbol,
+                        "股票名称": summary_info.get(
+                            "name", watchlist_info.get("name", f"Stock {symbol}")
+                        ),
+                        "行业": summary_info.get("industry", "其他"),
+                        "最新价格": summary_info.get("latest_price", "N/A"),
+                        "涨跌幅(%)": summary_info.get("price_change_pct", "N/A"),
+                        "数据来源": summary_info.get("data_source", "unknown"),
+                        "有价格数据": "✅" if summary_info.get("has_price_data") else "❌",
+                    }
+                )
 
             # 显示性能统计
             metadata = summary_result.get("metadata", {})
@@ -464,16 +481,12 @@ def display_batch_query_results(services):
 
                 # 应用样式
                 styled_df = df.copy()
-                styled_df['涨跌幅(%)'] = styled_df['涨跌幅(%)'].apply(format_price_change)
+                styled_df["涨跌幅(%)"] = styled_df["涨跌幅(%)"].apply(format_price_change)
 
-                st.dataframe(
-                    styled_df,
-                    use_container_width=True,
-                    hide_index=True
-                )
+                st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
                 # 统计信息
-                valid_changes = [x for x in df['涨跌幅(%)'] if isinstance(x, (int, float))]
+                valid_changes = [x for x in df["涨跌幅(%)"] if isinstance(x, (int, float))]
                 if valid_changes:
                     col1, col2, col3 = st.columns(3)
 
@@ -511,16 +524,16 @@ def display_basic_batch_query(services):
     for i, symbol in enumerate(symbols):
         try:
             # 获取资产信息
-            asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+            asset_info, metadata = services["asset_service"].get_or_create_asset(symbol)
 
             # 获取最新价格数据（最近1天）
             end_date = datetime.now().date()
             start_date = end_date - timedelta(days=1)
 
-            stock_data = services['stock_service'].get_stock_data(
+            stock_data = services["stock_service"].get_stock_data(
                 symbol=symbol,
-                start_date=start_date.strftime('%Y%m%d'),
-                end_date=end_date.strftime('%Y%m%d')
+                start_date=start_date.strftime("%Y%m%d"),
+                end_date=end_date.strftime("%Y%m%d"),
             )
 
             # 处理数据
@@ -530,31 +543,39 @@ def display_basic_batch_query(services):
             if stock_data is not None and not stock_data.empty:
                 latest_price = f"¥{stock_data['close'].iloc[-1]:.2f}"
                 if len(stock_data) > 1:
-                    first_price = stock_data['close'].iloc[0]
-                    last_price = stock_data['close'].iloc[-1]
-                    change_pct = ((last_price - first_price) / first_price * 100)
+                    first_price = stock_data["close"].iloc[0]
+                    last_price = stock_data["close"].iloc[-1]
+                    change_pct = (last_price - first_price) / first_price * 100
                     price_change = f"{change_pct:.2f}%"
 
-            batch_results.append({
-                "股票代码": symbol,
-                "股票名称": asset_info.name if asset_info else st.session_state.watchlist[symbol]['name'],
-                "行业": asset_info.industry if asset_info else "N/A",
-                "最新价格": latest_price,
-                "涨跌幅": price_change,
-                "数据来源": asset_info.data_source if asset_info else "N/A",
-                "状态": "✅" if stock_data is not None and not stock_data.empty else "❌"
-            })
+            batch_results.append(
+                {
+                    "股票代码": symbol,
+                    "股票名称": (
+                        asset_info.name
+                        if asset_info
+                        else st.session_state.watchlist[symbol]["name"]
+                    ),
+                    "行业": asset_info.industry if asset_info else "N/A",
+                    "最新价格": latest_price,
+                    "涨跌幅": price_change,
+                    "数据来源": asset_info.data_source if asset_info else "N/A",
+                    "状态": "✅" if stock_data is not None and not stock_data.empty else "❌",
+                }
+            )
 
         except Exception as e:
-            batch_results.append({
-                "股票代码": symbol,
-                "股票名称": st.session_state.watchlist[symbol]['name'],
-                "行业": "N/A",
-                "最新价格": "错误",
-                "涨跌幅": "N/A",
-                "数据来源": "N/A",
-                "状态": "❌"
-            })
+            batch_results.append(
+                {
+                    "股票代码": symbol,
+                    "股票名称": st.session_state.watchlist[symbol]["name"],
+                    "行业": "N/A",
+                    "最新价格": "错误",
+                    "涨跌幅": "N/A",
+                    "数据来源": "N/A",
+                    "状态": "❌",
+                }
+            )
 
         # 更新进度
         progress_bar.progress((i + 1) / len(symbols))
@@ -571,19 +592,16 @@ def display_basic_batch_query(services):
         with col1:
             st.metric("总股票数", len(batch_results))
         with col2:
-            success_count = len([r for r in batch_results if r['状态'] == '✅'])
+            success_count = len([r for r in batch_results if r["状态"] == "✅"])
             st.metric("成功查询", success_count)
         with col3:
-            error_count = len([r for r in batch_results if r['状态'] == '❌'])
+            error_count = len([r for r in batch_results if r["状态"] == "❌"])
             st.metric("查询失败", error_count)
         with col4:
             st.metric("查询完成", "100%")
 
-        st.dataframe(
-            df,
-            use_container_width=True,
-            hide_index=True
-        )
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
 
 def export_watchlist():
     """导出自选股列表"""
@@ -591,27 +609,26 @@ def export_watchlist():
         # 创建导出数据
         export_data = []
         for symbol, info in st.session_state.watchlist.items():
-            export_data.append({
-                "股票代码": symbol,
-                "股票名称": info['name'],
-                "添加日期": info['added_date']
-            })
+            export_data.append(
+                {"股票代码": symbol, "股票名称": info["name"], "添加日期": info["added_date"]}
+            )
 
         if export_data:
             df = pd.DataFrame(export_data)
-            csv = df.to_csv(index=False, encoding='utf-8-sig')
+            csv = df.to_csv(index=False, encoding="utf-8-sig")
 
             st.download_button(
                 label="📥 下载自选股列表 (CSV)",
                 data=csv,
                 file_name=f"自选股列表_{datetime.now().strftime('%Y%m%d')}.csv",
-                mime="text/csv"
+                mime="text/csv",
             )
         else:
             st.info("暂无自选股可导出")
 
     except Exception as e:
         st.error(f"导出失败: {str(e)}")
+
 
 if __name__ == "__main__":
     main()

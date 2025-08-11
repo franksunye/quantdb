@@ -18,7 +18,7 @@ import pandas as pd
 import qdb
 
 # Configuration
-STOCK_SYMBOL = "00700"   # Tencent Holdings
+STOCK_SYMBOL = "00700"  # Tencent Holdings
 BENCH_SYMBOLS = ["02800", "00941", "00388"]  # Multiple benchmark options
 DAYS = 5  # Test cache hit after 20-day data is cached
 
@@ -116,4 +116,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

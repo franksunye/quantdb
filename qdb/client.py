@@ -17,6 +17,7 @@ sys.path.insert(0, str(project_root))
 
 from .exceptions import QDBError, CacheError, DataError, NetworkError
 
+
 class QDBClient:
     """QDB client, manages local cache and data acquisition"""
 
@@ -34,7 +35,7 @@ class QDBClient:
         self._stock_service = None
         self._asset_service = None
         self._initialized = False
-        
+
     def _ensure_cache_dir(self):
         """Ensure cache directory exists"""
         Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
@@ -78,14 +79,14 @@ class QDBClient:
 
         except Exception as e:
             raise QDBError(f"Failed to initialize QDB client: {str(e)}")
-    
+
     def get_stock_data(
         self,
         symbol: str,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         days: Optional[int] = None,
-        adjust: str = ""
+        adjust: str = "",
     ) -> pd.DataFrame:
         """Get historical stock data with intelligent caching.
 
@@ -159,24 +160,20 @@ class QDBClient:
             # Handle days parameter
             if days is not None:
                 end_date = datetime.now().strftime("%Y%m%d")
-                start_date = (datetime.now() - timedelta(days=days*2)).strftime("%Y%m%d")  # *2 to ensure enough trading days
+                start_date = (datetime.now() - timedelta(days=days * 2)).strftime(
+                    "%Y%m%d"
+                )  # *2 to ensure enough trading days
 
             # Use core stock data service with intelligent caching
             return self._stock_service.get_stock_data(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
+                symbol=symbol, start_date=start_date, end_date=end_date, adjust=adjust
             )
 
         except Exception as e:
             raise DataError(f"Failed to get stock data for {symbol}: {str(e)}")
-    
+
     def get_multiple_stocks(
-        self, 
-        symbols: List[str], 
-        days: int = 30,
-        **kwargs
+        self, symbols: List[str], days: int = 30, **kwargs
     ) -> Dict[str, pd.DataFrame]:
         """
         Get multiple stocks data in batch
@@ -197,7 +194,7 @@ class QDBClient:
                 print(f"⚠️ Failed to get data for {symbol}: {e}")
                 result[symbol] = pd.DataFrame()  # Return empty DataFrame
         return result
-    
+
     def get_asset_info(self, symbol: str) -> Dict[str, Any]:
         """
         Get basic asset information
@@ -224,19 +221,19 @@ class QDBClient:
                     "currency": asset.currency,
                     "data_source": asset.data_source,
                     "status": "Active",
-                    "created": created
+                    "created": created,
                 }
             else:
                 # Fallback to basic information
                 return {
                     "symbol": symbol,
                     "name": f"Stock {symbol}",
-                    "market": "A-Share" if symbol.startswith(('0', '3', '6')) else "Unknown",
-                    "status": "Active"
+                    "market": "A-Share" if symbol.startswith(("0", "3", "6")) else "Unknown",
+                    "status": "Active",
                 }
         except Exception as e:
             raise DataError(f"Failed to get asset info for {symbol}: {str(e)}")
-    
+
     def cache_stats(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics and performance metrics.
 
@@ -312,31 +309,35 @@ class QDBClient:
             cache_size = 0
             if Path(self.cache_dir).exists():
                 cache_size = sum(
-                    f.stat().st_size for f in Path(self.cache_dir).rglob('*') if f.is_file()
-                ) / (1024 * 1024)  # MB
+                    f.stat().st_size for f in Path(self.cache_dir).rglob("*") if f.is_file()
+                ) / (
+                    1024 * 1024
+                )  # MB
 
             # Combine directory stats with database stats
             stats = {
                 "cache_dir": self.cache_dir,
                 "cache_size_mb": round(cache_size, 2),
                 "initialized": self._initialized,
-                "status": "Running" if self._initialized else "Not initialized"
+                "status": "Running" if self._initialized else "Not initialized",
             }
 
             # Add database statistics if available
-            if db_stats and not db_stats.get('error'):
-                stats.update({
-                    "total_assets": db_stats.get("total_assets", 0),
-                    "total_data_points": db_stats.get("total_data_points", 0),
-                    "date_range": db_stats.get("date_range", {}),
-                    "top_assets": db_stats.get("top_assets", [])
-                })
+            if db_stats and not db_stats.get("error"):
+                stats.update(
+                    {
+                        "total_assets": db_stats.get("total_assets", 0),
+                        "total_data_points": db_stats.get("total_data_points", 0),
+                        "date_range": db_stats.get("date_range", {}),
+                        "top_assets": db_stats.get("top_assets", []),
+                    }
+                )
 
             return stats
 
         except Exception as e:
             raise CacheError(f"Failed to get cache statistics: {str(e)}")
-    
+
     def clear_cache(self, symbol: Optional[str] = None):
         """
         Clear cache
@@ -351,6 +352,7 @@ class QDBClient:
                 # Clear cache directory
                 if Path(self.cache_dir).exists():
                     import shutil
+
                     shutil.rmtree(self.cache_dir)
                     Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
                     print("✅ Cache cleared")
@@ -451,18 +453,14 @@ class QDBClient:
             else:
                 print(f"⚠️ No financial summary data available for {symbol}")
                 return {
-                    'symbol': symbol,
-                    'error': 'No financial summary data available',
-                    'timestamp': datetime.now().isoformat()
+                    "symbol": symbol,
+                    "error": "No financial summary data available",
+                    "timestamp": datetime.now().isoformat(),
                 }
 
         except Exception as e:
             print(f"⚠️ Error getting financial summary for {symbol}: {e}")
-            return {
-                'symbol': symbol,
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
-            }
+            return {"symbol": symbol, "error": str(e), "timestamp": datetime.now().isoformat()}
 
     def get_financial_indicators(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
         """Get comprehensive financial indicators and ratios for detailed analysis.
@@ -556,18 +554,14 @@ class QDBClient:
             else:
                 print(f"⚠️ No financial indicators data available for {symbol}")
                 return {
-                    'symbol': symbol,
-                    'error': 'No financial indicators data available',
-                    'timestamp': datetime.now().isoformat()
+                    "symbol": symbol,
+                    "error": "No financial indicators data available",
+                    "timestamp": datetime.now().isoformat(),
                 }
 
         except Exception as e:
             print(f"⚠️ Error getting financial indicators for {symbol}: {e}")
-            return {
-                'symbol': symbol,
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
-            }
+            return {"symbol": symbol, "error": str(e), "timestamp": datetime.now().isoformat()}
 
     def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
         """Get real-time stock data"""
@@ -578,7 +572,9 @@ class QDBClient:
         except Exception as e:
             raise DataError(f"Failed to get realtime data for {symbol}: {str(e)}")
 
-    def get_realtime_data_batch(self, symbols: List[str], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+    def get_realtime_data_batch(
+        self, symbols: List[str], force_refresh: bool = False
+    ) -> Dict[str, Dict[str, Any]]:
         """Get realtime data for multiple stocks"""
         self._lazy_init()
 
@@ -587,7 +583,9 @@ class QDBClient:
         except Exception as e:
             raise DataError(f"Failed to get batch realtime data: {str(e)}")
 
-    def get_stock_list(self, market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+    def get_stock_list(
+        self, market: Optional[str] = None, force_refresh: bool = False
+    ) -> List[Dict[str, Any]]:
         """Get stock list"""
         self._lazy_init()
 
@@ -595,13 +593,19 @@ class QDBClient:
             # Use AKShare adapter to get stock list
             df = self._akshare_adapter.get_stock_list(market)
             if not df.empty:
-                return df.to_dict('records')
+                return df.to_dict("records")
             else:
                 return []
         except Exception as e:
             raise DataError(f"Failed to get stock list: {str(e)}")
 
-    def get_index_data(self, symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> pd.DataFrame:
+    def get_index_data(
+        self,
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        **kwargs,
+    ) -> pd.DataFrame:
         """Get index historical data"""
         self._lazy_init()
 
@@ -626,7 +630,7 @@ class QDBClient:
         try:
             df = self._index_service.get_index_list(category)
             if not df.empty:
-                return df.to_dict('records')
+                return df.to_dict("records")
             else:
                 return []
         except Exception as e:
@@ -642,8 +646,10 @@ class QDBClient:
         """AKShare compatible interface"""
         return self.get_stock_data(symbol, **kwargs)
 
+
 # Global client instance
 _global_client: Optional[QDBClient] = None
+
 
 def _get_client():
     """Get global client instance"""
@@ -652,6 +658,7 @@ def _get_client():
         # Use the new core-integrated QDBClient
         _global_client = QDBClient()
     return _global_client
+
 
 # Public API functions
 def init(cache_dir: Optional[str] = None):
@@ -666,7 +673,10 @@ def init(cache_dir: Optional[str] = None):
     _global_client = QDBClient(cache_dir)
     print(f"✅ QDB initialized, cache directory: {_global_client.cache_dir}")
 
-def get_stock_data(symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> pd.DataFrame:
+
+def get_stock_data(
+    symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs
+) -> pd.DataFrame:
     """Get historical stock data with intelligent caching.
 
     Convenience function that retrieves historical stock price data for Chinese
@@ -699,13 +709,16 @@ def get_stock_data(symbol: str, start_date: Optional[str] = None, end_date: Opti
     """
     return _get_client().get_stock_data(symbol, start_date=start_date, end_date=end_date, **kwargs)
 
+
 def get_multiple_stocks(symbols: List[str], **kwargs) -> Dict[str, pd.DataFrame]:
     """Get multiple stocks data in batch"""
     return _get_client().get_multiple_stocks(symbols, **kwargs)
 
+
 def get_asset_info(symbol: str) -> Dict[str, Any]:
     """Get asset information"""
     return _get_client().get_asset_info(symbol)
+
 
 def cache_stats() -> Dict[str, Any]:
     """Get comprehensive cache statistics and performance metrics.
@@ -743,9 +756,11 @@ def cache_stats() -> Dict[str, Any]:
     """
     return _get_client().cache_stats()
 
+
 def clear_cache(symbol: Optional[str] = None):
     """Clear cache"""
     return _get_client().clear_cache(symbol)
+
 
 # AKShare compatibility interface
 def stock_zh_a_hist(symbol: str, **kwargs) -> pd.DataFrame:
@@ -761,6 +776,7 @@ def stock_zh_a_hist(symbol: str, **kwargs) -> pd.DataFrame:
     """
     return get_stock_data(symbol, **kwargs)
 
+
 # Configuration functions
 def set_cache_dir(cache_dir: str):
     """Set cache directory"""
@@ -768,10 +784,12 @@ def set_cache_dir(cache_dir: str):
     _global_client = QDBClient(cache_dir)
     print(f"✅ Cache directory set to: {cache_dir}")
 
+
 def set_log_level(level: str):
     """Set log level"""
     os.environ["LOG_LEVEL"] = level.upper()
     print(f"✅ Log level set to: {level.upper()}")
+
 
 def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
     """Get real-time stock quote data with optional caching.
@@ -842,7 +860,10 @@ def get_realtime_data(symbol: str, force_refresh: bool = False) -> Dict[str, Any
     """
     return _get_client().get_realtime_data(symbol, force_refresh)
 
-def get_realtime_data_batch(symbols: List[str], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+
+def get_realtime_data_batch(
+    symbols: List[str], force_refresh: bool = False
+) -> Dict[str, Dict[str, Any]]:
     """
     Get realtime data for multiple stocks
 
@@ -855,7 +876,10 @@ def get_realtime_data_batch(symbols: List[str], force_refresh: bool = False) -> 
     """
     return _get_client().get_realtime_data_batch(symbols, force_refresh)
 
-def get_stock_list(market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+
+def get_stock_list(
+    market: Optional[str] = None, force_refresh: bool = False
+) -> List[Dict[str, Any]]:
     """Get complete stock list with market filtering and intelligent caching.
 
     Retrieves a comprehensive list of all available stocks with basic information
@@ -927,12 +951,13 @@ def get_stock_list(market: Optional[str] = None, force_refresh: bool = False) ->
     """
     return _get_client().get_stock_list(market, force_refresh)
 
+
 def get_index_data(
     symbol: str,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     period: str = "daily",
-    force_refresh: bool = False
+    force_refresh: bool = False,
 ) -> pd.DataFrame:
     """Get historical index data with intelligent caching and multiple frequencies.
 
@@ -1012,6 +1037,7 @@ def get_index_data(
     """
     return _get_client().get_index_data(symbol, start_date, end_date, period, force_refresh)
 
+
 def get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
     """Get real-time index data with current market status and performance metrics.
 
@@ -1090,7 +1116,10 @@ def get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, An
     """
     return _get_client().get_index_realtime(symbol, force_refresh)
 
-def get_index_list(category: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+
+def get_index_list(
+    category: Optional[str] = None, force_refresh: bool = False
+) -> List[Dict[str, Any]]:
     """Get comprehensive list of market indices with category filtering and caching.
 
     Retrieves a complete list of available Chinese market indices including
@@ -1178,6 +1207,7 @@ def get_index_list(category: Optional[str] = None, force_refresh: bool = False) 
     """
     return _get_client().get_index_list(category, force_refresh)
 
+
 def get_financial_summary(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
     """Get comprehensive financial summary data for a stock with intelligent caching.
 
@@ -1208,6 +1238,7 @@ def get_financial_summary(symbol: str, force_refresh: bool = False) -> Dict[str,
         See QDBClient.get_financial_summary() for complete documentation.
     """
     return _get_client().get_financial_summary(symbol, force_refresh)
+
 
 def get_financial_indicators(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
     """Get comprehensive financial indicators and ratios for detailed analysis.

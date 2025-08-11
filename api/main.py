@@ -17,6 +17,7 @@ from fastapi.responses import HTMLResponse
 # Setup logger
 logger = get_logger(__name__)
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
@@ -26,13 +27,14 @@ async def lifespan(app: FastAPI):
     # Shutdown
     logger.info("Shutting down QuantDB API")
 
+
 # Create FastAPI app
 app = FastAPI(
     title="QuantDB API",
     description="Financial data API service using core business logic",
     version="2.1.0",
     lifespan=lifespan,
-    debug=DEBUG
+    debug=DEBUG,
 )
 
 # Add CORS middleware
@@ -47,11 +49,13 @@ app.add_middleware(
 # Register exception handlers
 register_exception_handlers(app)
 
+
 # Root endpoint
 @app.get("/")
 async def root():
     """Root endpoint."""
     return {"message": "Welcome to QuantDB API", "version": "2.1.0"}
+
 
 # Health check endpoint
 @app.get("/health")
@@ -59,28 +63,29 @@ async def health_check():
     """Health check endpoint."""
     return {"status": "healthy", "service": "quantdb-api", "version": "2.1.0"}
 
+
 # V1 Health check endpoint
 @app.get("/api/v1/health")
 async def health_check_v1():
     """V1 Health check endpoint."""
     from datetime import datetime
-    return {
-        "status": "ok",
-        "version": "2.1.0",
-        "timestamp": datetime.now().isoformat()
-    }
+
+    return {"status": "ok", "version": "2.1.0", "timestamp": datetime.now().isoformat()}
+
 
 # V2 Health check endpoint
 @app.get("/api/v2/health")
 async def health_check_v2():
     """V2 Health check endpoint."""
     from datetime import datetime
+
     return {
         "status": "ok",
         "version": "2.1.0",
         "api_version": "v2",
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
+
 
 # OpenAPI and Swagger UI endpoints for v2
 @app.get("/api/v2/openapi.json")
@@ -88,87 +93,51 @@ async def get_openapi_v2():
     """Get OpenAPI JSON specification for v2."""
     return app.openapi()
 
+
 @app.get("/api/v2/docs", response_class=HTMLResponse)
 async def get_swagger_ui_v2():
     """Get Swagger UI for v2."""
     from fastapi.openapi.docs import get_swagger_ui_html
+
     return get_swagger_ui_html(
-        openapi_url="/api/v2/openapi.json",
-        title="QuantDB API v2 - Swagger UI"
+        openapi_url="/api/v2/openapi.json", title="QuantDB API v2 - Swagger UI"
     )
+
 
 # Import and include routers
 from api.routes import assets, stocks, cache, batch, version, asset_management
 from api.routers import realtime, index_data, financial
 
-app.include_router(
-    assets.router,
-    prefix=f"{API_PREFIX}/assets",
-    tags=["assets"]
-)
+app.include_router(assets.router, prefix=f"{API_PREFIX}/assets", tags=["assets"])
 
-app.include_router(
-    stocks.router,
-    prefix=f"{API_PREFIX}/stocks",
-    tags=["stocks"]
-)
+app.include_router(stocks.router, prefix=f"{API_PREFIX}/stocks", tags=["stocks"])
 
 # Add historical data route alias for backward compatibility
-app.include_router(
-    stocks.router,
-    prefix=f"{API_PREFIX}/historical",
-    tags=["historical"]
-)
+app.include_router(stocks.router, prefix=f"{API_PREFIX}/historical", tags=["historical"])
 
-app.include_router(
-    cache.router,
-    prefix=f"{API_PREFIX}/cache",
-    tags=["cache"]
-)
+app.include_router(cache.router, prefix=f"{API_PREFIX}/cache", tags=["cache"])
 
-app.include_router(
-    batch.router,
-    prefix=f"{API_PREFIX}/batch",
-    tags=["batch"]
-)
+app.include_router(batch.router, prefix=f"{API_PREFIX}/batch", tags=["batch"])
 
-app.include_router(
-    version.router,
-    prefix=f"{API_PREFIX}/version",
-    tags=["version"]
-)
+app.include_router(version.router, prefix=f"{API_PREFIX}/version", tags=["version"])
 
 # Add v2 version router
-app.include_router(
-    version.router,
-    prefix="/api/v2/version",
-    tags=["version-v2"]
-)
+app.include_router(version.router, prefix="/api/v2/version", tags=["version-v2"])
 
 # Add asset management router
 app.include_router(
-    asset_management.router,
-    prefix=f"{API_PREFIX}/management",
-    tags=["asset-management"]
+    asset_management.router, prefix=f"{API_PREFIX}/management", tags=["asset-management"]
 )
 
 # Add realtime data router
-app.include_router(
-    realtime.router,
-    tags=["realtime"]
-)
+app.include_router(realtime.router, tags=["realtime"])
 
 # Add index data router
-app.include_router(
-    index_data.router,
-    tags=["index"]
-)
+app.include_router(index_data.router, tags=["index"])
 
 # Add financial data router
-app.include_router(
-    financial.router,
-    tags=["financial"]
-)
+app.include_router(financial.router, tags=["financial"])
+
 
 def run_server():
     """Run the API server with production settings"""
@@ -183,13 +152,8 @@ def run_server():
     logger.info(f"📡 API Documentation: http://{host}:{port}/docs")
     logger.info(f"🔍 Health Check: http://{host}:{port}/health")
 
-    uvicorn.run(
-        app,
-        host=host,
-        port=port,
-        log_level="info",
-        access_log=True
-    )
+    uvicorn.run(app, host=host, port=port, log_level="info", access_log=True)
+
 
 if __name__ == "__main__":
     run_server()
