@@ -96,17 +96,17 @@ class SimpleQDBClient:
             raise DataError("AKShare not installed, cannot get stock data")
         
         try:
-            # 处理days参数
+            # Handle days parameter
             if days is not None:
                 end_date = datetime.now().strftime("%Y%m%d")
                 start_date = (datetime.now() - timedelta(days=days*2)).strftime("%Y%m%d")
-            
-            # 首先尝试从缓存获取
+
+            # Try to get from cache first
             cached_data = self._get_cached_data(symbol, start_date, end_date)
-            
-            # 如果缓存不完整，从AKShare获取
+
+            # If cache is incomplete, fetch from AKShare
             if cached_data.empty or len(cached_data) < (days or 5):
-                print(f"📡 从AKShare获取 {symbol} 数据...")
+                print(f"📡 Fetching {symbol} data from AKShare...")
                 fresh_data = ak.stock_zh_a_hist(
                     symbol=symbol,
                     start_date=start_date,
@@ -115,26 +115,26 @@ class SimpleQDBClient:
                 )
 
                 if not fresh_data.empty:
-                    # 标准化列名
+                    # Standardize column names
                     fresh_data = self._standardize_columns(fresh_data)
-                    # 保存到缓存
+                    # Save to cache
                     self._save_to_cache(symbol, fresh_data)
-                    print(f"✅ 获取到 {len(fresh_data)} 条数据")
+                    print(f"✅ Retrieved {len(fresh_data)} records")
                     return fresh_data
                 else:
-                    print("⚠️ AKShare返回空数据")
+                    print("⚠️ AKShare returned empty data")
                     return cached_data
             else:
-                print(f"🚀 从缓存获取 {symbol} 数据 ({len(cached_data)} 条)")
+                print(f"🚀 Loading {symbol} data from cache ({len(cached_data)} records)")
                 return cached_data
                 
         except Exception as e:
-            raise DataError(f"获取股票数据失败 {symbol}: {str(e)}")
+            raise DataError(f"Failed to get stock data for {symbol}: {str(e)}")
 
     def _standardize_columns(self, data: pd.DataFrame) -> pd.DataFrame:
-        """标准化列名和数据格式"""
+        """Standardize column names and data format"""
         try:
-            # AKShare返回的列名映射
+            # AKShare column name mapping
             column_mapping = {
                 '日期': 'date',
                 '开盘': 'open',
@@ -145,13 +145,13 @@ class SimpleQDBClient:
                 '成交额': 'amount'
             }
 
-            # 重命名列
+            # Rename columns
             data_copy = data.copy()
             for chinese_name, english_name in column_mapping.items():
                 if chinese_name in data_copy.columns:
                     data_copy.rename(columns={chinese_name: english_name}, inplace=True)
 
-            # 设置日期索引
+            # Set date index
             if 'date' in data_copy.columns:
                 data_copy['date'] = pd.to_datetime(data_copy['date'])
                 data_copy.set_index('date', inplace=True)
@@ -159,11 +159,11 @@ class SimpleQDBClient:
             return data_copy
 
         except Exception as e:
-            print(f"⚠️ 数据标准化失败: {e}")
+            print(f"⚠️ Data standardization failed: {e}")
             return data
     
     def _get_cached_data(self, symbol: str, start_date: str, end_date: str) -> pd.DataFrame:
-        """从缓存获取数据"""
+        """Get data from cache"""
         try:
             conn = sqlite3.connect(self.db_path)
             
@@ -184,23 +184,23 @@ class SimpleQDBClient:
             return df
             
         except Exception as e:
-            print(f"⚠️ 缓存读取失败: {e}")
+            print(f"⚠️ Cache read failed: {e}")
             return pd.DataFrame()
-    
+
     def _save_to_cache(self, symbol: str, data: pd.DataFrame):
-        """保存数据到缓存"""
+        """Save data to cache"""
         try:
             conn = sqlite3.connect(self.db_path)
 
-            # 准备数据
+            # Prepare data
             data_to_save = data.copy()
             data_to_save['symbol'] = symbol
 
-            # 处理日期索引
+            # Handle date index
             if hasattr(data_to_save.index, 'strftime'):
                 data_to_save['date'] = data_to_save.index.strftime('%Y%m%d')
             else:
-                # 如果没有日期索引，使用行号生成日期
+                # If no date index, generate dates using row numbers
                 from datetime import datetime, timedelta
                 base_date = datetime.now()
                 data_to_save['date'] = [
@@ -208,7 +208,7 @@ class SimpleQDBClient:
                     for i in range(len(data_to_save))
                 ]
 
-            # 选择需要的列
+            # Select required columns
             columns = ['symbol', 'date', 'open', 'high', 'low', 'close', 'volume']
             available_columns = [col for col in columns if col in data_to_save.columns]
 
@@ -221,47 +221,47 @@ class SimpleQDBClient:
                 )
 
             conn.close()
-            print(f"💾 已缓存 {len(data_to_save)} 条数据")
+            print(f"💾 Cached {len(data_to_save)} records")
 
         except Exception as e:
-            print(f"⚠️ 缓存保存失败: {e}")
+            print(f"⚠️ Cache save failed: {e}")
     
     def get_multiple_stocks(
-        self, 
-        symbols: List[str], 
+        self,
+        symbols: List[str],
         days: int = 30,
         **kwargs
     ) -> Dict[str, pd.DataFrame]:
-        """批量获取多只股票数据"""
+        """Get multiple stocks data in batch"""
         result = {}
         for symbol in symbols:
             try:
                 result[symbol] = self.get_stock_data(symbol, days=days, **kwargs)
             except Exception as e:
-                print(f"⚠️ 获取 {symbol} 数据失败: {e}")
+                print(f"⚠️ Failed to get data for {symbol}: {e}")
                 result[symbol] = pd.DataFrame()
         return result
-    
+
     def get_asset_info(self, symbol: str) -> Dict[str, Any]:
-        """获取资产基本信息"""
+        """Get basic asset information"""
         return {
             "symbol": symbol,
-            "name": f"股票{symbol}",
-            "market": "A股" if symbol.startswith(('0', '3', '6')) else "未知",
-            "status": "正常"
+            "name": f"Stock {symbol}",
+            "market": "A-Share" if symbol.startswith(('0', '3', '6')) else "Unknown",
+            "status": "Active"
         }
     
     def cache_stats(self) -> Dict[str, Any]:
-        """获取缓存统计"""
+        """Get cache statistics"""
         try:
-            # 计算缓存大小
+            # Calculate cache size
             cache_size = 0
             if Path(self.cache_dir).exists():
                 cache_size = sum(
                     f.stat().st_size for f in Path(self.cache_dir).rglob('*') if f.is_file()
                 ) / (1024 * 1024)
-            
-            # 获取数据库统计
+
+            # Get database statistics
             record_count = 0
             if os.path.exists(self.db_path):
                 conn = sqlite3.connect(self.db_path)
@@ -269,7 +269,7 @@ class SimpleQDBClient:
                 cursor.execute('SELECT COUNT(*) FROM stock_data')
                 record_count = cursor.fetchone()[0]
                 conn.close()
-            
+
             return {
                 "cache_dir": self.cache_dir,
                 "cache_size_mb": round(cache_size, 2),
@@ -277,12 +277,12 @@ class SimpleQDBClient:
                 "akshare_available": AKSHARE_AVAILABLE,
                 "status": "Running"
             }
-            
+
         except Exception as e:
-            raise CacheError(f"获取缓存统计失败: {str(e)}")
+            raise CacheError(f"Failed to get cache statistics: {str(e)}")
     
     def clear_cache(self, symbol: Optional[str] = None):
-        """清除缓存"""
+        """Clear cache"""
         try:
             if symbol:
                 conn = sqlite3.connect(self.db_path)
@@ -290,15 +290,15 @@ class SimpleQDBClient:
                 cursor.execute('DELETE FROM stock_data WHERE symbol = ?', (symbol,))
                 conn.commit()
                 conn.close()
-                print(f"✅ 已清除 {symbol} 的缓存")
+                print(f"✅ Cleared cache for {symbol}")
             else:
                 if os.path.exists(self.db_path):
                     os.remove(self.db_path)
                     self._init_database()
                     print("✅ Cache cleared")
-                
+
         except Exception as e:
-            raise CacheError(f"清除缓存失败: {str(e)}")
+            raise CacheError(f"Failed to clear cache: {str(e)}")
 
     def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
         """
@@ -778,15 +778,15 @@ class SimpleQDBClient:
             Mock stock list
         """
         mock_stocks = [
-            {'symbol': '000001', 'name': '平安银行', 'market': 'SZSE'},
-            {'symbol': '000002', 'name': '万科A', 'market': 'SZSE'},
-            {'symbol': '600000', 'name': '浦发银行', 'market': 'SHSE'},
-            {'symbol': '600036', 'name': '招商银行', 'market': 'SHSE'},
-            {'symbol': '600519', 'name': '贵州茅台', 'market': 'SHSE'},
-            {'symbol': '000858', 'name': '五粮液', 'market': 'SZSE'},
-            {'symbol': '300015', 'name': '爱尔眼科', 'market': 'SZSE'},
-            {'symbol': '00700', 'name': '腾讯控股', 'market': 'HKEX'},
-            {'symbol': '09988', 'name': '阿里巴巴-SW', 'market': 'HKEX'},
+            {'symbol': '000001', 'name': 'Ping An Bank', 'market': 'SZSE'},
+            {'symbol': '000002', 'name': 'China Vanke', 'market': 'SZSE'},
+            {'symbol': '600000', 'name': 'Shanghai Pudong Development Bank', 'market': 'SHSE'},
+            {'symbol': '600036', 'name': 'China Merchants Bank', 'market': 'SHSE'},
+            {'symbol': '600519', 'name': 'Kweichow Moutai', 'market': 'SHSE'},
+            {'symbol': '000858', 'name': 'Wuliangye Yibin', 'market': 'SZSE'},
+            {'symbol': '300015', 'name': 'Aier Eye Hospital', 'market': 'SZSE'},
+            {'symbol': '00700', 'name': 'Tencent Holdings', 'market': 'HKEX'},
+            {'symbol': '09988', 'name': 'Alibaba Group-SW', 'market': 'HKEX'},
         ]
 
         # Apply market filter
@@ -1262,13 +1262,13 @@ class SimpleQDBClient:
         import random
 
         mock_indexes = [
-            {'symbol': '000001', 'name': '上证指数', 'category': '沪深重要指数'},
-            {'symbol': '399001', 'name': '深证成指', 'category': '沪深重要指数'},
-            {'symbol': '399006', 'name': '创业板指', 'category': '沪深重要指数'},
-            {'symbol': '000300', 'name': '沪深300', 'category': '沪深重要指数'},
-            {'symbol': '000016', 'name': '上证50', 'category': '上证系列指数'},
-            {'symbol': '000905', 'name': '中证500', 'category': '中证系列指数'},
-            {'symbol': '399005', 'name': '中小100', 'category': '深证系列指数'},
+            {'symbol': '000001', 'name': 'Shanghai Composite Index', 'category': 'Major Indices'},
+            {'symbol': '399001', 'name': 'Shenzhen Component Index', 'category': 'Major Indices'},
+            {'symbol': '399006', 'name': 'ChiNext Index', 'category': 'Major Indices'},
+            {'symbol': '000300', 'name': 'CSI 300 Index', 'category': 'Major Indices'},
+            {'symbol': '000016', 'name': 'SSE 50 Index', 'category': 'SSE Indices'},
+            {'symbol': '000905', 'name': 'CSI 500 Index', 'category': 'CSI Indices'},
+            {'symbol': '399005', 'name': 'SZSE SME 100 Index', 'category': 'SZSE Indices'},
         ]
 
         # Apply category filter
@@ -1315,25 +1315,25 @@ class SimpleQDBClient:
             return True  # Default to trading hours for safety
 
 
-# 全局简化客户端实例
+# Global simplified client instance
 _simple_client: Optional[SimpleQDBClient] = None
 
 def get_simple_client() -> SimpleQDBClient:
-    """获取全局简化客户端实例"""
+    """Get global simplified client instance"""
     global _simple_client
     if _simple_client is None:
         _simple_client = SimpleQDBClient()
     return _simple_client
 
-# 简化的公开API
+# Simplified public API
 def simple_get_stock_data(symbol: str, **kwargs) -> pd.DataFrame:
-    """简化版获取股票数据"""
+    """Simplified version to get stock data"""
     return get_simple_client().get_stock_data(symbol, **kwargs)
 
 def simple_cache_stats() -> Dict[str, Any]:
-    """简化版缓存统计"""
+    """Simplified version to get cache statistics"""
     return get_simple_client().cache_stats()
 
 def simple_get_asset_info(symbol: str) -> Dict[str, Any]:
-    """简化版获取资产信息"""
+    """Simplified version to get asset information"""
     return get_simple_client().get_asset_info(symbol)

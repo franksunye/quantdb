@@ -49,22 +49,22 @@ class QDBClient:
             db_path = os.path.join(self.cache_dir, "qdb_cache.db")
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
 
-            # 导入核心组件（避免导入FastAPI相关模块）
+            # Import core components (avoid importing FastAPI related modules)
             from core.database.connection import get_db, Base, engine
             from core.cache.akshare_adapter import AKShareAdapter
 
-            # 创建数据库表
+            # Create database tables
             Base.metadata.create_all(bind=engine)
 
-            # 初始化组件
+            # Initialize components
             self._db_session = next(get_db())
             self._akshare_adapter = AKShareAdapter()
 
-            # 简化版服务（避免导入复杂的服务层）
+            # Simplified service (avoid importing complex service layer)
             self._initialized = True
 
         except Exception as e:
-            raise QDBError(f"初始化QDB客户端失败: {str(e)}")
+            raise QDBError(f"Failed to initialize QDB client: {str(e)}")
     
     def get_stock_data(
         self,
@@ -143,12 +143,12 @@ class QDBClient:
         self._lazy_init()
 
         try:
-            # 处理days参数
+            # Handle days parameter
             if days is not None:
                 end_date = datetime.now().strftime("%Y%m%d")
-                start_date = (datetime.now() - timedelta(days=days*2)).strftime("%Y%m%d")  # *2确保有足够交易日
+                start_date = (datetime.now() - timedelta(days=days*2)).strftime("%Y%m%d")  # *2 to ensure enough trading days
 
-            # 直接使用AKShare适配器获取数据（简化版）
+            # Use AKShare adapter directly to get data (simplified version)
             return self._akshare_adapter.get_stock_data(
                 symbol=symbol,
                 start_date=start_date,
@@ -157,7 +157,7 @@ class QDBClient:
             )
 
         except Exception as e:
-            raise DataError(f"获取股票数据失败 {symbol}: {str(e)}")
+            raise DataError(f"Failed to get stock data for {symbol}: {str(e)}")
     
     def get_multiple_stocks(
         self, 
@@ -166,47 +166,47 @@ class QDBClient:
         **kwargs
     ) -> Dict[str, pd.DataFrame]:
         """
-        批量获取多只股票数据
-        
+        Get multiple stocks data in batch
+
         Args:
-            symbols: 股票代码列表
-            days: 获取最近N天数据
-            **kwargs: 其他参数传递给get_stock_data
-            
+            symbols: List of stock symbols
+            days: Get recent N days data
+            **kwargs: Other parameters passed to get_stock_data
+
         Returns:
-            字典，键为股票代码，值为对应的DataFrame
+            Dictionary with stock symbol as key and DataFrame as value
         """
         result = {}
         for symbol in symbols:
             try:
                 result[symbol] = self.get_stock_data(symbol, days=days, **kwargs)
             except Exception as e:
-                print(f"⚠️ 获取 {symbol} 数据失败: {e}")
-                result[symbol] = pd.DataFrame()  # 返回空DataFrame
+                print(f"⚠️ Failed to get data for {symbol}: {e}")
+                result[symbol] = pd.DataFrame()  # Return empty DataFrame
         return result
     
     def get_asset_info(self, symbol: str) -> Dict[str, Any]:
         """
-        获取资产基本信息
+        Get basic asset information
 
         Args:
-            symbol: 股票代码
+            symbol: Stock symbol
 
         Returns:
-            包含资产信息的字典
+            Dictionary containing asset information
         """
         self._lazy_init()
 
         try:
-            # 简化版：直接返回基本信息
+            # Simplified version: return basic information
             return {
                 "symbol": symbol,
-                "name": f"股票{symbol}",
-                "market": "A股" if symbol.startswith(('0', '3', '6')) else "未知",
-                "status": "正常"
+                "name": f"Stock {symbol}",
+                "market": "A-Share" if symbol.startswith(('0', '3', '6')) else "Unknown",
+                "status": "Active"
             }
         except Exception as e:
-            raise DataError(f"获取资产信息失败 {symbol}: {str(e)}")
+            raise DataError(f"Failed to get asset info for {symbol}: {str(e)}")
     
     def cache_stats(self) -> Dict[str, Any]:
         """Get comprehensive cache statistics and performance metrics.
@@ -271,7 +271,7 @@ class QDBClient:
             - Performance gain estimates are based on typical AKShare response times
         """
         try:
-            # 计算缓存目录大小
+            # Calculate cache directory size
             cache_size = 0
             if Path(self.cache_dir).exists():
                 cache_size = sum(
@@ -286,20 +286,20 @@ class QDBClient:
             }
 
         except Exception as e:
-            raise CacheError(f"获取缓存统计失败: {str(e)}")
+            raise CacheError(f"Failed to get cache statistics: {str(e)}")
     
     def clear_cache(self, symbol: Optional[str] = None):
         """
-        清除缓存
+        Clear cache
 
         Args:
-            symbol: 指定股票代码，None表示清除所有缓存
+            symbol: Specific stock symbol, None means clear all cache
         """
         try:
             if symbol:
-                print(f"⚠️ 清除特定股票缓存功能暂未实现: {symbol}")
+                print(f"⚠️ Clear specific stock cache not implemented yet: {symbol}")
             else:
-                # 清除缓存目录
+                # Clear cache directory
                 if Path(self.cache_dir).exists():
                     import shutil
                     shutil.rmtree(self.cache_dir)
@@ -307,10 +307,10 @@ class QDBClient:
                     print("✅ Cache cleared")
                     self._initialized = False
                 else:
-                    print("⚠️ 缓存目录不存在")
+                    print("⚠️ Cache directory does not exist")
 
         except Exception as e:
-            raise CacheError(f"清除缓存失败: {str(e)}")
+            raise CacheError(f"Failed to clear cache: {str(e)}")
 
     def get_financial_summary(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
         """Get comprehensive financial summary data for a stock with intelligent caching.
@@ -357,7 +357,7 @@ class QDBClient:
             >>> if summary['quarters']:
             ...     latest = summary['quarters'][0]
             ...     print(f"Latest quarter: {latest['period']}")
-            ...     print(f"Net profit: {latest.get('net_profit', 'N/A')} 亿元")
+            ...     print(f"Net profit: {latest.get('net_profit', 'N/A')} billion CNY")
 
             Force refresh for latest quarterly report:
             >>> fresh_summary = qdb.get_financial_summary("600000", force_refresh=True)
@@ -565,30 +565,30 @@ class QDBClient:
                 'timestamp': datetime.now().isoformat()
             }
 
-# 全局客户端实例
+# Global client instance
 _global_client: Optional[QDBClient] = None
 
 def _get_client():
-    """获取全局客户端实例"""
+    """Get global client instance"""
     global _global_client
     if _global_client is None:
-        # 直接使用简化版，避免依赖问题
+        # Use simplified version directly to avoid dependency issues
         _global_client = SimpleQDBClient()
     return _global_client
 
-# 导入简化客户端作为后备
+# Import simplified client as fallback
 from .simple_client import SimpleQDBClient
 
-# 公开API函数
+# Public API functions
 def init(cache_dir: Optional[str] = None):
     """
-    初始化QDB
+    Initialize QDB
 
     Args:
-        cache_dir: 缓存目录路径
+        cache_dir: Cache directory path
     """
     global _global_client
-    # 直接使用简化版客户端，避免依赖问题
+    # Use simplified client directly to avoid dependency issues
     print("🚀 Using QDB simplified mode (standalone version)")
     _global_client = SimpleQDBClient(cache_dir)
     print(f"✅ QDB initialized, cache directory: {_global_client.cache_dir}")
@@ -627,11 +627,11 @@ def get_stock_data(symbol: str, start_date: Optional[str] = None, end_date: Opti
     return _get_client().get_stock_data(symbol, start_date=start_date, end_date=end_date, **kwargs)
 
 def get_multiple_stocks(symbols: List[str], **kwargs) -> Dict[str, pd.DataFrame]:
-    """批量获取股票数据"""
+    """Get multiple stocks data in batch"""
     return _get_client().get_multiple_stocks(symbols, **kwargs)
 
 def get_asset_info(symbol: str) -> Dict[str, Any]:
-    """获取资产信息"""
+    """Get asset information"""
     return _get_client().get_asset_info(symbol)
 
 def cache_stats() -> Dict[str, Any]:
@@ -671,32 +671,32 @@ def cache_stats() -> Dict[str, Any]:
     return _get_client().cache_stats()
 
 def clear_cache(symbol: Optional[str] = None):
-    """清除缓存"""
+    """Clear cache"""
     return _get_client().clear_cache(symbol)
 
-# AKShare兼容接口
+# AKShare compatibility interface
 def stock_zh_a_hist(symbol: str, **kwargs) -> pd.DataFrame:
     """
-    兼容AKShare的股票历史数据接口
-    
+    AKShare compatible stock historical data interface
+
     Args:
-        symbol: 股票代码
-        **kwargs: 其他参数
-        
+        symbol: Stock symbol
+        **kwargs: Other parameters
+
     Returns:
-        股票历史数据DataFrame
+        Stock historical data DataFrame
     """
     return get_stock_data(symbol, **kwargs)
 
-# 配置函数
+# Configuration functions
 def set_cache_dir(cache_dir: str):
-    """设置缓存目录"""
+    """Set cache directory"""
     global _global_client
     _global_client = QDBClient(cache_dir)
     print(f"✅ Cache directory set to: {cache_dir}")
 
 def set_log_level(level: str):
-    """设置日志级别"""
+    """Set log level"""
     os.environ["LOG_LEVEL"] = level.upper()
     print(f"✅ Log level set to: {level.upper()}")
 
@@ -985,16 +985,16 @@ def get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, An
     Examples:
         Get current Shanghai Composite status:
         >>> data = qdb.get_index_realtime("000001")
-        >>> print(f"上证综指: {data['current_value']:.2f} ({data['change_percent']:+.2f}%)")
+        >>> print(f"Shanghai Composite: {data['current_value']:.2f} ({data['change_percent']:+.2f}%)")
         >>> print(f"Market status: {data['market_status']}")
 
         Monitor multiple major indices:
-        >>> indices = {"000001": "上证综指", "399001": "深证成指", "399006": "创业板指"}
+        >>> indices = {"000001": "Shanghai Composite", "399001": "Shenzhen Component", "399006": "ChiNext"}
         >>> # Example: Monitor Shanghai Composite
         >>> data = qdb.get_index_realtime("000001")
         >>> change_pct = data.get('change_percent', 0)
         >>> status = "📈" if change_pct > 0 else "📉" if change_pct < 0 else "➡️"
-        >>> print(f"{status} 上证综指: {change_pct:+.2f}%")
+        >>> print(f"{status} Shanghai Composite: {change_pct:+.2f}%")
 
         Check market session and timing:
         >>> data = qdb.get_index_realtime("000300")  # CSI 300
@@ -1128,7 +1128,7 @@ def get_financial_summary(symbol: str, force_refresh: bool = False) -> Dict[str,
         >>> summary = qdb.get_financial_summary("000001")
         >>> print(f"Available quarters: {summary['count']}")
         >>> latest = summary['quarters'][0] if summary['quarters'] else {}
-        >>> print(f"Latest net profit: {latest.get('net_profit', 'N/A')} 亿元")
+        >>> print(f"Latest net profit: {latest.get('net_profit', 'N/A')} billion CNY")
 
     Note:
         This function delegates to the underlying QDBClient instance.
