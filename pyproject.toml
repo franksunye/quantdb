@@ -126,7 +126,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["qdb"]
+source = ["qdb", "core"]
 omit = [
     "*/tests/*",
     "*/test_*",

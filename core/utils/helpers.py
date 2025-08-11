@@ -9,14 +9,14 @@ from datetime import datetime, timedelta, date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-def format_currency(amount: float, currency: str = "CNY") -> str:
+def format_currency_by_code(amount: float, currency: str = "CNY") -> str:
     """
-    Format currency amount.
-    
+    Format currency amount by currency code.
+
     Args:
         amount: Amount to format
         currency: Currency code
-        
+
     Returns:
         Formatted currency string
     """
