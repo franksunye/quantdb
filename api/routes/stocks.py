@@ -6,45 +6,49 @@ This module provides API endpoints for retrieving historical stock data,
 using the simplified cache architecture with database as persistent cache.
 """
 
+from datetime import date, datetime
 from typing import List, Optional
+
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
-from datetime import date, datetime
-import pandas as pd
 
+from api.schemas import HistoricalDataPoint, HistoricalDataResponse
+from core.cache.akshare_adapter import AKShareAdapter
 from core.database import get_db
 from core.models import Asset
-from api.schemas import HistoricalDataResponse, HistoricalDataPoint
-from core.cache.akshare_adapter import AKShareAdapter
-from core.services.stock_data_service import StockDataService
-from core.services.database_cache import DatabaseCache
 from core.services.asset_info_service import AssetInfoService
-from core.services.stock_list_service import StockListService
+from core.services.database_cache import DatabaseCache
 from core.services.monitoring_middleware import monitor_stock_request
+from core.services.stock_data_service import StockDataService
+from core.services.stock_list_service import StockListService
 from core.utils.logger import get_logger
+
 
 # Create dependencies for services
 def get_akshare_adapter(db: Session = Depends(get_db)):
     """Get AKShare adapter instance."""
     return AKShareAdapter(db)
 
+
 def get_stock_data_service(
-    db: Session = Depends(get_db),
-    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
 ):
     """Get stock data service instance."""
     return StockDataService(db, akshare_adapter)
+
 
 def get_asset_info_service(db: Session = Depends(get_db)):
     """Get asset info service instance."""
     return AssetInfoService(db)
 
+
 def get_stock_list_service(
-    db: Session = Depends(get_db),
-    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
 ):
     """Get stock list service instance."""
     return StockListService(db, akshare_adapter)
+
 
 # Setup logger
 logger = get_logger(__name__)
@@ -55,6 +59,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 @monitor_stock_request(get_db)
 async def get_historical_stock_data(
@@ -62,10 +67,13 @@ async def get_historical_stock_data(
     request: Request,
     start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
-    adjust: Optional[str] = Query("", description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment"),
+    adjust: Optional[str] = Query(
+        "",
+        description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment",
+    ),
     db: Session = Depends(get_db),
     stock_data_service: StockDataService = Depends(get_stock_data_service),
-    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service),
 ):
     """
     Get historical stock data for a specific symbol
@@ -88,17 +96,18 @@ async def get_historical_stock_data(
             end_date = datetime.now().strftime("%Y%m%d")
 
         # Fetch data using the stock data service
-        logger.info(f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}")
+        logger.info(
+            f"Fetching historical data for {symbol} from {start_date} to {end_date} with adjust={adjust}"
+        )
         try:
             df = stock_data_service.get_stock_data(
-                symbol=symbol,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
+                symbol=symbol, start_date=start_date, end_date=end_date, adjust=adjust
             )
 
             if df.empty:
-                logger.warning(f"No historical data found for {symbol} from {start_date} to {end_date}")
+                logger.warning(
+                    f"No historical data found for {symbol} from {start_date} to {end_date}"
+                )
 
                 # 提供更详细的错误分析
                 error_analysis = _analyze_empty_data_reason(symbol, start_date, end_date)
@@ -119,26 +128,26 @@ async def get_historical_stock_data(
                             "Try extending the date range to 30 days or more",
                             "Verify the stock code is correct and still trading",
                             "Check if the selected dates include trading days",
-                            "Try querying active stocks like 600000, 000001, or 600519"
-                        ]
-                    }
+                            "Try querying active stocks like 600000, 000001, or 600519",
+                        ],
+                    },
                 }
 
             # Convert DataFrame to response format
             data_points = []
             for _, row in df.iterrows():
                 data_point = HistoricalDataPoint(
-                    date=row.get('date', None),
-                    open=row.get('open', None),
-                    high=row.get('high', None),
-                    low=row.get('low', None),
-                    close=row.get('close', None),
-                    volume=row.get('volume', None),
-                    turnover=row.get('turnover', None),
-                    amplitude=row.get('amplitude', None),
-                    pct_change=row.get('pct_change', None),
-                    change=row.get('change', None),
-                    turnover_rate=row.get('turnover_rate', None)
+                    date=row.get("date", None),
+                    open=row.get("open", None),
+                    high=row.get("high", None),
+                    low=row.get("low", None),
+                    close=row.get("close", None),
+                    volume=row.get("volume", None),
+                    turnover=row.get("turnover", None),
+                    amplitude=row.get("amplitude", None),
+                    pct_change=row.get("pct_change", None),
+                    change=row.get("change", None),
+                    turnover_rate=row.get("turnover_rate", None),
                 )
                 data_points.append(data_point)
 
@@ -157,8 +166,8 @@ async def get_historical_stock_data(
                     "count": len(data_points),
                     "status": "success",
                     "message": f"Successfully retrieved {len(data_points)} data points",
-                    "cache_info": cache_info
-                }
+                    "cache_info": cache_info,
+                },
             }
 
             return response
@@ -210,8 +219,10 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
         # 判断是否为缓存命中（如果所有请求的数据都在缓存中）
         cache_hit = cached_days == total_trading_days and total_trading_days > 0
 
-        logger.info(f"Cache info for {symbol}: hit={cache_hit}, ratio={cache_hit_ratio:.2f}, "
-                   f"cached_days={cached_days}, total_days={total_trading_days}, akshare_called={akshare_called}")
+        logger.info(
+            f"Cache info for {symbol}: hit={cache_hit}, ratio={cache_hit_ratio:.2f}, "
+            f"cached_days={cached_days}, total_days={total_trading_days}, akshare_called={akshare_called}"
+        )
 
         return {
             "cache_hit": cache_hit,
@@ -219,7 +230,7 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
             "cache_hit_ratio": cache_hit_ratio,
             "cached_days": cached_days,
             "total_trading_days": total_trading_days,
-            "response_time_ms": 0  # 这个会在middleware中设置
+            "response_time_ms": 0,  # 这个会在middleware中设置
         }
 
     except Exception as e:
@@ -231,7 +242,7 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
             "cache_hit_ratio": 0.0,
             "cached_days": 0,
             "total_trading_days": 0,
-            "response_time_ms": 0
+            "response_time_ms": 0,
         }
 
 
@@ -251,11 +262,12 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
         "possible_reasons": [],
         "stock_status": "unknown",
         "date_range_info": {},
-        "recommendations": []
+        "recommendations": [],
     }
 
     try:
         from datetime import datetime, timedelta
+
         from core.services.trading_calendar import get_trading_calendar
 
         # 分析日期范围
@@ -264,14 +276,14 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
             analysis["recommendations"].append("提供有效的开始和结束日期")
             return analysis
 
-        start_dt = datetime.strptime(start_date, '%Y%m%d')
-        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        start_dt = datetime.strptime(start_date, "%Y%m%d")
+        end_dt = datetime.strptime(end_date, "%Y%m%d")
         date_diff = (end_dt - start_dt).days
 
         analysis["date_range_info"] = {
             "days_requested": date_diff,
             "start_date": start_date,
-            "end_date": end_date
+            "end_date": end_date,
         }
 
         # 检查是否有交易日
@@ -293,9 +305,9 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
 
         # 特殊股票代码分析
         problematic_stocks = {
-            '600001': '邯郸钢铁 - 可能已停牌或退市',
-            '600002': '齐鲁石化 - 可能已停牌或退市',
-            '600003': '东北高速 - 可能已停牌或退市'
+            "600001": "邯郸钢铁 - 可能已停牌或退市",
+            "600002": "齐鲁石化 - 可能已停牌或退市",
+            "600003": "东北高速 - 可能已停牌或退市",
         }
 
         if symbol in problematic_stocks:
@@ -317,12 +329,13 @@ def get_database_cache(db: Session = Depends(get_db)):
     """Get database cache instance."""
     return DatabaseCache(db)
 
+
 @router.get("/database/cache/status")
 async def get_database_cache_status(
     symbol: Optional[str] = Query(None, description="Stock symbol"),
     start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
-    database_cache: DatabaseCache = Depends(get_database_cache)
+    database_cache: DatabaseCache = Depends(get_database_cache),
 ):
     """
     Get database cache status
@@ -339,7 +352,7 @@ async def get_database_cache_status(
                 "symbol": symbol,
                 "start_date": start_date,
                 "end_date": end_date,
-                "coverage": coverage_info
+                "coverage": coverage_info,
             }
 
         # Otherwise, get general cache statistics
@@ -353,9 +366,11 @@ async def get_database_cache_status(
 
 @router.get("/list")
 async def get_stock_list(
-    market: Optional[str] = Query(None, description="Market filter: SHSE, SZSE, HKEX, or None for all"),
+    market: Optional[str] = Query(
+        None, description="Market filter: SHSE, SZSE, HKEX, or None for all"
+    ),
     force_refresh: bool = Query(False, description="Force refresh data from source"),
-    stock_list_service: StockListService = Depends(get_stock_list_service)
+    stock_list_service: StockListService = Depends(get_stock_list_service),
 ):
     """
     Get stock list with market filtering and daily caching.
@@ -368,7 +383,9 @@ async def get_stock_list(
         List of stocks with market information
     """
     try:
-        logger.info(f"Getting stock list for market: {market or 'all'}, force_refresh={force_refresh}")
+        logger.info(
+            f"Getting stock list for market: {market or 'all'}, force_refresh={force_refresh}"
+        )
 
         # Get stock list from service
         stocks = stock_list_service.get_stock_list(market=market, force_refresh=force_refresh)
@@ -383,8 +400,8 @@ async def get_stock_list(
                 "market_filter": market or "all",
                 "cache_stats": cache_stats,
                 "force_refresh": force_refresh,
-                "timestamp": datetime.now().isoformat()
-            }
+                "timestamp": datetime.now().isoformat(),
+            },
         }
 
         logger.info(f"Successfully returned {len(stocks)} stocks for market: {market or 'all'}")
@@ -397,7 +414,7 @@ async def get_stock_list(
 
 @router.get("/list/summary")
 async def get_market_summary(
-    stock_list_service: StockListService = Depends(get_stock_list_service)
+    stock_list_service: StockListService = Depends(get_stock_list_service),
 ):
     """
     Get market summary statistics for all markets.
@@ -414,11 +431,13 @@ async def get_market_summary(
             "summary": summary,
             "metadata": {
                 "timestamp": datetime.now().isoformat(),
-                "cache_date": summary.get("date")
-            }
+                "cache_date": summary.get("date"),
+            },
         }
 
-        logger.info(f"Successfully returned market summary for {summary.get('total_stocks', 0)} stocks")
+        logger.info(
+            f"Successfully returned market summary for {summary.get('total_stocks', 0)} stocks"
+        )
         return response
 
     except Exception as e:
@@ -428,7 +447,7 @@ async def get_market_summary(
 
 @router.delete("/list/cache")
 async def clear_stock_list_cache(
-    stock_list_service: StockListService = Depends(get_stock_list_service)
+    stock_list_service: StockListService = Depends(get_stock_list_service),
 ):
     """
     Clear stock list cache.
@@ -444,7 +463,7 @@ async def clear_stock_list_cache(
         response = {
             "message": "Stock list cache cleared successfully",
             "deleted_count": deleted_count,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"Successfully cleared {deleted_count} stock list cache entries")

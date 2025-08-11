@@ -5,23 +5,26 @@ Integration tests for the stock data flow.
 These tests verify the integration between StockDataService, DatabaseCache, and AKShareAdapter.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-import pandas as pd
-from datetime import datetime, timedelta
 import os
 import sys
 import tempfile
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.stock_data_service import StockDataService
-from core.services.database_cache import DatabaseCache
-from core.cache.akshare_adapter import AKShareAdapter
-from core.models import Base, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from core.cache.akshare_adapter import AKShareAdapter
+from core.models import Asset, Base, DailyStockData
+from core.services.database_cache import DatabaseCache
+from core.services.stock_data_service import StockDataService
+
 
 class TestStockDataFlow(unittest.TestCase):
     """Integration tests for the stock data flow."""

@@ -3,11 +3,13 @@ Core Helper Utilities
 
 This module contains helper functions and utilities for the QuantDB core layer.
 """
+
 import os
 import time
-from datetime import datetime, timedelta, date
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
+
 
 def format_currency_by_code(amount: float, currency: str = "CNY") -> str:
     """
@@ -29,6 +31,7 @@ def format_currency_by_code(amount: float, currency: str = "CNY") -> str:
     else:
         return f"{amount:,.2f} {currency}"
 
+
 def format_percentage(value: float, decimals: int = 2) -> str:
     """
     Format percentage value.
@@ -42,6 +45,7 @@ def format_percentage(value: float, decimals: int = 2) -> str:
     """
     return f"{value * 100:.{decimals}f}%"
 
+
 def format_number(number: Union[int, float]) -> str:
     """
     Format number with thousands separators.
@@ -53,6 +57,7 @@ def format_number(number: Union[int, float]) -> str:
         Formatted number string
     """
     return f"{number:,}"
+
 
 def format_currency(amount: float, symbol: str = "¥") -> str:
     """
@@ -69,13 +74,14 @@ def format_currency(amount: float, symbol: str = "¥") -> str:
         return f"-{symbol}{abs(amount):,.2f}"
     return f"{symbol}{amount:,.2f}"
 
+
 def format_large_number(number: Union[int, float]) -> str:
     """
     Format large numbers with appropriate units.
-    
+
     Args:
         number: Number to format
-        
+
     Returns:
         Formatted number string
     """
@@ -90,50 +96,53 @@ def format_large_number(number: Union[int, float]) -> str:
     else:
         return f"{number:.2f}"
 
+
 def calculate_date_range(days: int, end_date: Optional[str] = None) -> tuple[str, str]:
     """
     Calculate date range.
-    
+
     Args:
         days: Number of days to go back
         end_date: End date in YYYYMMDD format (default: today)
-        
+
     Returns:
         Tuple of (start_date, end_date) in YYYYMMDD format
     """
     if end_date:
-        end_dt = datetime.strptime(end_date, '%Y%m%d')
+        end_dt = datetime.strptime(end_date, "%Y%m%d")
     else:
         end_dt = datetime.now()
-    
+
     start_dt = end_dt - timedelta(days=days)
-    
-    return start_dt.strftime('%Y%m%d'), end_dt.strftime('%Y%m%d')
+
+    return start_dt.strftime("%Y%m%d"), end_dt.strftime("%Y%m%d")
+
 
 def get_trading_days_count(start_date: str, end_date: str) -> int:
     """
     Estimate trading days count between two dates.
-    
+
     Args:
         start_date: Start date in YYYYMMDD format
         end_date: End date in YYYYMMDD format
-        
+
     Returns:
         Estimated number of trading days
     """
-    start_dt = datetime.strptime(start_date, '%Y%m%d')
-    end_dt = datetime.strptime(end_date, '%Y%m%d')
-    
+    start_dt = datetime.strptime(start_date, "%Y%m%d")
+    end_dt = datetime.strptime(end_date, "%Y%m%d")
+
     total_days = (end_dt - start_dt).days + 1
-    
+
     # Rough estimate: 5/7 of days are trading days
     # This doesn't account for holidays but gives a reasonable estimate
     return int(total_days * 5 / 7)
 
+
 def ensure_directory_exists(file_path: str) -> None:
     """
     Ensure directory exists for a file path.
-    
+
     Args:
         file_path: File path
     """
@@ -141,56 +150,61 @@ def ensure_directory_exists(file_path: str) -> None:
     if directory:
         Path(directory).mkdir(parents=True, exist_ok=True)
 
+
 def get_file_size_mb(file_path: str) -> float:
     """
     Get file size in MB.
-    
+
     Args:
         file_path: Path to file
-        
+
     Returns:
         File size in MB
     """
     if not os.path.exists(file_path):
         return 0.0
-    
+
     size_bytes = os.path.getsize(file_path)
     return size_bytes / (1024 * 1024)
+
 
 def timing_decorator(func):
     """
     Decorator to measure function execution time.
-    
+
     Args:
         func: Function to decorate
-        
+
     Returns:
         Decorated function
     """
+
     def wrapper(*args, **kwargs):
         start_time = time.time()
         result = func(*args, **kwargs)
         end_time = time.time()
         execution_time = (end_time - start_time) * 1000  # Convert to milliseconds
-        
+
         # Add timing info to result if it's a dict
-        if isinstance(result, dict) and 'metadata' not in result:
-            result['metadata'] = {}
-        if isinstance(result, dict) and 'metadata' in result:
-            result['metadata']['execution_time_ms'] = execution_time
-        
+        if isinstance(result, dict) and "metadata" not in result:
+            result["metadata"] = {}
+        if isinstance(result, dict) and "metadata" in result:
+            result["metadata"]["execution_time_ms"] = execution_time
+
         return result
+
     return wrapper
+
 
 def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> float:
     """
     Safely divide two numbers.
-    
+
     Args:
         numerator: Numerator
         denominator: Denominator
         default: Default value if division by zero
-        
+
     Returns:
         Division result or default value
     """
@@ -198,30 +212,34 @@ def safe_divide(numerator: float, denominator: float, default: float = 0.0) -> f
         return default
     return numerator / denominator
 
-def clean_dict(data: Dict[str, Any], remove_none: bool = True, remove_empty: bool = False) -> Dict[str, Any]:
+
+def clean_dict(
+    data: Dict[str, Any], remove_none: bool = True, remove_empty: bool = False
+) -> Dict[str, Any]:
     """
     Clean dictionary by removing None or empty values.
-    
+
     Args:
         data: Dictionary to clean
         remove_none: Remove None values
         remove_empty: Remove empty strings/lists/dicts
-        
+
     Returns:
         Cleaned dictionary
     """
     cleaned = {}
-    
+
     for key, value in data.items():
         if remove_none and value is None:
             continue
-        
+
         if remove_empty and value in ("", [], {}):
             continue
-        
+
         cleaned[key] = value
-    
+
     return cleaned
+
 
 def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -239,6 +257,7 @@ def merge_dicts(*dicts: Dict[str, Any]) -> Dict[str, Any]:
             result.update(d)
     return result
 
+
 def parse_date_string(date_str: Optional[str]) -> Optional[date]:
     """
     Parse date string to date object.
@@ -255,14 +274,15 @@ def parse_date_string(date_str: Optional[str]) -> Optional[date]:
     try:
         if len(date_str) == 8 and date_str.isdigit():
             # YYYYMMDD format
-            return datetime.strptime(date_str, '%Y%m%d').date()
-        elif len(date_str) == 10 and '-' in date_str:
+            return datetime.strptime(date_str, "%Y%m%d").date()
+        elif len(date_str) == 10 and "-" in date_str:
             # YYYY-MM-DD format
-            return datetime.strptime(date_str, '%Y-%m-%d').date()
+            return datetime.strptime(date_str, "%Y-%m-%d").date()
         else:
             return None
     except ValueError:
         return None
+
 
 def calculate_percentage_change(old_value: float, new_value: float) -> Optional[float]:
     """
@@ -279,6 +299,7 @@ def calculate_percentage_change(old_value: float, new_value: float) -> Optional[
         return None
 
     return ((new_value - old_value) / old_value) * 100
+
 
 def safe_float_conversion(value: Any) -> Optional[float]:
     """
@@ -297,6 +318,7 @@ def safe_float_conversion(value: Any) -> Optional[float]:
         return float(value)
     except (ValueError, TypeError):
         return None
+
 
 def safe_int_conversion(value: Any) -> Optional[int]:
     """

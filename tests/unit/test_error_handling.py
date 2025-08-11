@@ -1,16 +1,33 @@
 """
 Unit tests for the error handling module.
 """
-import unittest
-from unittest.mock import patch, MagicMock, AsyncMock
 import json
+import unittest
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
+
+# Error handling migrated to API middleware
+import pytest
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, Field, ValidationError
 
-# Error handling migrated to API middleware
-import pytest
+# Import error handlers from api.errors
+from api.errors import (
+    AKShareException,
+    DatabaseException,
+    DataFetchException,
+    DataNotFoundException,
+    ErrorCode,
+    MCPProcessingException,
+    QuantDBException,
+    create_error_response,
+    global_exception_handler,
+    quantdb_exception_handler,
+    register_exception_handlers,
+    validation_exception_handler,
+)
+
 pytestmark = pytest.mark.skip(reason="Error handling migrated to API middleware")
 
 class TestErrorCodes(unittest.TestCase):

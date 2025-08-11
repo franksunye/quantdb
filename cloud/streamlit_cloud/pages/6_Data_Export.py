@@ -5,13 +5,14 @@ Provides stock data export functionality, supports CSV and Excel formats,
 with customizable export range and format options.
 """
 
-import streamlit as st
-import pandas as pd
 import io
-from datetime import datetime, date, timedelta
-import sys
 import json
+import sys
+from datetime import date, datetime, timedelta
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent
@@ -23,11 +24,13 @@ CLOUD_MODE = True
 try:
     # 检测是否在Streamlit Cloud环境
     import os
-    if 'STREAMLIT_SHARING' in os.environ or 'STREAMLIT_CLOUD' in os.environ:
+
+    if "STREAMLIT_SHARING" in os.environ or "STREAMLIT_CLOUD" in os.environ:
         CLOUD_MODE = True
     else:
         # 测试是否可以导入core模块
         from core.services import StockDataService
+
         CLOUD_MODE = False
 except Exception:
     CLOUD_MODE = True
@@ -35,16 +38,14 @@ except Exception:
 # 导入Excel支持
 try:
     import openpyxl
+
     EXCEL_SUPPORT = True
 except ImportError:
     EXCEL_SUPPORT = False
 
 # 页面配置
-st.set_page_config(
-    page_title="Data Export - QuantDB",
-    page_icon="📊",
-    layout="wide"
-)
+st.set_page_config(page_title="Data Export - QuantDB", page_icon="📊", layout="wide")
+
 
 @st.cache_resource
 def init_services():
@@ -52,18 +53,18 @@ def init_services():
     try:
         if not CLOUD_MODE:
             # 完整模式：使用core模块
-            from core.services import StockDataService, AssetInfoService
             from core.cache import AKShareAdapter
             from core.database import get_db
+            from core.services import AssetInfoService, StockDataService
 
             db_session = next(get_db())
             akshare_adapter = AKShareAdapter()
 
             return {
-                'stock_service': StockDataService(db_session, akshare_adapter),
-                'asset_service': AssetInfoService(db_session),
-                'db_session': db_session,
-                'mode': 'full'
+                "stock_service": StockDataService(db_session, akshare_adapter),
+                "asset_service": AssetInfoService(db_session),
+                "db_session": db_session,
+                "mode": "full",
             }
         else:
             # 云端模式：简化的服务初始化
@@ -81,28 +82,22 @@ def init_services():
 
             conn.close()
 
-            return {
-                'db_path': str(db_path),
-                'tables': tables,
-                'mode': 'cloud'
-            }
+            return {"db_path": str(db_path), "tables": tables, "mode": "cloud"}
 
     except Exception as e:
         st.error(f"Service initialization failed: {e}")
         # Return minimal service object
-        return {
-            'mode': 'minimal',
-            'error': str(e)
-        }
+        return {"mode": "minimal", "error": str(e)}
+
 
 def main():
     """主页面函数"""
-    
+
     # Page title
     st.title("📤 Data Export")
     st.markdown("Export stock data, asset information and watchlist")
     st.markdown("---")
-    
+
     # Initialize services
     services = init_services()
     if not services:
@@ -110,12 +105,12 @@ def main():
         return
 
     # Display running mode
-    mode = services.get('mode', 'unknown')
-    if mode == 'full':
+    mode = services.get("mode", "unknown")
+    if mode == "full":
         st.info("🖥️ Running Mode: Full Mode (using core services)")
-    elif mode == 'cloud':
+    elif mode == "cloud":
         st.info("☁️ Running Mode: Cloud Mode (SQLite direct connection)")
-    elif mode == 'minimal':
+    elif mode == "minimal":
         st.warning("⚠️ Running Mode: Minimal Mode (limited functionality)")
         st.error(f"Initialization error: {services.get('error', 'Unknown error')}")
 
@@ -133,16 +128,14 @@ def main():
         export_type = st.selectbox(
             "Export Data Type",
             ["Stock Historical Data", "Asset Information", "Watchlist"],
-            help="Select the type of data to export"
+            help="Select the type of data to export",
         )
 
         # Export format
         export_format = st.selectbox(
-            "Export Format",
-            ["CSV", "Excel"],
-            help="Select export file format"
+            "Export Format", ["CSV", "Excel"], help="Select export file format"
         )
-    
+
     with col2:
         # Stock code input (only for stock data)
         if export_type in ["Stock Historical Data", "Asset Information"]:
@@ -150,11 +143,11 @@ def main():
                 "Stock Codes",
                 value="600000\n000001\n600519",
                 help="Enter one stock code per line, supports batch export",
-                height=100
+                height=100,
             )
 
             # Parse stock codes
-            symbols = [s.strip() for s in symbols_input.split('\n') if s.strip()]
+            symbols = [s.strip() for s in symbols_input.split("\n") if s.strip()]
 
             # Simplified stock code validation
             valid_symbols = []
@@ -180,18 +173,12 @@ def main():
             col_start, col_end = st.columns(2)
             with col_start:
                 start_date = st.date_input(
-                    "Start Date",
-                    value=date.today() - timedelta(days=30),
-                    max_value=date.today()
+                    "Start Date", value=date.today() - timedelta(days=30), max_value=date.today()
                 )
 
             with col_end:
-                end_date = st.date_input(
-                    "End Date",
-                    value=date.today(),
-                    max_value=date.today()
-                )
-    
+                end_date = st.date_input("End Date", value=date.today(), max_value=date.today())
+
     # Export button
     st.markdown("---")
 
@@ -216,13 +203,14 @@ def main():
     st.subheader("📁 Export History")
     display_export_history()
 
+
 def export_stock_data(symbols, start_date, end_date, export_format, services):
     """导出股票历史数据"""
 
     try:
-        mode = services.get('mode', 'unknown')
-        start_date_str = start_date.strftime('%Y%m%d')
-        end_date_str = end_date.strftime('%Y%m%d')
+        mode = services.get("mode", "unknown")
+        start_date_str = start_date.strftime("%Y%m%d")
+        end_date_str = end_date.strftime("%Y%m%d")
 
         all_data = []
 
@@ -234,32 +222,33 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
             status_text.text(f"正在获取 {symbol} 的数据...")
 
             try:
-                if mode == 'full':
+                if mode == "full":
                     # 完整模式：使用stock_service
-                    stock_data = services['stock_service'].get_stock_data(
-                        symbol=symbol,
-                        start_date=start_date_str,
-                        end_date=end_date_str
+                    stock_data = services["stock_service"].get_stock_data(
+                        symbol=symbol, start_date=start_date_str, end_date=end_date_str
                     )
 
                     if stock_data is not None and not stock_data.empty:
                         df = stock_data.copy()
-                        df['symbol'] = symbol
+                        df["symbol"] = symbol
 
                         # 获取股票名称
                         try:
-                            asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
-                            stock_name = asset_info.name if asset_info else f'股票{symbol}'
-                            df['name'] = stock_name
+                            asset_info, metadata = services["asset_service"].get_or_create_asset(
+                                symbol
+                            )
+                            stock_name = asset_info.name if asset_info else f"股票{symbol}"
+                            df["name"] = stock_name
                         except:
-                            df['name'] = f'股票{symbol}'
+                            df["name"] = f"股票{symbol}"
 
                         all_data.append(df)
 
-                elif mode == 'cloud':
+                elif mode == "cloud":
                     # 云端模式：直接查询SQLite数据库
                     import sqlite3
-                    conn = sqlite3.connect(services['db_path'])
+
+                    conn = sqlite3.connect(services["db_path"])
 
                     # 查询股票数据
                     query = """
@@ -275,92 +264,105 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
 
                     if not df.empty:
                         # 格式化日期
-                        df['trade_date'] = pd.to_datetime(df['date']).dt.strftime('%Y-%m-%d')
+                        df["trade_date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
                         all_data.append(df)
 
                 else:
                     # 最小模式：创建示例数据
-                    df = pd.DataFrame({
-                        'symbol': [symbol],
-                        'name': [f'股票{symbol}'],
-                        'trade_date': [start_date.strftime('%Y-%m-%d')],
-                        'open': [0.0],
-                        'high': [0.0],
-                        'low': [0.0],
-                        'close': [0.0],
-                        'volume': [0]
-                    })
+                    df = pd.DataFrame(
+                        {
+                            "symbol": [symbol],
+                            "name": [f"股票{symbol}"],
+                            "trade_date": [start_date.strftime("%Y-%m-%d")],
+                            "open": [0.0],
+                            "high": [0.0],
+                            "low": [0.0],
+                            "close": [0.0],
+                            "volume": [0],
+                        }
+                    )
                     all_data.append(df)
 
             except Exception as e:
                 st.warning(f"获取 {symbol} 数据失败: {str(e)}")
 
             progress_bar.progress((idx + 1) / len(symbols))
-        
+
         status_text.text("数据获取完成，正在生成文件...")
-        
+
         if all_data:
             # 合并所有数据
             combined_df = pd.concat(all_data, ignore_index=True)
-            
+
             # 重新排列列顺序
-            columns_order = ['symbol', 'name', 'trade_date', 'open', 'high', 'low', 'close', 'volume']
-            if 'turnover' in combined_df.columns:
-                columns_order.append('turnover')
-            
+            columns_order = [
+                "symbol",
+                "name",
+                "trade_date",
+                "open",
+                "high",
+                "low",
+                "close",
+                "volume",
+            ]
+            if "turnover" in combined_df.columns:
+                columns_order.append("turnover")
+
             combined_df = combined_df[[col for col in columns_order if col in combined_df.columns]]
-            
+
             # 重命名列
             column_names = {
-                'symbol': '股票代码',
-                'name': '股票名称',
-                'trade_date': '日期',
-                'open': '开盘价',
-                'high': '最高价',
-                'low': '最低价',
-                'close': '收盘价',
-                'volume': '成交量',
-                'turnover': '成交额'
+                "symbol": "股票代码",
+                "name": "股票名称",
+                "trade_date": "日期",
+                "open": "开盘价",
+                "high": "最高价",
+                "low": "最低价",
+                "close": "收盘价",
+                "volume": "成交量",
+                "turnover": "成交额",
             }
             combined_df = combined_df.rename(columns=column_names)
-            
+
             # 生成文件
             filename = f"股票历史数据_{start_date_str}_{end_date_str}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            
+
             if export_format == "CSV":
-                csv_data = combined_df.to_csv(index=False, encoding='utf-8-sig')
+                csv_data = combined_df.to_csv(index=False, encoding="utf-8-sig")
                 st.download_button(
                     label="📥 下载CSV文件",
                     data=csv_data,
                     file_name=f"{filename}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
                 )
-            
+
             elif export_format == "Excel":
                 if EXCEL_SUPPORT:
                     excel_buffer = io.BytesIO()
                     try:
-                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                            combined_df.to_excel(writer, sheet_name='股票数据', index=False)
+                        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                            combined_df.to_excel(writer, sheet_name="股票数据", index=False)
 
                             # 添加汇总信息
-                            summary_df = pd.DataFrame({
-                                '导出信息': ['导出时间', '数据范围', '股票数量', '记录总数'],
-                                '值': [
-                                    datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                                    f"{start_date} 至 {end_date}",
-                                    len(symbols),
-                                    len(combined_df)
-                                ]
-                            })
-                            summary_df.to_excel(writer, sheet_name='导出信息', index=False)
+                            summary_df = pd.DataFrame(
+                                {
+                                    "导出信息": ["导出时间", "数据范围", "股票数量", "记录总数"],
+                                    "值": [
+                                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                        f"{start_date} 至 {end_date}",
+                                        len(symbols),
+                                        len(combined_df),
+                                    ],
+                                }
+                            )
+                            summary_df.to_excel(writer, sheet_name="导出信息", index=False)
 
                         excel_data = excel_buffer.getvalue()
                         st.download_button(
                             label="📥 下载Excel文件",
                             data=excel_data,
                             file_name=f"{filename}.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         )
                     except Exception as e:
                         st.error(f"Excel导出失败: {e}")
@@ -369,29 +371,31 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
                 else:
                     st.error("Excel导出需要安装openpyxl库，请使用CSV格式")
                     return
-            
+
             # 显示预览
             st.success(f"✅ 导出完成！共 {len(combined_df)} 条记录")
-            
+
             st.markdown("### 📊 数据预览")
             st.dataframe(combined_df.head(10), use_container_width=True)
-            
+
             # 保存导出记录
             save_export_record("股票历史数据", len(symbols), len(combined_df), export_format)
-        
+
         else:
             st.error("❌ 未获取到任何数据")
-    
+
     except Exception as e:
         st.error(f"导出失败: {str(e)}")
         import traceback
+
         st.code(traceback.format_exc())
+
 
 def export_asset_info(symbols, export_format, services):
     """导出资产信息"""
 
     try:
-        mode = services.get('mode', 'unknown')
+        mode = services.get("mode", "unknown")
         asset_data = []
 
         # 进度条
@@ -402,26 +406,31 @@ def export_asset_info(symbols, export_format, services):
             status_text.text(f"正在获取 {symbol} 的资产信息...")
 
             try:
-                if mode == 'full':
+                if mode == "full":
                     # 完整模式：使用asset_service
-                    asset_info, metadata = services['asset_service'].get_or_create_asset(symbol)
+                    asset_info, metadata = services["asset_service"].get_or_create_asset(symbol)
 
                     if asset_info:
                         asset_dict = {
-                            'symbol': asset_info.symbol,
-                            'name': asset_info.name,
-                            'asset_type': asset_info.asset_type,
-                            'exchange': asset_info.exchange,
-                            'industry': asset_info.industry,
-                            'data_source': asset_info.data_source,
-                            'last_updated': asset_info.last_updated.strftime('%Y-%m-%d %H:%M:%S') if asset_info.last_updated else None
+                            "symbol": asset_info.symbol,
+                            "name": asset_info.name,
+                            "asset_type": asset_info.asset_type,
+                            "exchange": asset_info.exchange,
+                            "industry": asset_info.industry,
+                            "data_source": asset_info.data_source,
+                            "last_updated": (
+                                asset_info.last_updated.strftime("%Y-%m-%d %H:%M:%S")
+                                if asset_info.last_updated
+                                else None
+                            ),
                         }
                         asset_data.append(asset_dict)
 
-                elif mode == 'cloud':
+                elif mode == "cloud":
                     # 云端模式：直接查询SQLite数据库
                     import sqlite3
-                    conn = sqlite3.connect(services['db_path'])
+
+                    conn = sqlite3.connect(services["db_path"])
 
                     query = """
                     SELECT symbol, name, asset_type, exchange, industry, data_source, last_updated
@@ -435,13 +444,13 @@ def export_asset_info(symbols, export_format, services):
 
                     if result:
                         asset_dict = {
-                            'symbol': result[0],
-                            'name': result[1],
-                            'asset_type': result[2],
-                            'exchange': result[3],
-                            'industry': result[4],
-                            'data_source': result[5],
-                            'last_updated': result[6]
+                            "symbol": result[0],
+                            "name": result[1],
+                            "asset_type": result[2],
+                            "exchange": result[3],
+                            "industry": result[4],
+                            "data_source": result[5],
+                            "last_updated": result[6],
                         }
                         asset_data.append(asset_dict)
 
@@ -450,13 +459,13 @@ def export_asset_info(symbols, export_format, services):
                 else:
                     # 最小模式：创建基本信息
                     asset_dict = {
-                        'symbol': symbol,
-                        'name': f'股票{symbol}',
-                        'asset_type': '股票',
-                        'exchange': 'N/A',
-                        'industry': 'N/A',
-                        'data_source': 'N/A',
-                        'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                        "symbol": symbol,
+                        "name": f"股票{symbol}",
+                        "asset_type": "股票",
+                        "exchange": "N/A",
+                        "industry": "N/A",
+                        "data_source": "N/A",
+                        "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                     }
                     asset_data.append(asset_dict)
 
@@ -472,13 +481,13 @@ def export_asset_info(symbols, export_format, services):
 
             # 重命名列
             column_names = {
-                'symbol': '股票代码',
-                'name': '股票名称',
-                'asset_type': '资产类型',
-                'exchange': '交易所',
-                'industry': '行业',
-                'data_source': '数据来源',
-                'last_updated': '最后更新时间'
+                "symbol": "股票代码",
+                "name": "股票名称",
+                "asset_type": "资产类型",
+                "exchange": "交易所",
+                "industry": "行业",
+                "data_source": "数据来源",
+                "last_updated": "最后更新时间",
             }
 
             # 只保留存在的列
@@ -488,27 +497,27 @@ def export_asset_info(symbols, export_format, services):
             filename = f"资产信息_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             if export_format == "CSV":
-                csv_data = df.to_csv(index=False, encoding='utf-8-sig')
+                csv_data = df.to_csv(index=False, encoding="utf-8-sig")
                 st.download_button(
                     label="📥 下载CSV文件",
                     data=csv_data,
                     file_name=f"{filename}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
                 )
 
             elif export_format == "Excel":
                 if EXCEL_SUPPORT:
                     excel_buffer = io.BytesIO()
                     try:
-                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                            df.to_excel(writer, sheet_name='资产信息', index=False)
+                        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                            df.to_excel(writer, sheet_name="资产信息", index=False)
 
                         excel_data = excel_buffer.getvalue()
                         st.download_button(
                             label="📥 下载Excel文件",
                             data=excel_data,
                             file_name=f"{filename}.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         )
                     except Exception as e:
                         st.error(f"Excel导出失败: {e}")
@@ -533,6 +542,7 @@ def export_asset_info(symbols, export_format, services):
     except Exception as e:
         st.error(f"导出失败: {str(e)}")
 
+
 def export_watchlist(export_format):
     """导出自选股列表"""
 
@@ -541,7 +551,7 @@ def export_watchlist(export_format):
         watchlist_file = current_dir / "data" / "watchlist.json"
 
         if watchlist_file.exists():
-            with open(watchlist_file, 'r', encoding='utf-8') as f:
+            with open(watchlist_file, "r", encoding="utf-8") as f:
                 watchlist = json.load(f)
         else:
             watchlist = {}
@@ -550,11 +560,9 @@ def export_watchlist(export_format):
             # 转换为DataFrame
             data = []
             for symbol, info in watchlist.items():
-                data.append({
-                    '股票代码': symbol,
-                    '股票名称': info['name'],
-                    '添加日期': info['added_date']
-                })
+                data.append(
+                    {"股票代码": symbol, "股票名称": info["name"], "添加日期": info["added_date"]}
+                )
 
             df = pd.DataFrame(data)
 
@@ -562,27 +570,27 @@ def export_watchlist(export_format):
             filename = f"自选股列表_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
             if export_format == "CSV":
-                csv_data = df.to_csv(index=False, encoding='utf-8-sig')
+                csv_data = df.to_csv(index=False, encoding="utf-8-sig")
                 st.download_button(
                     label="📥 下载CSV文件",
                     data=csv_data,
                     file_name=f"{filename}.csv",
-                    mime="text/csv"
+                    mime="text/csv",
                 )
 
             elif export_format == "Excel":
                 if EXCEL_SUPPORT:
                     excel_buffer = io.BytesIO()
                     try:
-                        with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
-                            df.to_excel(writer, sheet_name='自选股', index=False)
+                        with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
+                            df.to_excel(writer, sheet_name="自选股", index=False)
 
                         excel_data = excel_buffer.getvalue()
                         st.download_button(
                             label="📥 下载Excel文件",
                             data=excel_data,
                             file_name=f"{filename}.xlsx",
-                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         )
                     except Exception as e:
                         st.error(f"Excel导出失败: {e}")
@@ -607,6 +615,7 @@ def export_watchlist(export_format):
     except Exception as e:
         st.error(f"导出失败: {str(e)}")
 
+
 def save_export_record(data_type, symbol_count, record_count, export_format):
     """保存导出记录"""
     try:
@@ -614,7 +623,7 @@ def save_export_record(data_type, symbol_count, record_count, export_format):
 
         # 加载现有记录
         if export_history_file.exists():
-            with open(export_history_file, 'r', encoding='utf-8') as f:
+            with open(export_history_file, "r", encoding="utf-8") as f:
                 history = json.load(f)
         else:
             history = []
@@ -625,7 +634,7 @@ def save_export_record(data_type, symbol_count, record_count, export_format):
             "data_type": data_type,
             "symbol_count": symbol_count,
             "record_count": record_count,
-            "export_format": export_format
+            "export_format": export_format,
         }
 
         history.append(new_record)
@@ -635,11 +644,12 @@ def save_export_record(data_type, symbol_count, record_count, export_format):
 
         # 保存记录
         export_history_file.parent.mkdir(exist_ok=True)
-        with open(export_history_file, 'w', encoding='utf-8') as f:
+        with open(export_history_file, "w", encoding="utf-8") as f:
             json.dump(history, f, ensure_ascii=False, indent=2)
 
     except Exception as e:
         st.warning(f"保存导出记录失败: {str(e)}")
+
 
 def display_export_history():
     """显示导出历史"""
@@ -647,25 +657,27 @@ def display_export_history():
         export_history_file = current_dir / "data" / "export_history.json"
 
         if export_history_file.exists():
-            with open(export_history_file, 'r', encoding='utf-8') as f:
+            with open(export_history_file, "r", encoding="utf-8") as f:
                 history = json.load(f)
 
             if history:
                 # 转换为DataFrame
                 df = pd.DataFrame(history)
-                df['timestamp'] = pd.to_datetime(df['timestamp']).dt.strftime('%Y-%m-%d %H:%M:%S')
+                df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
 
                 # 重命名列
-                df = df.rename(columns={
-                    'timestamp': '导出时间',
-                    'data_type': '数据类型',
-                    'symbol_count': '股票数量',
-                    'record_count': '记录数量',
-                    'export_format': '导出格式'
-                })
+                df = df.rename(
+                    columns={
+                        "timestamp": "导出时间",
+                        "data_type": "数据类型",
+                        "symbol_count": "股票数量",
+                        "record_count": "记录数量",
+                        "export_format": "导出格式",
+                    }
+                )
 
                 # 按时间倒序排列
-                df = df.sort_values('导出时间', ascending=False)
+                df = df.sort_values("导出时间", ascending=False)
 
                 st.dataframe(df, use_container_width=True, hide_index=True)
             else:
@@ -675,6 +687,7 @@ def display_export_history():
 
     except Exception as e:
         st.error(f"加载导出历史失败: {str(e)}")
+
 
 if __name__ == "__main__":
     main()

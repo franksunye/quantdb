@@ -9,15 +9,16 @@ This module tests the RealtimeDataService which handles:
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime, timedelta
+from unittest.mock import MagicMock, Mock, patch
+
+import pandas as pd
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-import pandas as pd
 
+from core.cache.akshare_adapter import AKShareAdapter
 from core.models import Base, RealtimeStockData
 from core.services.realtime_data_service import RealtimeDataService
-from core.cache.akshare_adapter import AKShareAdapter
 
 
 class TestRealtimeDataService(unittest.TestCase):

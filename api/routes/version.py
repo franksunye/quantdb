@@ -4,11 +4,12 @@ API version routes.
 This module provides routes for retrieving API version information.
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Path
-from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict
+
+from fastapi import APIRouter, HTTPException, Path
+from pydantic import BaseModel
 
 from core.utils.logger import get_logger
 
@@ -21,8 +22,10 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 class APIVersion(str, Enum):
     """API version enum."""
+
     V1 = "v1"
     V2 = "v2"
 
@@ -45,27 +48,34 @@ class APIVersion(str, Enum):
         except ValueError:
             return False
 
+
 class VersionInfo(BaseModel):
     """API version information model."""
+
     version: str
     api_version: str
     release_date: str
     deprecated: bool = False
     description: str
 
+
 class VersionResponse(BaseModel):
     """API version response model."""
+
     version: str
     api_version: str
     release_date: str
     deprecated: bool
     description: str
 
+
 class VersionsResponse(BaseModel):
     """API versions response model."""
+
     versions: Dict[str, VersionResponse]
     latest: str
     current: str
+
 
 # Version information
 VERSION_INFO = {
@@ -74,16 +84,17 @@ VERSION_INFO = {
         api_version="v1",
         release_date="2025-08-04",
         deprecated=False,
-        description="Production-ready version with Streamlit Cloud deployment and Core/API architecture"
+        description="Production-ready version with Streamlit Cloud deployment and Core/API architecture",
     ),
     "v2": VersionInfo(
         version="2.2.8",
         api_version="v2",
         release_date="2025-08-04",
         deprecated=False,
-        description="Enhanced API version with improved features and performance optimizations"
-    )
+        description="Enhanced API version with improved features and performance optimizations",
+    ),
 }
+
 
 def get_all_versions() -> Dict[str, VersionInfo]:
     """
@@ -94,6 +105,7 @@ def get_all_versions() -> Dict[str, VersionInfo]:
     """
     return VERSION_INFO
 
+
 def get_latest_version_info() -> VersionInfo:
     """
     Get information about the latest API version.
@@ -103,6 +115,7 @@ def get_latest_version_info() -> VersionInfo:
     """
     latest = APIVersion.get_latest()
     return VERSION_INFO[latest.value]
+
 
 @router.get("/", response_model=VersionsResponse)
 async def get_versions():
@@ -119,8 +132,9 @@ async def get_versions():
     return VersionsResponse(
         versions=versions,
         latest="v2",  # Latest version is v2
-        current="v1"  # Current production version is v1
+        current="v1",  # Current production version is v1
     )
+
 
 @router.get("/latest", response_model=VersionResponse)
 async def get_latest_version():
@@ -134,10 +148,9 @@ async def get_latest_version():
 
     return VersionResponse(**VERSION_INFO["v2"].model_dump())  # Return latest version (v2)
 
+
 @router.get("/{version}", response_model=VersionResponse)
-async def get_version(
-    version: str = Path(..., description="API version to get information for")
-):
+async def get_version(version: str = Path(..., description="API version to get information for")):
     """
     Get information about a specific API version.
 

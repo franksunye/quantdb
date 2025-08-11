@@ -5,6 +5,7 @@ This module provides API endpoints for asset information management.
 """
 
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
@@ -17,14 +18,17 @@ from core.utils.logger import logger
 # Import API schemas
 from ..schemas import AssetInfo, AssetResponse
 
+
 # Create dependencies
 def get_asset_info_service(db: Session = Depends(get_db)):
     """Get asset info service instance."""
     return AssetInfoService(db)
 
+
 def get_query_service(db: Session = Depends(get_db)):
     """Get query service instance."""
     return QueryService(db)
+
 
 # Create router
 router = APIRouter(
@@ -33,11 +37,12 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.get("/{symbol}", response_model=AssetResponse)
 async def get_asset_info(
     symbol: str,
     db: Session = Depends(get_db),
-    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service),
 ):
     """
     Get asset information for a specific symbol
@@ -47,7 +52,10 @@ async def get_asset_info(
     try:
         # Validate symbol format
         if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
-            raise HTTPException(status_code=400, detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks")
+            raise HTTPException(
+                status_code=400,
+                detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks",
+            )
 
         # Get or create asset with enhanced information
         asset, metadata = asset_info_service.get_or_create_asset(symbol)
@@ -58,16 +66,14 @@ async def get_asset_info(
         # Convert to response format
         asset_info = AssetInfo.from_orm(asset)
 
-        return AssetResponse(
-            asset=asset_info,
-            metadata=metadata
-        )
+        return AssetResponse(asset=asset_info, metadata=metadata)
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error getting asset info for {symbol}: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting asset info: {str(e)}")
+
 
 @router.get("/", response_model=List[AssetInfo])
 async def list_assets(
@@ -80,7 +86,7 @@ async def list_assets(
     sort_by: Optional[str] = Query("symbol", description="Field to sort by"),
     sort_order: str = Query("asc", pattern="^(asc|desc)$", description="Sort order"),
     db: Session = Depends(get_db),
-    query_service: QueryService = Depends(get_query_service)
+    query_service: QueryService = Depends(get_query_service),
 ):
     """
     List assets with filtering and pagination
@@ -108,11 +114,7 @@ async def list_assets(
 
         # Query assets
         assets, total_count = query_service.query_assets(
-            filters=filters,
-            sort_by=sort_by,
-            sort_order=sort_order,
-            skip=skip,
-            limit=limit
+            filters=filters, sort_by=sort_by, sort_order=sort_order, skip=skip, limit=limit
         )
 
         # Convert to response format
@@ -124,11 +126,12 @@ async def list_assets(
         logger.error(f"Error listing assets: {e}")
         raise HTTPException(status_code=500, detail=f"Error listing assets: {str(e)}")
 
+
 @router.put("/{symbol}", response_model=AssetResponse)
 async def update_asset_info(
     symbol: str,
     db: Session = Depends(get_db),
-    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service),
 ):
     """
     Update asset information from external sources
@@ -138,7 +141,10 @@ async def update_asset_info(
     try:
         # Validate symbol format
         if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
-            raise HTTPException(status_code=400, detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks")
+            raise HTTPException(
+                status_code=400,
+                detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks",
+            )
 
         # Update asset info
         asset = asset_info_service.update_asset_info(symbol)
@@ -152,13 +158,10 @@ async def update_asset_info(
         metadata = {
             "symbol": symbol,
             "action": "updated",
-            "timestamp": asset.last_updated.isoformat() if asset.last_updated else None
+            "timestamp": asset.last_updated.isoformat() if asset.last_updated else None,
         }
 
-        return AssetResponse(
-            asset=asset_info,
-            metadata=metadata
-        )
+        return AssetResponse(asset=asset_info, metadata=metadata)
 
     except HTTPException:
         raise

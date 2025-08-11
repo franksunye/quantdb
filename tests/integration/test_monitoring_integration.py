@@ -6,22 +6,23 @@ These tests verify the integration between MonitoringService, MonitoringMiddlewa
 and the database layer.
 """
 
-import unittest
-from unittest.mock import patch, MagicMock
-import tempfile
+import asyncio
 import os
 import sys
+import tempfile
+import unittest
 from datetime import datetime, timedelta
-import asyncio
+from unittest.mock import MagicMock, patch
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.monitoring_service import MonitoringService
-from core.services.monitoring_middleware import RequestMonitor, monitor_stock_request
-from core.models import Base, RequestLog, DataCoverage, Asset, DailyStockData
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+from core.models import Asset, Base, DailyStockData, DataCoverage, RequestLog
+from core.services.monitoring_middleware import RequestMonitor, monitor_stock_request
+from core.services.monitoring_service import MonitoringService
 
 
 class TestMonitoringIntegration(unittest.TestCase):

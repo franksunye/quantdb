@@ -1,24 +1,27 @@
-import qdb
+import json
 import time
 from datetime import datetime
-import json
+
+import qdb
+
 
 def format_price_change(data):
     """格式化价格变动信息"""
-    if 'error' in data:
+    if "error" in data:
         return f"❌ {data['symbol']}: {data['error']}"
 
-    symbol = data.get('symbol', 'N/A')
-    name = data.get('name', 'N/A')
-    price = data.get('current_price', data.get('price', 0))
-    change = data.get('change', 0)
-    change_pct = data.get('change_percent', data.get('pct_change', 0))
-    cache_hit = data.get('cache_hit', False)
+    symbol = data.get("symbol", "N/A")
+    name = data.get("name", "N/A")
+    price = data.get("current_price", data.get("price", 0))
+    change = data.get("change", 0)
+    change_pct = data.get("change_percent", data.get("pct_change", 0))
+    cache_hit = data.get("cache_hit", False)
 
     cache_indicator = "🚀" if cache_hit else "📡"
     change_indicator = "📈" if change > 0 else "📉" if change < 0 else "➡️"
 
     return f"{cache_indicator} {symbol}({name}): ¥{price:.2f} {change_indicator}{change:+.2f}({change_pct:+.2f}%)"
+
 
 def performance_test():
     """性能测试：比较单个请求 vs 批量请求"""
@@ -68,6 +71,7 @@ def performance_test():
     except Exception as e:
         print(f"❌ 批量请求失败: {e}")
 
+
 def cache_analysis():
     """缓存分析"""
     print("\n" + "=" * 60)
@@ -82,6 +86,7 @@ def cache_analysis():
         print(f"🔄 运行状态: {stats.get('status', 'Unknown')}")
     except Exception as e:
         print(f"❌ 获取缓存统计失败: {e}")
+
 
 def realtime_monitoring():
     """实时监控示例"""
@@ -115,6 +120,7 @@ def realtime_monitoring():
     except Exception as e:
         print(f"\n❌ 监控过程中出错: {e}")
 
+
 def main():
     """主函数"""
     print("🚀 QuantDB 实时数据示例")
@@ -132,7 +138,7 @@ def main():
         print(f"  {format_price_change(rt)}")
 
         # 显示详细信息
-        if 'error' not in rt:
+        if "error" not in rt:
             print(f"  📊 详细信息:")
             print(f"     开盘: ¥{rt.get('open', 'N/A')}")
             print(f"     最高: ¥{rt.get('high', 'N/A')}")
@@ -161,6 +167,6 @@ def main():
     # 实时监控
     realtime_monitoring()
 
+
 if __name__ == "__main__":
     main()
-

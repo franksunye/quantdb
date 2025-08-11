@@ -1,9 +1,11 @@
 """
 Data query service for QuantDB
 """
-from typing import Dict, Any, List, Optional, Union, Tuple
+
 from datetime import date, datetime, timedelta
-from sqlalchemy import func, and_, or_, desc, asc
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from sqlalchemy import and_, asc, desc, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import BinaryExpression
 
@@ -12,6 +14,7 @@ from core.utils.logger import get_logger
 
 # Setup logger
 logger = get_logger(__name__)
+
 
 class QueryService:
     """
@@ -27,12 +30,14 @@ class QueryService:
         """
         self.db = db
 
-    def query_assets(self,
-                    filters: Optional[Dict[str, Any]] = None,
-                    sort_by: Optional[str] = None,
-                    sort_order: str = "asc",
-                    skip: int = 0,
-                    limit: int = 100) -> Tuple[List[Asset], int]:
+    def query_assets(
+        self,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_by: Optional[str] = None,
+        sort_order: str = "asc",
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[Asset], int]:
         """
         Query assets with filtering, sorting, and pagination
 
@@ -80,15 +85,17 @@ class QueryService:
             logger.error(f"Error querying assets: {e}")
             raise
 
-    def query_prices(self,
-                    asset_id: Optional[int] = None,
-                    symbol: Optional[str] = None,
-                    start_date: Optional[date] = None,
-                    end_date: Optional[date] = None,
-                    period: str = "daily",
-                    sort_order: str = "desc",
-                    skip: int = 0,
-                    limit: int = 100) -> Tuple[List[DailyStockData], int]:
+    def query_prices(
+        self,
+        asset_id: Optional[int] = None,
+        symbol: Optional[str] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        period: str = "daily",
+        sort_order: str = "desc",
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[DailyStockData], int]:
         """
         Query daily stock data with filtering, sorting, and pagination
 
@@ -151,14 +158,16 @@ class QueryService:
             logger.error(f"Error querying prices: {e}")
             raise
 
-    def query_daily_stock_data(self,
-                              asset_id: Optional[int] = None,
-                              symbol: Optional[str] = None,
-                              start_date: Optional[date] = None,
-                              end_date: Optional[date] = None,
-                              sort_order: str = "desc",
-                              skip: int = 0,
-                              limit: int = 100) -> Tuple[List[DailyStockData], int]:
+    def query_daily_stock_data(
+        self,
+        asset_id: Optional[int] = None,
+        symbol: Optional[str] = None,
+        start_date: Optional[date] = None,
+        end_date: Optional[date] = None,
+        sort_order: str = "desc",
+        skip: int = 0,
+        limit: int = 100,
+    ) -> Tuple[List[DailyStockData], int]:
         """
         Query daily stock data with filtering, sorting, and pagination
 

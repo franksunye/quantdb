@@ -1,30 +1,36 @@
 """
 Asset API routes
 """
-from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from api.schemas import Asset as AssetSchema
+from api.schemas import AssetWithMetadata
 from core.database import get_db
 from core.models import Asset
-from api.schemas import Asset as AssetSchema, AssetWithMetadata
 from core.services.asset_info_service import AssetInfoService
 from core.utils.logger import get_logger
 
 # Setup logger
 logger = get_logger(__name__)
 
+
 # Create dependencies
 def get_asset_info_service(db: Session = Depends(get_db)):
     """Get asset info service instance."""
     return AssetInfoService(db)
+
 
 # Create router
 router = APIRouter(
     tags=["assets"],
     responses={404: {"description": "Not found"}},
 )
+
 
 @router.get("/", response_model=List[AssetSchema])
 async def get_assets(
@@ -34,7 +40,7 @@ async def get_assets(
     name: Optional[str] = Query(None, description="Filter by name"),
     asset_type: Optional[str] = Query(None, description="Filter by asset type"),
     exchange: Optional[str] = Query(None, description="Filter by exchange"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """
     Get a list of assets with optional filtering
@@ -63,6 +69,7 @@ async def get_assets(
         logger.error(f"Unexpected error when getting assets: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.get("/{asset_id}", response_model=AssetSchema)
 async def get_asset(asset_id: int, db: Session = Depends(get_db)):
     """
@@ -82,10 +89,10 @@ async def get_asset(asset_id: int, db: Session = Depends(get_db)):
         logger.error(f"Unexpected error when getting asset {asset_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.get("/symbol/{symbol}", response_model=AssetWithMetadata)
 async def get_asset_by_symbol(
-    symbol: str,
-    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+    symbol: str, asset_info_service: AssetInfoService = Depends(get_asset_info_service)
 ):
     """
     Get a specific asset by symbol with enhanced information and cache metadata
@@ -101,10 +108,10 @@ async def get_asset_by_symbol(
         logger.error(f"Unexpected error when getting asset with symbol {symbol}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
+
 @router.put("/symbol/{symbol}/refresh", response_model=AssetSchema)
 async def refresh_asset_info(
-    symbol: str,
-    asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+    symbol: str, asset_info_service: AssetInfoService = Depends(get_asset_info_service)
 ):
     """
     Refresh asset information from AKShare

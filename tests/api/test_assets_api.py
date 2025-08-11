@@ -8,14 +8,14 @@ Tests the enhanced asset API including:
 - Response format validation
 """
 
+from datetime import datetime
+from unittest.mock import MagicMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
-from datetime import datetime
 
 from api.main import app
 from core.models import Asset
-
 
 client = TestClient(app)
 

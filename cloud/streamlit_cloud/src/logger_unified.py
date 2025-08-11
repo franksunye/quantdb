@@ -6,17 +6,21 @@
 """
 
 import os
+
 # Enhanced logger migrated to core
 from core.utils.logger import get_logger as core_get_logger
+
 
 # 简单的配置获取，避免依赖复杂的config模块
 def _get_log_level():
     """获取日志级别"""
-    return os.getenv('LOG_LEVEL', 'INFO')
+    return os.getenv("LOG_LEVEL", "INFO")
+
 
 def _is_debug():
     """检查是否为调试模式"""
-    return os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+    return os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
+
 
 def get_logger(name: str):
     """
@@ -30,10 +34,12 @@ def get_logger(name: str):
     """
     return core_get_logger(name)
 
+
 # 为了兼容性，提供旧的接口
 def setup_logger(name: str):
     """兼容旧的 setup_logger 接口"""
     return get_logger(name)
 
+
 # 默认日志记录器
-logger = get_logger('quantdb')
+logger = get_logger("quantdb")

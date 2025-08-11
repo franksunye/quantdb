@@ -61,6 +61,7 @@ def handle_qdb_errors(func):
 
     Automatically catch and convert common exceptions to QDB exceptions
     """
+
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
@@ -89,7 +90,7 @@ ERROR_CODES = {
     "DATA_ERROR": "Data acquisition failed",
     "NETWORK_ERROR": "Network request failed",
     "CONFIG_ERROR": "Configuration error",
-    "VALIDATION_ERROR": "Data validation failed"
+    "VALIDATION_ERROR": "Data validation failed",
 }
 
 
@@ -126,6 +127,8 @@ def format_user_error(error: Exception) -> str:
     elif isinstance(error, PermissionError):
         return f"❌ Permission Error: {str(error)}\n   Solution: Check directory permissions or change cache directory"
     elif isinstance(error, ConnectionError):
-        return f"❌ Network Error: {str(error)}\n   Solution: Check network connection or retry later"
+        return (
+            f"❌ Network Error: {str(error)}\n   Solution: Check network connection or retry later"
+        )
     else:
         return f"❌ Unknown Error: {str(error)}\n   Suggestion: Please check input parameters or contact technical support"

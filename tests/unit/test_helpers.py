@@ -3,22 +3,34 @@
 Unit tests for core/utils/helpers.py
 """
 
-import unittest
 import os
-import tempfile
-from datetime import datetime, date
-from unittest.mock import patch, mock_open
 import sys
+import tempfile
+import unittest
+from datetime import date, datetime
+from unittest.mock import mock_open, patch
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from core.utils.helpers import (
-    format_currency_by_code, format_currency, format_percentage, format_number, format_large_number,
-    calculate_date_range, get_trading_days_count, ensure_directory_exists,
-    get_file_size_mb, timing_decorator, safe_divide, clean_dict, merge_dicts,
-    parse_date_string, calculate_percentage_change, safe_float_conversion,
-    safe_int_conversion
+    calculate_date_range,
+    calculate_percentage_change,
+    clean_dict,
+    ensure_directory_exists,
+    format_currency,
+    format_currency_by_code,
+    format_large_number,
+    format_number,
+    format_percentage,
+    get_file_size_mb,
+    get_trading_days_count,
+    merge_dicts,
+    parse_date_string,
+    safe_divide,
+    safe_float_conversion,
+    safe_int_conversion,
+    timing_decorator,
 )
 
 

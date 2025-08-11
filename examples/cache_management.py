@@ -8,4 +8,3 @@ print("Cache dir set.")
 
 # Clear cache (use with caution)
 # qdb.clear_cache()
-

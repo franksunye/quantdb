@@ -5,10 +5,11 @@ This module provides simplified cache management endpoints
 for the QuantDB API using the database as the primary cache.
 """
 
-from typing import Dict, Any, List
+from datetime import datetime
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
 
 from core.database import get_db
 from core.models import Asset, DailyStockData
@@ -46,7 +47,7 @@ async def get_cache_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "total_assets": asset_count,
             "total_prices": price_count,
             "latest_data_date": latest_date,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
         logger.info(f"Cache stats retrieved: {stats}")
@@ -74,7 +75,7 @@ async def clear_cache(db: Session = Depends(get_db)) -> Dict[str, str]:
 
         return {
             "message": f"Successfully cleared {deleted_count} price records from cache",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     except Exception as e:
@@ -101,14 +102,16 @@ async def clear_symbol_cache(symbol: str, db: Session = Depends(get_db)) -> Dict
             raise HTTPException(status_code=404, detail=f"Symbol {symbol} not found")
 
         # Delete price data for this asset
-        deleted_count = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).delete()
+        deleted_count = (
+            db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).delete()
+        )
         db.commit()
 
         logger.info(f"Cleared {deleted_count} price records for symbol {symbol}")
 
         return {
             "message": f"Successfully cleared {deleted_count} price records for symbol {symbol}",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     except HTTPException:
@@ -134,18 +137,32 @@ async def get_cached_symbols(db: Session = Depends(get_db)) -> List[Dict[str, An
         symbols = []
         for asset in assets_with_prices:
             # Get price count and date range for this asset
-            price_count = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).count()
+            price_count = (
+                db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).count()
+            )
 
-            earliest_price = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).order_by(DailyStockData.trade_date.asc()).first()
-            latest_price = db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).order_by(DailyStockData.trade_date.desc()).first()
+            earliest_price = (
+                db.query(DailyStockData)
+                .filter(DailyStockData.asset_id == asset.asset_id)
+                .order_by(DailyStockData.trade_date.asc())
+                .first()
+            )
+            latest_price = (
+                db.query(DailyStockData)
+                .filter(DailyStockData.asset_id == asset.asset_id)
+                .order_by(DailyStockData.trade_date.desc())
+                .first()
+            )
 
-            symbols.append({
-                "symbol": asset.symbol,
-                "name": asset.name,
-                "price_count": price_count,
-                "earliest_date": earliest_price.trade_date if earliest_price else None,
-                "latest_date": latest_price.trade_date if latest_price else None
-            })
+            symbols.append(
+                {
+                    "symbol": asset.symbol,
+                    "name": asset.name,
+                    "price_count": price_count,
+                    "earliest_date": earliest_price.trade_date if earliest_price else None,
+                    "latest_date": latest_price.trade_date if latest_price else None,
+                }
+            )
 
         logger.info(f"Retrieved cache info for {len(symbols)} symbols")
         return symbols
@@ -171,13 +188,9 @@ async def cache_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
             "status": "healthy",
             "cache_type": "database",
             "asset_count": asset_count,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     except Exception as e:
         logger.error(f"Cache health check failed: {e}")
-        return {
-            "status": "unhealthy",
-            "error": str(e),
-            "timestamp": datetime.now().isoformat()
-        }
+        return {"status": "unhealthy", "error": str(e), "timestamp": datetime.now().isoformat()}

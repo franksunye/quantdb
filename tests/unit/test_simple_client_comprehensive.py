@@ -4,20 +4,21 @@ SimpleQDBClient的全面测试，专门提升覆盖率
 重点测试所有未覆盖的方法和代码路径
 """
 
-import unittest
-import tempfile
-import shutil
 import os
-import sys
+import shutil
 import sqlite3
-from unittest.mock import patch, MagicMock
+import sys
+import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
+from qdb.exceptions import CacheError, DataError, QDBError
 from qdb.simple_client import SimpleQDBClient
-from qdb.exceptions import QDBError, CacheError, DataError
 
 
 class TestSimpleClientComprehensive(unittest.TestCase):

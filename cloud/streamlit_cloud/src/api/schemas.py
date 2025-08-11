@@ -1,16 +1,18 @@
 """
 Pydantic schemas for the API
 """
-from typing import List, Optional, Dict, Any, Union
+
 from datetime import date, datetime
 from enum import Enum
-from pydantic import BaseModel, Field, ConfigDict
+from typing import Any, Dict, List, Optional, Union
 
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # Asset schemas
 class AssetBase(BaseModel):
     """Base schema for Asset"""
+
     symbol: str
     name: str
     asset_type: str
@@ -36,26 +38,34 @@ class AssetBase(BaseModel):
     last_updated: Optional[datetime] = None
     data_source: Optional[str] = None
 
+
 class AssetCreate(AssetBase):
     """Schema for creating an Asset"""
+
     isin: str
+
 
 class Asset(AssetBase):
     """Schema for returning an Asset"""
+
     asset_id: int
     isin: str
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Asset response with cache metadata
 class AssetWithMetadata(BaseModel):
     """Schema for returning an Asset with cache metadata"""
+
     asset: Asset
     metadata: Dict[str, Any]
+
 
 # Daily stock data schemas
 class DailyStockDataBase(BaseModel):
     """Base schema for DailyStockData"""
+
     trade_date: date
     open: Optional[float] = None
     high: Optional[float] = None
@@ -69,20 +79,26 @@ class DailyStockDataBase(BaseModel):
     change: Optional[float] = None
     turnover_rate: Optional[float] = None
 
+
 class DailyStockDataCreate(DailyStockDataBase):
     """Schema for creating DailyStockData"""
+
     asset_id: int
+
 
 class DailyStockData(DailyStockDataBase):
     """Schema for returning DailyStockData"""
+
     id: int
     asset_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
+
 # Intraday stock data schemas
 class IntradayStockDataBase(BaseModel):
     """Base schema for IntradayStockData"""
+
     capture_time: datetime
     trade_date: date
     latest_price: Optional[float] = None
@@ -107,22 +123,26 @@ class IntradayStockDataBase(BaseModel):
     ytd_pct_change: Optional[float] = None
     is_final: Optional[bool] = False
 
+
 class IntradayStockDataCreate(IntradayStockDataBase):
     """Schema for creating IntradayStockData"""
+
     asset_id: int
+
 
 class IntradayStockData(IntradayStockDataBase):
     """Schema for returning IntradayStockData"""
+
     id: int
     asset_id: int
 
     model_config = ConfigDict(from_attributes=True)
 
 
-
 # Historical data schemas
 class HistoricalDataPoint(BaseModel):
     """Schema for a single historical data point"""
+
     date: Union[date, str]
     open: Optional[float] = None
     high: Optional[float] = None
@@ -135,8 +155,10 @@ class HistoricalDataPoint(BaseModel):
     change: Optional[float] = None
     turnover_rate: Optional[float] = None
 
+
 class HistoricalDataResponse(BaseModel):
     """Schema for historical data response"""
+
     symbol: str
     name: Optional[str] = None
     start_date: Optional[str] = None
@@ -144,5 +166,3 @@ class HistoricalDataResponse(BaseModel):
     adjust: Optional[str] = None
     data: List[HistoricalDataPoint]
     metadata: Dict[str, Any]
-
-

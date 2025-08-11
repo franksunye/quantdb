@@ -7,4 +7,3 @@ print("Total:", len(all_stocks))
 # Market filtering (if supported: 'SHSE', 'SZSE', 'HKEX')
 sh = qdb.get_stock_list(market="SHSE")
 print("SHSE:", len(sh))
-

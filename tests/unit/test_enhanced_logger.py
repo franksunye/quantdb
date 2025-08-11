@@ -1,19 +1,20 @@
 """
 Unit tests for the enhanced logger module.
 """
-import unittest
+import json
 import os
 import tempfile
-import json
 import time
-from unittest.mock import patch, MagicMock
+import unittest
 from datetime import datetime
-
-# Enhanced logger functionality migrated to core
-from core.utils.logger import get_logger
+from unittest.mock import MagicMock, patch
 
 # Skip this test as enhanced logger is now simplified
 import pytest
+
+# Enhanced logger functionality migrated to core
+from core.utils.logger import EnhancedLogger, get_logger, log_function, setup_enhanced_logger
+
 pytestmark = pytest.mark.skip(reason="Enhanced logger migrated to simplified core logger")
 
 class TestEnhancedLogger(unittest.TestCase):

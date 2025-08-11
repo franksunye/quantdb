@@ -6,11 +6,11 @@
 这个脚本可以独立运行，验证PyPI发布版本的质量。
 """
 
+import os
 import subprocess
 import sys
-import os
-import time
 import tempfile
+import time
 from pathlib import Path
 
 
@@ -18,31 +18,27 @@ def print_section(title):
     """打印测试章节标题"""
     print(f"\n{'='*60}")
     print(f"🧪 {title}")
-    print('='*60)
+    print("=" * 60)
 
 
 def print_step(step, description):
     """打印测试步骤"""
     print(f"\n📋 步骤 {step}: {description}")
-    print('-' * 40)
+    print("-" * 40)
 
 
 def run_command(cmd, description, cwd=None, timeout=300):
     """运行命令并返回结果"""
     print(f"执行: {' '.join(cmd) if isinstance(cmd, list) else cmd}")
-    
+
     try:
         if isinstance(cmd, str):
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True, 
-                cwd=cwd, timeout=timeout
+                cmd, shell=True, capture_output=True, text=True, cwd=cwd, timeout=timeout
             )
         else:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, 
-                cwd=cwd, timeout=timeout
-            )
-        
+            result = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=timeout)
+
         if result.returncode == 0:
             print(f"✅ {description} - 成功")
             if result.stdout.strip():
@@ -52,7 +48,7 @@ def run_command(cmd, description, cwd=None, timeout=300):
             print(f"❌ {description} - 失败")
             print(f"错误: {result.stderr}")
             return False, result.stdout, result.stderr
-            
+
     except subprocess.TimeoutExpired:
         print(f"⏰ {description} - 超时")
         return False, "", "命令执行超时"
@@ -64,18 +60,16 @@ def run_command(cmd, description, cwd=None, timeout=300):
 def test_fresh_installation():
     """测试全新安装体验"""
     print_section("全新安装测试")
-    
+
     with tempfile.TemporaryDirectory() as temp_dir:
         venv_path = Path(temp_dir) / "quantdb_test_env"
-        
+
         print_step(1, "创建虚拟环境")
-        success, _, _ = run_command([
-            sys.executable, "-m", "venv", str(venv_path)
-        ], "创建虚拟环境")
-        
+        success, _, _ = run_command([sys.executable, "-m", "venv", str(venv_path)], "创建虚拟环境")
+
         if not success:
             return False
-        
+
         # 获取虚拟环境路径
         if sys.platform == "win32":
             python_path = venv_path / "Scripts" / "python.exe"
@@ -83,44 +77,40 @@ def test_fresh_installation():
         else:
             python_path = venv_path / "bin" / "python"
             pip_path = venv_path / "bin" / "pip"
-        
+
         print_step(2, "升级pip")
-        success, _, _ = run_command([
-            str(pip_path), "install", "--upgrade", "pip"
-        ], "升级pip")
-        
+        success, _, _ = run_command([str(pip_path), "install", "--upgrade", "pip"], "升级pip")
+
         if not success:
             return False
-        
+
         print_step(3, "从PyPI安装quantdb")
-        success, stdout, stderr = run_command([
-            str(pip_path), "install", "quantdb"
-        ], "安装quantdb包", timeout=600)
-        
+        success, stdout, stderr = run_command(
+            [str(pip_path), "install", "quantdb"], "安装quantdb包", timeout=600
+        )
+
         if not success:
             print(f"安装失败详情: {stderr}")
             return False
-        
+
         print_step(4, "验证安装")
-        test_import = '''
+        test_import = """
 import qdb
 print(f"✅ QuantDB版本: {getattr(qdb, '__version__', '未知')}")
 print("✅ 导入成功")
-'''
-        
-        success, stdout, stderr = run_command([
-            str(python_path), "-c", test_import
-        ], "验证导入")
-        
+"""
+
+        success, stdout, stderr = run_command([str(python_path), "-c", test_import], "验证导入")
+
         return success
 
 
 def test_basic_functionality():
     """测试基本功能"""
     print_section("基本功能测试")
-    
+
     print_step(1, "测试基本API调用")
-    basic_test = '''
+    basic_test = """
 import qdb
 import sys
 
@@ -143,23 +133,23 @@ try:
 except Exception as e:
     print(f"❌ 基本功能测试失败: {e}")
     sys.exit(1)
-'''
-    
-    success, stdout, stderr = run_command([
-        sys.executable, "-c", basic_test
-    ], "基本功能测试", timeout=120)
-    
+"""
+
+    success, stdout, stderr = run_command(
+        [sys.executable, "-c", basic_test], "基本功能测试", timeout=120
+    )
+
     return success
 
 
 def test_user_scenarios():
     """测试用户使用场景"""
     print_section("用户场景测试")
-    
+
     scenarios = [
         {
             "name": "量化分析师场景",
-            "code": '''
+            "code": """
 import qdb
 import pandas as pd
 
@@ -177,11 +167,11 @@ for symbol in symbols:
         print(f"⚠️ {symbol}获取失败: {e}")
 
 print(f"✅ 投资组合数据获取完成: {len(portfolio_data)}只股票")
-'''
+""",
         },
         {
-            "name": "数据科学家场景", 
-            "code": '''
+            "name": "数据科学家场景",
+            "code": """
 import qdb
 
 # 数据科学家进行数据探索
@@ -198,11 +188,11 @@ except Exception as e:
     print(f"⚠️ 数据探索异常: {e}")
 
 print("✅ 数据科学场景测试完成")
-'''
+""",
         },
         {
             "name": "个人投资者场景",
-            "code": '''
+            "code": """
 import qdb
 
 # 个人投资者查看关注股票
@@ -222,32 +212,32 @@ for symbol in watchlist:
         print(f"⚠️ {symbol}查询失败: {e}")
 
 print("✅ 个人投资者场景测试完成")
-'''
-        }
+""",
+        },
     ]
-    
+
     all_success = True
     for i, scenario in enumerate(scenarios, 1):
         print_step(i, scenario["name"])
-        success, stdout, stderr = run_command([
-            sys.executable, "-c", scenario["code"]
-        ], scenario["name"], timeout=90)
-        
+        success, stdout, stderr = run_command(
+            [sys.executable, "-c", scenario["code"]], scenario["name"], timeout=90
+        )
+
         if not success:
             all_success = False
             print(f"❌ {scenario['name']}失败")
         else:
             print(f"✅ {scenario['name']}成功")
-    
+
     return all_success
 
 
 def test_performance_experience():
     """测试性能体验"""
     print_section("性能体验测试")
-    
+
     print_step(1, "缓存性能测试")
-    perf_test = '''
+    perf_test = """
 import qdb
 import time
 
@@ -279,12 +269,10 @@ except Exception as e:
     print(f"⚠️ 性能测试异常: {e}")
 
 print("✅ 性能测试完成")
-'''
-    
-    success, stdout, stderr = run_command([
-        sys.executable, "-c", perf_test
-    ], "性能测试", timeout=60)
-    
+"""
+
+    success, stdout, stderr = run_command([sys.executable, "-c", perf_test], "性能测试", timeout=60)
+
     return success
 
 
@@ -293,17 +281,17 @@ def main():
     print("🚀 QuantDB用户体验测试开始")
     print(f"Python版本: {sys.version}")
     print(f"测试时间: {time.strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
     test_results = []
-    
+
     # 测试套件
     tests = [
         ("全新安装测试", test_fresh_installation),
-        ("基本功能测试", test_basic_functionality), 
+        ("基本功能测试", test_basic_functionality),
         ("用户场景测试", test_user_scenarios),
         ("性能体验测试", test_performance_experience),
     ]
-    
+
     for test_name, test_func in tests:
         print(f"\n🧪 开始执行: {test_name}")
         try:
@@ -316,19 +304,19 @@ def main():
         except Exception as e:
             print(f"💥 {test_name} - 异常: {e}")
             test_results.append((test_name, False))
-    
+
     # 总结报告
     print_section("测试总结报告")
     passed = sum(1 for _, result in test_results if result)
     total = len(test_results)
-    
+
     print(f"📊 测试结果: {passed}/{total} 通过")
     print(f"📈 通过率: {passed/total*100:.1f}%")
-    
+
     for test_name, result in test_results:
         status = "✅ 通过" if result else "❌ 失败"
         print(f"  {status} {test_name}")
-    
+
     if passed == total:
         print("\n🎉 所有用户体验测试通过！QuantDB已准备好为用户提供优质服务！")
         return 0

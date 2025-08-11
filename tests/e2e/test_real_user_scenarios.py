@@ -13,13 +13,14 @@
 python scripts/test_runner.py --e2e --auto-start-server
 """
 
-import unittest
-import requests
-import time
 import json
-from datetime import datetime, timedelta
 import os
 import sys
+import time
+import unittest
+from datetime import datetime, timedelta
+
+import requests
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))

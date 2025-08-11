@@ -1,7 +1,8 @@
 """
 Stock data models for QuantDB core
 """
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean, DateTime
+
+from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
@@ -9,6 +10,7 @@ from ..database.connection import Base
 
 class DailyStockData(Base):
     """Daily stock data model - unified stock data model"""
+
     __tablename__ = "daily_stock_data"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -32,6 +34,7 @@ class DailyStockData(Base):
 
 class IntradayStockData(Base):
     """Intraday stock data model"""
+
     __tablename__ = "intraday_stock_data"
 
     id = Column(Integer, primary_key=True, index=True)

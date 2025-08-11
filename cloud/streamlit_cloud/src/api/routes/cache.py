@@ -2,10 +2,13 @@
 Cache API routes for monitoring and managing the simplified cache system.
 In the simplified architecture, we use SQLite database as the primary cache.
 """
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlalchemy.orm import Session
+
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from core.database import get_db
 from core.utils.logger import get_logger
 
@@ -18,6 +21,7 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+
 @router.get("/status")
 async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
@@ -29,24 +33,24 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
         daily_data_count = db.execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
 
         # Get latest data timestamp (using trade_date since daily_stock_data doesn't have updated_at)
-        latest_data = db.execute(text(
-            "SELECT MAX(trade_date) FROM daily_stock_data"
-        )).scalar()
+        latest_data = db.execute(text("SELECT MAX(trade_date) FROM daily_stock_data")).scalar()
 
         # Get database size (SQLite specific)
-        db_size = db.execute(text(
-            "SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()"
-        )).scalar()
+        db_size = db.execute(
+            text(
+                "SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()"
+            )
+        ).scalar()
 
         stats = {
             "database": {
                 "assets_count": assets_count or 0,
                 "daily_data_count": daily_data_count or 0,
                 "latest_data_date": str(latest_data) if latest_data else None,
-                "database_size_bytes": db_size or 0
+                "database_size_bytes": db_size or 0,
             },
             "cache_type": "SQLite Database",
-            "status": "active"
+            "status": "active",
         }
 
         return stats
@@ -54,10 +58,14 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
         logger.error(f"Error getting cache status: {e}")
         raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")
 
+
 @router.delete("/clear")
 async def clear_cache(
-    table: str = Query(None, description="Specific table to clear: 'prices' or 'assets'. If not provided, clears all data."),
-    db: Session = Depends(get_db)
+    table: str = Query(
+        None,
+        description="Specific table to clear: 'prices' or 'assets'. If not provided, clears all data.",
+    ),
+    db: Session = Depends(get_db),
 ) -> Dict[str, Any]:
     """
     Clear cached data from SQLite database
@@ -75,9 +83,14 @@ async def clear_cache(
                 db.execute(text("DELETE FROM assets"))
                 db.commit()
                 logger.info("Cleared assets and prices tables")
-                return {"status": "success", "message": f"Table '{table}' and related data cleared successfully"}
+                return {
+                    "status": "success",
+                    "message": f"Table '{table}' and related data cleared successfully",
+                }
             else:
-                raise HTTPException(status_code=400, detail="Invalid table name. Use 'prices' or 'assets'.")
+                raise HTTPException(
+                    status_code=400, detail="Invalid table name. Use 'prices' or 'assets'."
+                )
         else:
             # Clear all cached data
             db.execute(text("DELETE FROM prices"))
@@ -89,6 +102,7 @@ async def clear_cache(
         db.rollback()
         logger.error(f"Error clearing cache: {e}")
         raise HTTPException(status_code=500, detail=f"Error clearing cache: {str(e)}")
+
 
 # Note: In the simplified architecture, we only provide basic cache management
 # through database operations. Complex cache key management is not needed
