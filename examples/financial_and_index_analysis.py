@@ -19,7 +19,7 @@ def example_financial_summary_analysis():
     print("=== Financial Summary Analysis ===")
     
     # Major bank stocks for comparison
-    bank_symbols = ["000001", "600000", "600036"]  # 平安银行, 浦发银行, 招商银行
+    bank_symbols = ["000001", "600000", "600036"]  # Ping An Bank, Pudong Development Bank, China Merchants Bank
     
     for symbol in bank_symbols:
         try:
@@ -42,9 +42,9 @@ def example_financial_summary_analysis():
                 roe = latest.get('roe')
                 
                 if net_profit:
-                    print(f"   Net profit: {net_profit:.1f} 亿元")
+                    print(f"   Net profit: {net_profit:.1f} billion yuan")
                 if total_revenue:
-                    print(f"   Total revenue: {total_revenue:.1f} 亿元")
+                    print(f"   Total revenue: {total_revenue:.1f} billion yuan")
                     if net_profit:
                         margin = (net_profit / total_revenue) * 100
                         print(f"   Profit margin: {margin:.2f}%")
@@ -71,7 +71,7 @@ def example_financial_indicators_exploration():
     """Example: Exploring detailed financial indicators."""
     print("\n=== Financial Indicators Exploration ===")
     
-    symbol = "600036"  # 招商银行 - typically has good data coverage
+    symbol = "600036"  # China Merchants Bank - typically has good data coverage
     
     try:
         indicators = qdb.get_financial_indicators(symbol)
@@ -113,10 +113,10 @@ def example_index_data_analysis():
     
     # Major Chinese indices
     indices = {
-        "000001": "上证综指",
-        "399001": "深证成指", 
-        "399006": "创业板指",
-        "000300": "沪深300"
+        "000001": "Shanghai Composite Index",
+        "399001": "Shenzhen Component Index",
+        "399006": "ChiNext Index",
+        "000300": "CSI 300 Index"
     }
     
     for symbol, name in indices.items():
@@ -156,9 +156,9 @@ def example_index_realtime_monitoring():
     print("\n=== Real-time Index Monitoring ===")
     
     major_indices = {
-        "000001": "上证综指",
-        "399001": "深证成指",
-        "399006": "创业板指"
+        "000001": "Shanghai Composite Index",
+        "399001": "Shenzhen Component Index",
+        "399006": "ChiNext Index"
     }
     
     print("📈 Market Dashboard:")
@@ -198,7 +198,7 @@ def example_index_list_exploration():
     
     try:
         # Get major indices
-        major_indices = qdb.get_index_list(category="沪深重要指数")
+        major_indices = qdb.get_index_list(category="Major Shanghai-Shenzhen Indices")
         print(f"📋 Major Indices ({len(major_indices)} available):")
         
         for idx in major_indices[:8]:  # Show first 8
@@ -213,11 +213,11 @@ def example_index_list_exploration():
         # Get sector indices
         print(f"\n🏭 Exploring Sector Indices:")
         try:
-            sector_indices = qdb.get_index_list(category="行业指数")
+            sector_indices = qdb.get_index_list(category="Sector Indices")
             print(f"   Total sector indices: {len(sector_indices)}")
-            
+
             # Find technology-related indices
-            tech_keywords = ['科技', '信息', '软件', '互联网', '电子']
+            tech_keywords = ['科技', '信息', '软件', '互联网', '电子', 'Technology', 'Information', 'Software', 'Internet', 'Electronics']
             tech_indices = []
             for idx in sector_indices:
                 name = idx.get('name', '')
@@ -258,7 +258,7 @@ def example_comparative_analysis():
     
     # Compare with market indices
     print("\n📊 Market Comparison:")
-    market_indices = ["000001", "000300"]  # 上证综指, 沪深300
+    market_indices = ["000001", "000300"]  # Shanghai Composite Index, CSI 300 Index
     
     for idx_symbol in market_indices:
         try:
