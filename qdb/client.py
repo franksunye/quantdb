@@ -600,12 +600,21 @@ class QDBClient:
         except Exception as e:
             raise DataError(f"Failed to get stock list: {str(e)}")
 
-    def get_index_data(self, symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, period: str = "daily", force_refresh: bool = False) -> pd.DataFrame:
+    def get_index_data(
+        self,
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        period: str = "daily",
+        force_refresh: bool = False,
+    ) -> pd.DataFrame:
         """Get index historical data"""
         self._lazy_init()
 
         try:
-            return self._index_service.get_index_data(symbol, start_date, end_date, period, force_refresh)
+            return self._index_service.get_index_data(
+                symbol, start_date, end_date, period, force_refresh
+            )
         except Exception as e:
             raise DataError(f"Failed to get index data for {symbol}: {str(e)}")
 
