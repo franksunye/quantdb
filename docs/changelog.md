@@ -1,38 +1,38 @@
 # QuantDB Changelog
 
-## [2.3.0-dev] - 开发中
+## [2.3.0-dev] - In Development
 
-### 新增
-- 实时数据API：完整的实时股票数据支持
-- 财务数据API：财务摘要和指标数据支持
-- 指数数据API：完整的指数历史/实时数据支持
-- 股票列表API：完整的股票列表功能
-- 智能缓存：高性能多功能数据访问策略
+### Added
+- Real-time Data API: Complete real-time stock data support
+- Financial Data API: Financial summary and metrics data support
+- Index Data API: Complete index historical/real-time data support
+- Stock List API: Complete stock listing functionality
+- Smart Caching: High-performance multi-functional data access strategy
 
-### 改进
-- 测试覆盖率从39%提升到50% (+11个百分点)
-- 新增37个核心测试，100%通过
-- 完整国际化：版本显示和用户界面消息100%英文化
-- 100%英文代码库：完全适配国际开发者社区
+### Improved
+- Test coverage increased from 39% to 50% (+11 percentage points)
+- Added 37 core tests, 100% passing
+- Complete internationalization: Version display and UI messages 100% in English
+- 100% English codebase: Fully adapted for international developer community
 
-### 新增测试模块
-- test_core_models.py - 13个核心模型测试
-- test_validators.py - 15个验证器测试
-- test_realtime_data_service.py - 9个实时数据服务测试
-- test_realtime_api.py - 24个实时API测试
-- test_package_quality.py - 质量保证测试套件
+### Added Test Modules
+- test_core_models.py - 13 core model tests
+- test_validators.py - 15 validator tests
+- test_realtime_data_service.py - 9 real-time data service tests
+- test_realtime_api.py - 24 real-time API tests
+- test_package_quality.py - Quality assurance test suite
 
-### 新增质量保证工具
-- test_runner_v2.py - 下一代测试运行器
-- package_quality_gate.py - Package质量门控脚本
+### Added Quality Assurance Tools
+- test_runner_v2.py - Next-generation test runner
+- package_quality_gate.py - Package quality gate script
 
-### 测试质量指标改进
-| 指标 | 升级前 | 升级后 | 改进 |
-|------|--------|--------|------|
-| 总覆盖率 | 39% | 50% | +11% |
-| 核心模型覆盖 | 低 | 100% | 完全覆盖 |
-| 验证器覆盖 | 14% | 94% | +80% |
-| 实时服务覆盖 | 低 | 84% | 大幅提升 |
+### Test Quality Metrics Improvements
+| Metric | Before | After | Improvement |
+|--------|--------|-------|-------------|
+| Total Coverage | 39% | 50% | +11% |
+| Core Model Coverage | Low | 100% | Complete Coverage |
+| Validator Coverage | 14% | 94% | +80% |
+| Real-time Service Coverage | Low | 84% | Significant Improvement |
 
 ## [2.2.8] - UX Improvements + API Compatibility (2025-08-07)
 
