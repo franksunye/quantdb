@@ -43,5 +43,9 @@ nav:
   - Get Started: get-started.md
   - User Guide: user-guide.md
   - API Reference: api-reference.md
+  - AI Agent:
+    - Overview: ai-agent/index.md
+    - Developer Guide: ai-agent/developer-guide.md
+    - API Schema: ai-agent/api-schema.md
   - FAQ: faq.md
   - Changelog: changelog.md

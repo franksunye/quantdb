@@ -25,6 +25,24 @@
         <priority>0.8</priority>
     </url>
     <url>
+        <loc>https://franksunye.github.io/quantdb/ai-agent/</loc>
+        <lastmod>2025-08-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.7</priority>
+    </url>
+    <url>
+        <loc>https://franksunye.github.io/quantdb/ai-agent/developer-guide/</loc>
+        <lastmod>2025-08-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
+        <loc>https://franksunye.github.io/quantdb/ai-agent/api-schema/</loc>
+        <lastmod>2025-08-11</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>
+    <url>
         <loc>https://franksunye.github.io/quantdb/faq/</loc>
         <lastmod>2025-08-08</lastmod>
         <changefreq>monthly</changefreq>

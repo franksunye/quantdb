@@ -64,7 +64,7 @@
 4. **清晰描述**: 期望结果 vs 实际结果
 
 ### 参与贡献
-- **代码贡献**: 查看 [开发指南](../30_DEVELOPMENT.md)
+- **代码贡献**: 查看 [GitHub Repository](https://github.com/franksunye/quantdb)
 - **文档改进**: 通过 Issues 或 PR 提交
 - **测试反馈**: 分享使用体验和测试结果
 - **推广分享**: 在社区分享 QuantDB 使用经验
