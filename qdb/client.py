@@ -70,11 +70,19 @@ class QDBClient:
             self._akshare_adapter = AKShareAdapter(self._db_session)
 
             # Initialize core services
-            self._stock_service = StockDataService(self._db_session, self._akshare_adapter)
+            self._stock_service = StockDataService(
+                self._db_session, self._akshare_adapter
+            )
             self._asset_service = AssetInfoService(self._db_session)
-            self._realtime_service = RealtimeDataService(self._db_session, self._akshare_adapter)
-            self._index_service = IndexDataService(self._db_session, self._akshare_adapter)
-            self._financial_service = FinancialDataService(self._db_session, self._akshare_adapter)
+            self._realtime_service = RealtimeDataService(
+                self._db_session, self._akshare_adapter
+            )
+            self._index_service = IndexDataService(
+                self._db_session, self._akshare_adapter
+            )
+            self._financial_service = FinancialDataService(
+                self._db_session, self._akshare_adapter
+            )
 
             self._initialized = True
 
@@ -229,7 +237,9 @@ class QDBClient:
                 return {
                     "symbol": symbol,
                     "name": f"Stock {symbol}",
-                    "market": "A-Share" if symbol.startswith(("0", "3", "6")) else "Unknown",
+                    "market": (
+                        "A-Share" if symbol.startswith(("0", "3", "6")) else "Unknown"
+                    ),
                     "status": "Active",
                 }
         except Exception as e:
@@ -310,7 +320,9 @@ class QDBClient:
             cache_size = 0
             if Path(self.cache_dir).exists():
                 cache_size = sum(
-                    f.stat().st_size for f in Path(self.cache_dir).rglob("*") if f.is_file()
+                    f.stat().st_size
+                    for f in Path(self.cache_dir).rglob("*")
+                    if f.is_file()
                 ) / (
                     1024 * 1024
                 )  # MB
@@ -364,7 +376,9 @@ class QDBClient:
         except Exception as e:
             raise CacheError(f"Failed to clear cache: {str(e)}")
 
-    def get_financial_summary(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_financial_summary(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """Get comprehensive financial summary data for a stock with intelligent caching.
 
         Retrieves quarterly financial summary including key metrics like revenue,
@@ -461,9 +475,15 @@ class QDBClient:
 
         except Exception as e:
             print(f"⚠️ Error getting financial summary for {symbol}: {e}")
-            return {"symbol": symbol, "error": str(e), "timestamp": datetime.now().isoformat()}
+            return {
+                "symbol": symbol,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat(),
+            }
 
-    def get_financial_indicators(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_financial_indicators(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """Get comprehensive financial indicators and ratios for detailed analysis.
 
         Retrieves extensive financial indicators including profitability, liquidity,
@@ -562,9 +582,15 @@ class QDBClient:
 
         except Exception as e:
             print(f"⚠️ Error getting financial indicators for {symbol}: {e}")
-            return {"symbol": symbol, "error": str(e), "timestamp": datetime.now().isoformat()}
+            return {
+                "symbol": symbol,
+                "error": str(e),
+                "timestamp": datetime.now().isoformat(),
+            }
 
-    def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_realtime_data(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """Get real-time stock data"""
         self._lazy_init()
 
@@ -618,7 +644,9 @@ class QDBClient:
         except Exception as e:
             raise DataError(f"Failed to get index data for {symbol}: {str(e)}")
 
-    def get_index_realtime(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_index_realtime(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """Get index realtime data"""
         self._lazy_init()
 
@@ -679,7 +707,10 @@ def init(cache_dir: Optional[str] = None):
 
 
 def get_stock_data(
-    symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs
+    symbol: str,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    **kwargs,
 ) -> pd.DataFrame:
     """Get historical stock data with intelligent caching.
 
@@ -711,7 +742,9 @@ def get_stock_data(
         This function delegates to the underlying QDBClient instance.
         See QDBClient.get_stock_data() for complete documentation.
     """
-    return _get_client().get_stock_data(symbol, start_date=start_date, end_date=end_date, **kwargs)
+    return _get_client().get_stock_data(
+        symbol, start_date=start_date, end_date=end_date, **kwargs
+    )
 
 
 def get_multiple_stocks(symbols: List[str], **kwargs) -> Dict[str, pd.DataFrame]:
@@ -1039,7 +1072,9 @@ def get_index_data(
         - Monthly data uses month-end closing values
         - Data availability varies by index and historical period
     """
-    return _get_client().get_index_data(symbol, start_date, end_date, period, force_refresh)
+    return _get_client().get_index_data(
+        symbol, start_date, end_date, period, force_refresh
+    )
 
 
 def get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
@@ -1244,7 +1279,9 @@ def get_financial_summary(symbol: str, force_refresh: bool = False) -> Dict[str,
     return _get_client().get_financial_summary(symbol, force_refresh)
 
 
-def get_financial_indicators(symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+def get_financial_indicators(
+    symbol: str, force_refresh: bool = False
+) -> Dict[str, Any]:
     """Get comprehensive financial indicators and ratios for detailed analysis.
 
     Convenience function that retrieves extensive financial indicators including

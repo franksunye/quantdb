@@ -61,7 +61,9 @@ class SessionDataManager:
         st.session_state.last_activity = datetime.now()
 
     @staticmethod
-    def update_performance_metrics(query_type: str, response_time: float, cache_hit: bool = False):
+    def update_performance_metrics(
+        query_type: str, response_time: float, cache_hit: bool = False
+    ):
         """更新性能指标"""
         metrics = st.session_state.performance_metrics
 
@@ -102,7 +104,9 @@ class SessionDataManager:
             "total_queries": metrics["total_queries"],
             "cache_hits": metrics["cache_hits"],
             "akshare_calls": metrics["akshare_calls"],
-            "cache_hit_rate": (metrics["cache_hits"] / max(metrics["total_queries"], 1) * 100),
+            "cache_hit_rate": (
+                metrics["cache_hits"] / max(metrics["total_queries"], 1) * 100
+            ),
             "avg_response_time": metrics["avg_response_time"],
             "session_duration": datetime.now() - st.session_state.app_start_time,
             "last_activity": st.session_state.last_activity,

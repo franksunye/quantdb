@@ -46,9 +46,7 @@ from .exceptions import CacheError, DataError, NetworkError, QDBError
 __version__ = "2.2.8"
 __author__ = "Ye Sun"
 __email__ = "franksunye@hotmail.com"
-__description__ = (
-    "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
-)
+__description__ = "Intelligent caching wrapper for AKShare, providing high-performance stock data access"
 
 # Public API
 __all__ = [

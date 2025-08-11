@@ -136,6 +136,10 @@ def setup_swagger_ui(app: FastAPI) -> None:
         f.write(swagger_html)
 
     # Mount the Swagger UI directory
-    app.mount("/api/v2/docs", StaticFiles(directory=str(swagger_dir), html=True), name="swagger_ui")
+    app.mount(
+        "/api/v2/docs",
+        StaticFiles(directory=str(swagger_dir), html=True),
+        name="swagger_ui",
+    )
 
     logger.info("Swagger UI set up successfully")

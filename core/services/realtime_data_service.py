@@ -42,7 +42,9 @@ class RealtimeDataService:
         self.cache_manager = RealtimeDataCache(db)
         logger.info("Realtime data service initialized")
 
-    def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_realtime_data(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """
         Get realtime data for a single stock with caching.
 
@@ -54,7 +56,9 @@ class RealtimeDataService:
             Dictionary with realtime stock data
         """
         try:
-            logger.info(f"Getting realtime data for {symbol}, force_refresh={force_refresh}")
+            logger.info(
+                f"Getting realtime data for {symbol}, force_refresh={force_refresh}"
+            )
 
             # Check cache first (unless force refresh)
             if not force_refresh:
@@ -133,7 +137,9 @@ class RealtimeDataService:
             if symbols_to_fetch:
                 logger.info(f"Fetching {len(symbols_to_fetch)} symbols from AKShare")
 
-                batch_data = self.akshare_adapter.get_realtime_data_batch(symbols_to_fetch)
+                batch_data = self.akshare_adapter.get_realtime_data_batch(
+                    symbols_to_fetch
+                )
 
                 for symbol in symbols_to_fetch:
                     if symbol in batch_data:
@@ -151,7 +157,9 @@ class RealtimeDataService:
                             "timestamp": datetime.now().isoformat(),
                         }
 
-            logger.info(f"Successfully retrieved batch realtime data for {len(result)} symbols")
+            logger.info(
+                f"Successfully retrieved batch realtime data for {len(result)} symbols"
+            )
             return result
 
         except Exception as e:

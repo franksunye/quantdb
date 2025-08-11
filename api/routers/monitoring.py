@@ -33,7 +33,9 @@ async def get_system_metrics(db: Session = Depends(get_db)):
     """
     try:
         # Get the latest system metrics
-        latest_metrics = db.query(SystemMetrics).order_by(SystemMetrics.timestamp.desc()).first()
+        latest_metrics = (
+            db.query(SystemMetrics).order_by(SystemMetrics.timestamp.desc()).first()
+        )
 
         if not latest_metrics:
             # If no metrics exist, create default ones
@@ -65,12 +67,16 @@ async def get_system_metrics(db: Session = Depends(get_db)):
 
     except Exception as e:
         logger.error(f"Error getting system metrics: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting system metrics: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting system metrics: {str(e)}"
+        )
 
 
 @router.get("/requests")
 async def get_request_logs(
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Maximum number of records to return"
+    ),
     symbol: Optional[str] = Query(None, description="Filter by symbol"),
     start_time: Optional[datetime] = Query(None, description="Start time filter"),
     end_time: Optional[datetime] = Query(None, description="End time filter"),
@@ -134,7 +140,9 @@ async def get_request_logs(
 
     except Exception as e:
         logger.error(f"Error getting request logs: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting request logs: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting request logs: {str(e)}"
+        )
 
 
 @router.get("/coverage")
@@ -168,14 +176,20 @@ async def get_data_coverage(
                     "latest_date": coverage.latest_date,
                     "total_records": coverage.total_records,
                     "first_requested": (
-                        coverage.first_requested.isoformat() if coverage.first_requested else None
+                        coverage.first_requested.isoformat()
+                        if coverage.first_requested
+                        else None
                     ),
                     "last_accessed": (
-                        coverage.last_accessed.isoformat() if coverage.last_accessed else None
+                        coverage.last_accessed.isoformat()
+                        if coverage.last_accessed
+                        else None
                     ),
                     "access_count": coverage.access_count,
                     "last_updated": (
-                        coverage.last_updated.isoformat() if coverage.last_updated else None
+                        coverage.last_updated.isoformat()
+                        if coverage.last_updated
+                        else None
                     ),
                 }
             )
@@ -184,7 +198,9 @@ async def get_data_coverage(
 
     except Exception as e:
         logger.error(f"Error getting data coverage: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting data coverage: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting data coverage: {str(e)}"
+        )
 
 
 @router.get("/performance")
@@ -205,7 +221,9 @@ async def get_performance_stats(
         # Query request logs for the time period
         logs = (
             db.query(RequestLog)
-            .filter(RequestLog.timestamp >= start_time, RequestLog.timestamp <= end_time)
+            .filter(
+                RequestLog.timestamp >= start_time, RequestLog.timestamp <= end_time
+            )
             .all()
         )
 
@@ -228,7 +246,9 @@ async def get_performance_stats(
 
         # Calculate statistics
         total_requests = len(logs)
-        avg_response_time = sum(log.response_time_ms or 0 for log in logs) / total_requests
+        avg_response_time = (
+            sum(log.response_time_ms or 0 for log in logs) / total_requests
+        )
         cache_hits = sum(1 for log in logs if log.cache_hit)
         cache_hit_rate = cache_hits / total_requests if total_requests > 0 else 0
         akshare_requests = sum(1 for log in logs if log.akshare_called)
@@ -253,4 +273,6 @@ async def get_performance_stats(
 
     except Exception as e:
         logger.error(f"Error getting performance stats: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting performance stats: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting performance stats: {str(e)}"
+        )

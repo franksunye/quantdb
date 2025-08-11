@@ -76,7 +76,9 @@ class DataNotFoundException(QuantDBException):
     """Exception raised when requested data is not found."""
 
     def __init__(
-        self, message: str = "Requested data not found", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Requested data not found",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             message=message,
@@ -106,7 +108,9 @@ class AKShareException(QuantDBException):
     """Exception raised when there's an error with AKShare."""
 
     def __init__(
-        self, message: str = "Error with AKShare service", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Error with AKShare service",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(
             message=message,
@@ -119,7 +123,9 @@ class AKShareException(QuantDBException):
 class DatabaseException(QuantDBException):
     """Exception raised when there's a database error."""
 
-    def __init__(self, message: str = "Database error", details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, message: str = "Database error", details: Optional[Dict[str, Any]] = None
+    ):
         super().__init__(
             message=message,
             error_code=ErrorCode.DATABASE_ERROR,
@@ -178,7 +184,9 @@ def create_error_response(
 
 
 # Exception handlers
-async def quantdb_exception_handler(request: Request, exc: QuantDBException) -> JSONResponse:
+async def quantdb_exception_handler(
+    request: Request, exc: QuantDBException
+) -> JSONResponse:
     """
     Handle QuantDBException instances.
 
@@ -243,7 +251,9 @@ async def validation_exception_handler(
         path=request.url.path,
     )
 
-    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response)
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content=error_response
+    )
 
 
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
@@ -269,7 +279,9 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
         error_code = ErrorCode.FORBIDDEN
 
     # Log the error
-    logger.error(f"HTTPException: {error_code} - {exc.detail} - Status: {exc.status_code}")
+    logger.error(
+        f"HTTPException: {error_code} - {exc.detail} - Status: {exc.status_code}"
+    )
 
     # Create error response
     error_response = create_error_response(
@@ -308,7 +320,9 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
         path=request.url.path,
     )
 
-    return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response)
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, content=error_response
+    )
 
 
 # Register exception handlers with FastAPI app

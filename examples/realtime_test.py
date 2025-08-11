@@ -140,9 +140,7 @@ def format_price_info(data):
     cache_icon = "🚀" if cache_hit else "📡"
     trend_icon = "📈" if change > 0 else "📉" if change < 0 else "➡️"
 
-    return (
-        f"{cache_icon} {symbol}({name}): ¥{price:.2f} {trend_icon}{change:+.2f}({change_pct:+.2f}%)"
-    )
+    return f"{cache_icon} {symbol}({name}): ¥{price:.2f} {trend_icon}{change:+.2f}({change_pct:+.2f}%)"
 
 
 def performance_comparison():
@@ -228,7 +226,9 @@ def performance_comparison():
             if time4 > 0
             else "  缓存: 无网络调用!"
         )
-        print(f"  API调用减少: {calls2} → {calls3} ({(calls2-calls3)/calls2*100:.1f}% 减少)")
+        print(
+            f"  API调用减少: {calls2} → {calls3} ({(calls2-calls3)/calls2*100:.1f}% 减少)"
+        )
 
 
 def monitoring_demo():

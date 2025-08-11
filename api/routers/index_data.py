@@ -70,7 +70,8 @@ def get_akshare_adapter(db: Session = Depends(get_db)):
 
 
 def get_index_data_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get index data service instance."""
     return IndexDataService(db, akshare_adapter)
@@ -80,7 +81,9 @@ def get_index_data_service(
 @router.get("/historical/{symbol}", response_model=IndexDataResponse)
 async def get_historical_index_data(
     symbol: str,
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     period: str = Query("daily", description="Data frequency: daily, weekly, monthly"),
     force_refresh: bool = Query(False, description="Force refresh data from source"),
@@ -110,7 +113,8 @@ async def get_historical_index_data(
         valid_periods = ["daily", "weekly", "monthly"]
         if period not in valid_periods:
             raise HTTPException(
-                status_code=400, detail=f"Invalid period. Must be one of: {valid_periods}"
+                status_code=400,
+                detail=f"Invalid period. Must be one of: {valid_periods}",
             )
 
         # Get historical data
@@ -123,14 +127,18 @@ async def get_historical_index_data(
         )
 
         if df.empty:
-            raise HTTPException(status_code=404, detail=f"No data found for index {symbol}")
+            raise HTTPException(
+                status_code=404, detail=f"No data found for index {symbol}"
+            )
 
         # Convert DataFrame to list of dictionaries
         data_points = df.to_dict("records")
 
         # Get index name from first row if available
         index_name = (
-            df.iloc[0].get("name", f"Index {symbol}") if "name" in df.columns else f"Index {symbol}"
+            df.iloc[0].get("name", f"Index {symbol}")
+            if "name" in df.columns
+            else f"Index {symbol}"
         )
 
         # Create response

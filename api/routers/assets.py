@@ -72,13 +72,17 @@ async def get_asset_info(
         raise
     except Exception as e:
         logger.error(f"Error getting asset info for {symbol}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting asset info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting asset info: {str(e)}"
+        )
 
 
 @router.get("/", response_model=List[AssetInfo])
 async def list_assets(
     skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of records to return"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Maximum number of records to return"
+    ),
     symbol: Optional[str] = Query(None, description="Filter by symbol"),
     name: Optional[str] = Query(None, description="Filter by name (partial match)"),
     exchange: Optional[str] = Query(None, description="Filter by exchange"),
@@ -114,7 +118,11 @@ async def list_assets(
 
         # Query assets
         assets, total_count = query_service.query_assets(
-            filters=filters, sort_by=sort_by, sort_order=sort_order, skip=skip, limit=limit
+            filters=filters,
+            sort_by=sort_by,
+            sort_order=sort_order,
+            skip=skip,
+            limit=limit,
         )
 
         # Convert to response format
@@ -167,4 +175,6 @@ async def update_asset_info(
         raise
     except Exception as e:
         logger.error(f"Error updating asset info for {symbol}: {e}")
-        raise HTTPException(status_code=500, detail=f"Error updating asset info: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error updating asset info: {str(e)}"
+        )

@@ -81,10 +81,12 @@ def run_comprehensive_benchmark():
     # Calculate improvements
     for result in benchmark_results:
         result["improvement_vs_akshare"] = (
-            (result["akshare_direct"] - result["quantdb_cache"]) / result["akshare_direct"]
+            (result["akshare_direct"] - result["quantdb_cache"])
+            / result["akshare_direct"]
         ) * 100
         result["improvement_vs_first"] = (
-            (result["quantdb_first"] - result["quantdb_cache"]) / result["quantdb_first"]
+            (result["quantdb_first"] - result["quantdb_cache"])
+            / result["quantdb_first"]
         ) * 100
 
     return benchmark_results
@@ -147,7 +149,9 @@ def create_enhanced_performance_chart(benchmark_results):
 
     ax1.set_xlabel("Data Retrieval Scenario", fontweight="bold")
     ax1.set_ylabel("Response Time (seconds)", fontweight="bold")
-    ax1.set_title("Response Time Comparison: AKShare vs QuantDB", fontweight="bold", pad=20)
+    ax1.set_title(
+        "Response Time Comparison: AKShare vs QuantDB", fontweight="bold", pad=20
+    )
     ax1.set_xticks(x)
     ax1.set_xticklabels(scenario_short)
     ax1.legend(frameon=True, fancybox=True, shadow=True)
@@ -229,10 +233,18 @@ def create_enhanced_performance_chart(benchmark_results):
 
     # Chart 4: Data Volume vs Performance
     records = [r["records"] for r in benchmark_results]
-    cache_times_ms = [r["quantdb_cache"] * 1000 for r in benchmark_results]  # Convert to ms
+    cache_times_ms = [
+        r["quantdb_cache"] * 1000 for r in benchmark_results
+    ]  # Convert to ms
 
     scatter = ax4.scatter(
-        records, cache_times_ms, s=200, c=colors, alpha=0.8, edgecolors="white", linewidth=2
+        records,
+        cache_times_ms,
+        s=200,
+        c=colors,
+        alpha=0.8,
+        edgecolors="white",
+        linewidth=2,
     )
 
     ax4.set_xlabel("Number of Records", fontweight="bold")
@@ -259,7 +271,9 @@ def create_enhanced_performance_chart(benchmark_results):
 
     # Save chart
     chart_path = "docs/promo/enhanced_performance_analysis.png"
-    plt.savefig(chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.savefig(
+        chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none"
+    )
     print(f"✅ Enhanced performance chart saved: {chart_path}")
 
     return chart_path
@@ -275,7 +289,9 @@ def create_executive_summary_chart(benchmark_results):
     ax.axis("off")
 
     # Title
-    fig.suptitle("QuantDB Performance Benchmark Results", fontsize=28, fontweight="bold", y=0.95)
+    fig.suptitle(
+        "QuantDB Performance Benchmark Results", fontsize=28, fontweight="bold", y=0.95
+    )
 
     # Key metrics
     avg_improvement = np.mean([r["improvement_vs_akshare"] for r in benchmark_results])
@@ -289,7 +305,11 @@ def create_executive_summary_chart(benchmark_results):
             "value": f"{avg_improvement:.1f}%",
             "color": "#27AE60",
         },
-        {"title": "Maximum Speedup\nFactor", "value": f"{max_speedup:.0f}×", "color": "#3498DB"},
+        {
+            "title": "Maximum Speedup\nFactor",
+            "value": f"{max_speedup:.0f}×",
+            "color": "#3498DB",
+        },
         {
             "title": "Average Cache\nResponse Time",
             "value": f"{avg_cache_time*1000:.1f}ms",
@@ -382,7 +402,9 @@ def create_executive_summary_chart(benchmark_results):
     for row_idx, row in enumerate(table_data):
         row_y = table_y - 0.06 * (row_idx + 1)
         for col_idx, cell in enumerate(row):
-            ax.text(0.1 + col_idx * 0.16, row_y, cell, ha="center", va="center", fontsize=11)
+            ax.text(
+                0.1 + col_idx * 0.16, row_y, cell, ha="center", va="center", fontsize=11
+            )
 
     # Footer
     footer_text = f"Benchmark Date: {datetime.now().strftime('%Y-%m-%d')} | QuantDB v2.2.7 | Real Performance Data"
@@ -392,7 +414,9 @@ def create_executive_summary_chart(benchmark_results):
 
     # Save chart
     chart_path = "docs/promo/executive_summary_performance.png"
-    plt.savefig(chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.savefig(
+        chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none"
+    )
     print(f"✅ Executive summary chart saved: {chart_path}")
 
     return chart_path

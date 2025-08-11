@@ -49,7 +49,9 @@ class TradingCalendar:
                 return False
 
             # Check if cache file is expired (older than 7 days)
-            cache_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(self.cache_file))
+            cache_age = datetime.now() - datetime.fromtimestamp(
+                os.path.getmtime(self.cache_file)
+            )
             if cache_age > timedelta(days=7):
                 logger.info("Trading calendar cache has expired, need to refresh")
                 return False
@@ -94,7 +96,10 @@ class TradingCalendar:
             # Ensure directory exists
             os.makedirs(os.path.dirname(self.cache_file), exist_ok=True)
 
-            cache_data = {"trading_dates": self._trading_dates, "last_update": self._last_update}
+            cache_data = {
+                "trading_dates": self._trading_dates,
+                "last_update": self._last_update,
+            }
 
             with open(self.cache_file, "wb") as f:
                 pickle.dump(cache_data, f)

@@ -85,7 +85,10 @@ class PackageQualityGate:
 
             except Exception as e:
                 print(f"❌ {gate_name}: ERROR - {str(e)}")
-                self.results["quality_gates"][gate_name] = {"status": "ERROR", "message": str(e)}
+                self.results["quality_gates"][gate_name] = {
+                    "status": "ERROR",
+                    "message": str(e),
+                }
                 all_passed = False
 
         # Set overall status
@@ -117,7 +120,9 @@ class PackageQualityGate:
                 "-q",
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
 
             # Parse coverage results
             coverage_file = self.project_root / "coverage_reports" / "coverage.json"
@@ -125,7 +130,9 @@ class PackageQualityGate:
                 with open(coverage_file) as f:
                     coverage_data = json.load(f)
 
-                total_coverage = coverage_data.get("totals", {}).get("percent_covered", 0)
+                total_coverage = coverage_data.get("totals", {}).get(
+                    "percent_covered", 0
+                )
 
                 if total_coverage >= self.min_coverage:
                     return {
@@ -172,7 +179,10 @@ class PackageQualityGate:
                 failed_suites.append(f"{test_suite} (error: {str(e)})")
 
         if not failed_suites:
-            return {"status": "PASS", "message": f"All {total_suites} critical test suites passed"}
+            return {
+                "status": "PASS",
+                "message": f"All {total_suites} critical test suites passed",
+            }
         else:
             return {
                 "status": "FAIL",
@@ -191,7 +201,9 @@ class PackageQualityGate:
             # Run performance tests
             cmd = [sys.executable, "-m", "pytest", "tests/performance/", "-v", "-q"]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
 
             if result.returncode == 0:
                 return {"status": "PASS", "message": "Performance benchmarks met"}
@@ -207,7 +219,10 @@ class PackageQualityGate:
                 }
 
         except Exception as e:
-            return {"status": "WARN", "message": f"Performance check incomplete: {str(e)}"}
+            return {
+                "status": "WARN",
+                "message": f"Performance check incomplete: {str(e)}",
+            }
 
     def _check_security(self) -> Dict:
         """Check security compliance."""
@@ -222,10 +237,15 @@ class PackageQualityGate:
                 "-q",
             ]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=self.project_root)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=self.project_root
+            )
 
             if result.returncode == 0:
-                return {"status": "PASS", "message": "Security compliance checks passed"}
+                return {
+                    "status": "PASS",
+                    "message": "Security compliance checks passed",
+                }
             else:
                 return {
                     "status": "WARN",
@@ -242,7 +262,11 @@ class PackageQualityGate:
 
     def _check_documentation(self) -> Dict:
         """Check documentation completeness."""
-        required_docs = ["README.md", "dev-docs/31_testing.md", "dev-docs/40_api-service-guide.md"]
+        required_docs = [
+            "README.md",
+            "dev-docs/31_testing.md",
+            "dev-docs/40_api-service-guide.md",
+        ]
 
         missing_docs = []
         for doc in required_docs:
@@ -310,7 +334,10 @@ class PackageQualityGate:
             for endpoint in endpoints:
                 try:
                     response = client.get(endpoint)
-                    if response.status_code not in [200, 404]:  # 404 acceptable for some
+                    if response.status_code not in [
+                        200,
+                        404,
+                    ]:  # 404 acceptable for some
                         failed_endpoints.append(f"{endpoint} ({response.status_code})")
                 except Exception as e:
                     failed_endpoints.append(f"{endpoint} (error: {str(e)})")
@@ -329,7 +356,10 @@ class PackageQualityGate:
                 }
 
         except Exception as e:
-            return {"status": "ERROR", "message": f"API compliance check failed: {str(e)}"}
+            return {
+                "status": "ERROR",
+                "message": f"API compliance check failed: {str(e)}",
+            }
 
     def _generate_report(self):
         """Generate quality gate report."""
@@ -352,7 +382,9 @@ class PackageQualityGate:
         print("=" * 60)
 
         passed = sum(
-            1 for gate in self.results["quality_gates"].values() if gate["status"] == "PASS"
+            1
+            for gate in self.results["quality_gates"].values()
+            if gate["status"] == "PASS"
         )
         total = len(self.results["quality_gates"])
 

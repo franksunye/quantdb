@@ -43,7 +43,14 @@ def setup_environment():
 
 def check_dependencies():
     """Check if required dependencies are installed"""
-    required_packages = ["fastapi", "uvicorn", "sqlalchemy", "pandas", "akshare", "psutil"]
+    required_packages = [
+        "fastapi",
+        "uvicorn",
+        "sqlalchemy",
+        "pandas",
+        "akshare",
+        "psutil",
+    ]
 
     missing = []
 

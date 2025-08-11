@@ -18,7 +18,8 @@ def get_akshare_adapter() -> AKShareAdapter:
 
 
 def get_stock_data_service(
-    db: Session = Depends(get_db), adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ) -> StockDataService:
     """Get stock data service instance."""
     return StockDataService(db, adapter)

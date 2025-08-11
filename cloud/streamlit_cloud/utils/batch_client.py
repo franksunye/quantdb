@@ -55,7 +55,9 @@ class BatchQuantDBClient:
             logger.error(f"批量获取最小资产信息失败: {e}")
             return {}
 
-    def get_batch_assets_full(self, symbols: List[str], use_cache: bool = True) -> Dict[str, Any]:
+    def get_batch_assets_full(
+        self, symbols: List[str], use_cache: bool = True
+    ) -> Dict[str, Any]:
         """
         批量获取完整资产信息
 
@@ -68,7 +70,11 @@ class BatchQuantDBClient:
         """
         try:
             url = f"{self.base_url}{self.api_prefix}/batch/assets"
-            payload = {"symbols": symbols, "include_financial_data": True, "use_cache": use_cache}
+            payload = {
+                "symbols": symbols,
+                "include_financial_data": True,
+                "use_cache": use_cache,
+            }
             response = requests.post(url, json=payload, timeout=60)
             response.raise_for_status()
             return response.json()
@@ -118,7 +124,8 @@ class BatchQuantDBClient:
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # 提交所有任务
             future_to_symbol = {
-                executor.submit(fetch_single_stock, symbol): symbol for symbol in symbols
+                executor.submit(fetch_single_stock, symbol): symbol
+                for symbol in symbols
             }
 
             completed = 0
@@ -193,11 +200,17 @@ class BatchQuantDBClient:
 
             if stock_data and "data" in stock_data and stock_data["data"]:
                 latest_data = stock_data["data"][-1]
-                prev_data = stock_data["data"][-2] if len(stock_data["data"]) > 1 else latest_data
+                prev_data = (
+                    stock_data["data"][-2]
+                    if len(stock_data["data"]) > 1
+                    else latest_data
+                )
 
                 latest_price = latest_data.get("close")
                 if latest_price and prev_data.get("close"):
-                    price_change = ((latest_price - prev_data["close"]) / prev_data["close"]) * 100
+                    price_change = (
+                        (latest_price - prev_data["close"]) / prev_data["close"]
+                    ) * 100
 
             summary[symbol] = {
                 "name": asset_info.get("name", f"Stock {symbol}"),
@@ -215,7 +228,9 @@ class BatchQuantDBClient:
                 "assets_found": len(
                     [s for s in summary.values() if s["name"] != f"Stock {symbol}"]
                 ),
-                "price_data_found": len([s for s in summary.values() if s["has_price_data"]]),
+                "price_data_found": len(
+                    [s for s in summary.values() if s["has_price_data"]]
+                ),
                 "query_date": end_date_str,
             },
         }

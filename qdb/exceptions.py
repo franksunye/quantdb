@@ -127,8 +127,6 @@ def format_user_error(error: Exception) -> str:
     elif isinstance(error, PermissionError):
         return f"❌ Permission Error: {str(error)}\n   Solution: Check directory permissions or change cache directory"
     elif isinstance(error, ConnectionError):
-        return (
-            f"❌ Network Error: {str(error)}\n   Solution: Check network connection or retry later"
-        )
+        return f"❌ Network Error: {str(error)}\n   Solution: Check network connection or retry later"
     else:
         return f"❌ Unknown Error: {str(error)}\n   Suggestion: Please check input parameters or contact technical support"

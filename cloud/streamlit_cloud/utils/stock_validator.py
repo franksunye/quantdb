@@ -86,7 +86,9 @@ def validate_stock_code(symbol: str) -> Dict[str, any]:
             result["status"] = "active"
         else:
             result["status"] = "unknown_hk_stock"
-            result["recommendations"].append("建议选择知名港股如腾讯(00700)、阿里巴巴(09988)")
+            result["recommendations"].append(
+                "建议选择知名港股如腾讯(00700)、阿里巴巴(09988)"
+            )
 
         return result
 
@@ -166,11 +168,17 @@ def get_stock_recommendations(
 
     # A股优先推荐
     a_priority = [r for r in a_stock_recommendations if r["symbol"] in a_stock_priority]
-    a_others = [r for r in a_stock_recommendations if r["symbol"] not in a_stock_priority]
+    a_others = [
+        r for r in a_stock_recommendations if r["symbol"] not in a_stock_priority
+    ]
 
     # 港股优先推荐
-    hk_priority = [r for r in hk_stock_recommendations if r["symbol"] in hk_stock_priority]
-    hk_others = [r for r in hk_stock_recommendations if r["symbol"] not in hk_stock_priority]
+    hk_priority = [
+        r for r in hk_stock_recommendations if r["symbol"] in hk_stock_priority
+    ]
+    hk_others = [
+        r for r in hk_stock_recommendations if r["symbol"] not in hk_stock_priority
+    ]
 
     # 根据市场返回推荐
     if market == "A股":
@@ -182,7 +190,9 @@ def get_stock_recommendations(
         return a_priority[:2] + hk_priority[:2] + a_others[:1]
 
 
-def analyze_query_failure(symbol: str, start_date: str, end_date: str) -> Dict[str, any]:
+def analyze_query_failure(
+    symbol: str, start_date: str, end_date: str
+) -> Dict[str, any]:
     """
     分析查询失败的原因
 
@@ -233,7 +243,9 @@ def analyze_query_failure(symbol: str, start_date: str, end_date: str) -> Dict[s
     stock_validation = analysis["stock_validation"]
 
     if stock_validation["is_problematic"]:
-        analysis["possible_reasons"].append(f"股票可能有问题: {stock_validation['name']}")
+        analysis["possible_reasons"].append(
+            f"股票可能有问题: {stock_validation['name']}"
+        )
         analysis["recommendations"].append("尝试查询其他活跃股票")
 
     if not stock_validation["is_active"]:
@@ -286,7 +298,12 @@ def get_alternative_suggestions(symbol: str) -> List[Dict[str, str]]:
         # 港股替代建议
         suggestions.extend(
             [
-                {"symbol": "00700", "name": "腾讯控股", "reason": "港股科技龙头", "market": "港股"},
+                {
+                    "symbol": "00700",
+                    "name": "腾讯控股",
+                    "reason": "港股科技龙头",
+                    "market": "港股",
+                },
                 {
                     "symbol": "09988",
                     "name": "阿里巴巴-SW",

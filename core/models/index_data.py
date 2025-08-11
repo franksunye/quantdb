@@ -8,7 +8,17 @@ with appropriate caching and indexing strategies.
 from datetime import date, datetime, timedelta
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
@@ -29,7 +39,10 @@ class IndexData(Base):
 
     # Index identification
     symbol = Column(
-        String(20), nullable=False, index=True, comment="Index symbol (e.g., '000001', '399001')"
+        String(20),
+        nullable=False,
+        index=True,
+        comment="Index symbol (e.g., '000001', '399001')",
     )
     name = Column(String(100), nullable=True, comment="Index name")
 
@@ -53,7 +66,10 @@ class IndexData(Base):
 
     # Metadata
     created_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, comment="Record creation time"
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        comment="Record creation time",
     )
     updated_at = Column(
         DateTime,
@@ -126,9 +142,14 @@ class RealtimeIndexData(Base):
     turnover = Column(Float, nullable=True, comment="Trading turnover")
 
     # Timestamp information
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, comment="Data timestamp")
+    timestamp = Column(
+        DateTime, nullable=False, default=datetime.utcnow, comment="Data timestamp"
+    )
     created_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, comment="Record creation time"
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        comment="Record creation time",
     )
     updated_at = Column(
         DateTime,
@@ -139,7 +160,9 @@ class RealtimeIndexData(Base):
     )
 
     # Cache metadata
-    cache_ttl_minutes = Column(Integer, nullable=False, default=5, comment="Cache TTL in minutes")
+    cache_ttl_minutes = Column(
+        Integer, nullable=False, default=5, comment="Cache TTL in minutes"
+    )
     is_trading_hours = Column(
         Boolean,
         nullable=False,
@@ -219,7 +242,10 @@ class IndexListCache(Base):
         Date, nullable=False, default=date.today, comment="Date when data was cached"
     )
     created_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, comment="Record creation time"
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        comment="Record creation time",
     )
     updated_at = Column(
         DateTime,
@@ -229,7 +255,10 @@ class IndexListCache(Base):
         comment="Record update time",
     )
     is_active = Column(
-        Boolean, nullable=False, default=True, comment="Whether the index is actively tracked"
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Whether the index is actively tracked",
     )
 
     # Indexes for efficient querying
@@ -278,7 +307,10 @@ class IndexListCacheManager(Base):
         DateTime, nullable=False, default=datetime.utcnow, comment="Cache creation time"
     )
     is_current = Column(
-        Boolean, nullable=False, default=True, comment="Whether this is the current cache"
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Whether this is the current cache",
     )
 
     def is_cache_fresh(self) -> bool:

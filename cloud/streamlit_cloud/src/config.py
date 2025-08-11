@@ -96,7 +96,11 @@ INDEX_CONFIG = {
 # Function to convert index config to list of dictionaries
 def indices_to_list(config):
     return [
-        {"code": code, "name": name, "csv": f"{code}_{name.replace(' ', '_').lower()}.csv"}
+        {
+            "code": code,
+            "name": name,
+            "csv": f"{code}_{name.replace(' ', '_').lower()}.csv",
+        }
         for code, name in config.items()
     ]
 

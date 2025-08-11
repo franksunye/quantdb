@@ -64,7 +64,9 @@ def validate_stock_code(code: str) -> bool:
     # A-share validation: 6 digits
     if len(code) == 6 and code.isdigit():
         # Check if it's a valid A-share code
-        if code.startswith(("000", "001", "002", "003", "300")):  # Shenzhen Stock Exchange
+        if code.startswith(
+            ("000", "001", "002", "003", "300")
+        ):  # Shenzhen Stock Exchange
             return True
         elif code.startswith("6"):  # Shanghai Stock Exchange
             return True
@@ -170,7 +172,9 @@ def main():
             # Date selectors
             start_date = st.date_input(
                 "Start Date",
-                value=st.session_state.get("start_date", date.today() - timedelta(days=7)),
+                value=st.session_state.get(
+                    "start_date", date.today() - timedelta(days=7)
+                ),
                 max_value=date.today(),
                 key="start_date",
             )
@@ -195,7 +199,9 @@ def main():
             adjust = adjust_map[adjust_type]
 
             # Query button
-            query_button = st.button("Query Data", type="primary", use_container_width=True)
+            query_button = st.button(
+                "Query Data", type="primary", use_container_width=True
+            )
 
             # Display recent queries
             display_recent_stock_queries()
@@ -209,7 +215,9 @@ def main():
     # Check for saved query state (to maintain page state)
     if not query_button and st.session_state.get("current_stock_symbol"):
         symbol = st.session_state.get("current_stock_symbol")
-        start_date = st.session_state.get("current_start_date", date.today() - timedelta(days=7))
+        start_date = st.session_state.get(
+            "current_start_date", date.today() - timedelta(days=7)
+        )
         end_date = st.session_state.get("current_end_date", date.today())
         adjust = st.session_state.get("current_adjust", "")
         query_button = True  # Automatically redisplay previously queried stock data
@@ -221,7 +229,9 @@ def main():
 
         # Automatically set parameters and query
         symbol = suggested_symbol
-        start_date = date.today() - timedelta(days=7)  # Use 7-day range for better performance
+        start_date = date.today() - timedelta(
+            days=7
+        )  # Use 7-day range for better performance
         end_date = date.today()
         adjust = ""
         query_button = True
@@ -266,7 +276,9 @@ def main():
                         adjust=adjust,
                     )
 
-                    if result is None or (isinstance(result, pd.DataFrame) and result.empty):
+                    if result is None or (
+                        isinstance(result, pd.DataFrame) and result.empty
+                    ):
                         st.warning("No data found for the specified time range")
 
                         # Provide basic error information and solutions
@@ -297,19 +309,27 @@ def main():
                         with col1:
                             if st.button("SPDB(600000)", key="suggest_600000"):
                                 st.session_state.update(
-                                    {"suggested_symbol": "600000", "suggested_name": "SPDB"}
+                                    {
+                                        "suggested_symbol": "600000",
+                                        "suggested_name": "SPDB",
+                                    }
                                 )
                                 st.rerun()
 
                         with col2:
                             if st.button("PAB(000001)", key="suggest_000001"):
                                 st.session_state.update(
-                                    {"suggested_symbol": "000001", "suggested_name": "PAB"}
+                                    {
+                                        "suggested_symbol": "000001",
+                                        "suggested_name": "PAB",
+                                    }
                                 )
                                 st.rerun()
 
                         with col3:
-                            if st.button("Kweichow Moutai(600519)", key="suggest_600519"):
+                            if st.button(
+                                "Kweichow Moutai(600519)", key="suggest_600519"
+                            ):
                                 st.session_state.update(
                                     {
                                         "suggested_symbol": "600519",
@@ -325,28 +345,41 @@ def main():
                         with col4:
                             if st.button("Tencent(00700)", key="suggest_00700"):
                                 st.session_state.update(
-                                    {"suggested_symbol": "00700", "suggested_name": "Tencent"}
+                                    {
+                                        "suggested_symbol": "00700",
+                                        "suggested_name": "Tencent",
+                                    }
                                 )
                                 st.rerun()
 
                         with col5:
                             if st.button("Alibaba(09988)", key="suggest_09988"):
                                 st.session_state.update(
-                                    {"suggested_symbol": "09988", "suggested_name": "Alibaba-SW"}
+                                    {
+                                        "suggested_symbol": "09988",
+                                        "suggested_name": "Alibaba-SW",
+                                    }
                                 )
                                 st.rerun()
 
                         with col6:
                             if st.button("Xiaomi(01810)", key="suggest_01810"):
                                 st.session_state.update(
-                                    {"suggested_symbol": "01810", "suggested_name": "Xiaomi-W"}
+                                    {
+                                        "suggested_symbol": "01810",
+                                        "suggested_name": "Xiaomi-W",
+                                    }
                                 )
                                 st.rerun()
 
                         return
 
                     # Convert to DataFrame
-                    df = pd.DataFrame(result) if not isinstance(result, pd.DataFrame) else result
+                    df = (
+                        pd.DataFrame(result)
+                        if not isinstance(result, pd.DataFrame)
+                        else result
+                    )
 
                     # Display success information
                     col1, col2, col3 = st.columns(3)
@@ -364,7 +397,11 @@ def main():
                     display_stock_data(
                         df,
                         symbol,
-                        {"cache_hit": False, "response_time_ms": 100, "akshare_called": True},
+                        {
+                            "cache_hit": False,
+                            "response_time_ms": 100,
+                            "akshare_called": True,
+                        },
                     )
 
                 except Exception as e:
@@ -399,7 +436,11 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
             st.metric("Low", f"¥{df['low'].min():.2f}")
         with col4:
             if len(df) > 1:
-                change = (df["close"].iloc[-1] - df["close"].iloc[0]) / df["close"].iloc[0] * 100
+                change = (
+                    (df["close"].iloc[-1] - df["close"].iloc[0])
+                    / df["close"].iloc[0]
+                    * 100
+                )
                 st.metric("Period Change", f"{change:.2f}%")
             else:
                 st.metric("Period Change", "N/A")
@@ -427,7 +468,9 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
                 )
                 st.plotly_chart(candlestick_chart, use_container_width=True)
             else:
-                st.info("No complete OHLC data available, cannot display candlestick chart")
+                st.info(
+                    "No complete OHLC data available, cannot display candlestick chart"
+                )
 
         with chart_tabs[2]:
             st.markdown("#### Volume")
@@ -465,7 +508,9 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
                 akshare_time = 1075.2 if metadata.get("cache_hit") else cache_time
 
                 if cache_time != akshare_time:
-                    perf_chart = create_performance_comparison_chart(cache_time, akshare_time)
+                    perf_chart = create_performance_comparison_chart(
+                        cache_time, akshare_time
+                    )
                     st.plotly_chart(perf_chart, use_container_width=True)
 
                     # Performance improvement explanation
@@ -487,7 +532,9 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
 
         # Display simple price trend
         st.markdown("#### Price Data")
-        st.line_chart(df.set_index("date")["close"] if "date" in df.columns else df["close"])
+        st.line_chart(
+            df.set_index("date")["close"] if "date" in df.columns else df["close"]
+        )
 
     # Data table
     st.subheader("Detailed Data")
@@ -541,7 +588,9 @@ def display_stock_data(df: pd.DataFrame, symbol: str, metadata: dict):
             st.markdown("**Query Information**")
             st.write(f"- Data Records: {len(df)}")
             st.write(f"- Cache Hit: {'Yes' if metadata.get('cache_hit') else 'No'}")
-            st.write(f"- AKShare Called: {'Yes' if metadata.get('akshare_called') else 'No'}")
+            st.write(
+                f"- AKShare Called: {'Yes' if metadata.get('akshare_called') else 'No'}"
+            )
             st.write(f"- Response Time: {metadata.get('response_time_ms', 0):.1f}ms")
             if "total_volume" in metrics:
                 st.write(f"- Total Volume: {metrics['total_volume']:,.0f}")
@@ -589,10 +638,14 @@ def show_demo_interface():
 
             # Date selectors
             start_date = st.date_input(
-                "Start Date", value=date.today() - timedelta(days=7), max_value=date.today()
+                "Start Date",
+                value=date.today() - timedelta(days=7),
+                max_value=date.today(),
             )
 
-            end_date = st.date_input("End Date", value=date.today(), max_value=date.today())
+            end_date = st.date_input(
+                "End Date", value=date.today(), max_value=date.today()
+            )
 
             # Adjustment selection
             adjust_type = st.selectbox(
@@ -603,7 +656,9 @@ def show_demo_interface():
             )
 
             # Query button
-            query_button = st.button("🔍 Query Data", type="primary", use_container_width=True)
+            query_button = st.button(
+                "🔍 Query Data", type="primary", use_container_width=True
+            )
 
             # Display recent queries
             st.markdown("---")
@@ -713,17 +768,25 @@ def show_usage_guide():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        if st.button("Query SPDB(600000)", use_container_width=True, key="quick_600000"):
-            st.session_state.update({"suggested_symbol": "600000", "suggested_name": "SPDB"})
+        if st.button(
+            "Query SPDB(600000)", use_container_width=True, key="quick_600000"
+        ):
+            st.session_state.update(
+                {"suggested_symbol": "600000", "suggested_name": "SPDB"}
+            )
             st.rerun()
 
     with col2:
         if st.button("Query PAB(000001)", use_container_width=True, key="quick_000001"):
-            st.session_state.update({"suggested_symbol": "000001", "suggested_name": "PAB"})
+            st.session_state.update(
+                {"suggested_symbol": "000001", "suggested_name": "PAB"}
+            )
             st.rerun()
 
     with col3:
-        if st.button("Query Moutai(600519)", use_container_width=True, key="quick_600519"):
+        if st.button(
+            "Query Moutai(600519)", use_container_width=True, key="quick_600519"
+        ):
             st.session_state.update(
                 {"suggested_symbol": "600519", "suggested_name": "Kweichow Moutai"}
             )
@@ -831,7 +894,9 @@ def display_stock_browser(query_service):
         }
 
         selected_display = st.selectbox(
-            "Select Stock", list(default_options.keys()), help="Select stock from default list"
+            "Select Stock",
+            list(default_options.keys()),
+            help="Select stock from default list",
         )
 
         return default_options[selected_display]

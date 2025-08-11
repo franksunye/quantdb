@@ -96,7 +96,9 @@ def run_specific_tests(verbose=False, with_coverage=False):
         cmd.append("-q")
 
     # Add markers to focus on stable tests
-    cmd.extend(["-m", "not slow", "--tb=short"])  # Skip slow tests  # Shorter traceback format
+    cmd.extend(
+        ["-m", "not slow", "--tb=short"]
+    )  # Skip slow tests  # Shorter traceback format
 
     print(f"🚀 Running command: {' '.join(cmd)}")
 
@@ -149,9 +151,13 @@ def main():
 
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
-    parser.add_argument("--coverage", action="store_true", help="Include coverage analysis")
+    parser.add_argument(
+        "--coverage", action="store_true", help="Include coverage analysis"
+    )
 
-    parser.add_argument("--fallback-only", action="store_true", help="Run only fallback tests")
+    parser.add_argument(
+        "--fallback-only", action="store_true", help="Run only fallback tests"
+    )
 
     args = parser.parse_args()
 

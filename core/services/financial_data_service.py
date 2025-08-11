@@ -15,7 +15,11 @@ from sqlalchemy.orm import Session
 
 from ..cache.akshare_adapter import AKShareAdapter
 from ..models.asset import Asset
-from ..models.financial_data import FinancialDataCache, FinancialIndicators, FinancialSummary
+from ..models.financial_data import (
+    FinancialDataCache,
+    FinancialIndicators,
+    FinancialSummary,
+)
 from ..utils.logger import logger
 
 
@@ -41,7 +45,9 @@ class FinancialDataService:
         self.akshare_adapter = akshare_adapter
         logger.info("Financial data service initialized")
 
-    def get_financial_summary(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_financial_summary(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """
         Get financial summary data for a stock symbol.
 
@@ -53,7 +59,9 @@ class FinancialDataService:
             Dictionary with financial summary data
         """
         try:
-            logger.info(f"Getting financial summary for {symbol}, force_refresh={force_refresh}")
+            logger.info(
+                f"Getting financial summary for {symbol}, force_refresh={force_refresh}"
+            )
 
             # Check cache first (unless force refresh)
             if not force_refresh:
@@ -64,7 +72,9 @@ class FinancialDataService:
                     return cached_data
 
             # Cache miss or force refresh - fetch from AKShare
-            logger.info(f"Cache miss for financial summary {symbol}, fetching from AKShare")
+            logger.info(
+                f"Cache miss for financial summary {symbol}, fetching from AKShare"
+            )
 
             df = self.akshare_adapter.get_financial_summary(symbol)
 
@@ -96,7 +106,9 @@ class FinancialDataService:
                 "timestamp": datetime.now().isoformat(),
             }
 
-    def get_financial_indicators(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_financial_indicators(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """
         Get financial indicators data for a stock symbol.
 
@@ -108,7 +120,9 @@ class FinancialDataService:
             Dictionary with financial indicators data
         """
         try:
-            logger.info(f"Getting financial indicators for {symbol}, force_refresh={force_refresh}")
+            logger.info(
+                f"Getting financial indicators for {symbol}, force_refresh={force_refresh}"
+            )
 
             # Check cache first (unless force refresh)
             if not force_refresh:
@@ -119,7 +133,9 @@ class FinancialDataService:
                     return cached_data
 
             # Cache miss or force refresh - fetch from AKShare
-            logger.info(f"Cache miss for financial indicators {symbol}, fetching from AKShare")
+            logger.info(
+                f"Cache miss for financial indicators {symbol}, fetching from AKShare"
+            )
 
             df = self.akshare_adapter.get_financial_indicators(symbol)
 
@@ -152,7 +168,10 @@ class FinancialDataService:
             }
 
     def get_financial_data_batch(
-        self, symbols: List[str], data_type: str = "summary", force_refresh: bool = False
+        self,
+        symbols: List[str],
+        data_type: str = "summary",
+        force_refresh: bool = False,
     ) -> Dict[str, Dict[str, Any]]:
         """
         Get financial data for multiple stocks efficiently.
@@ -166,7 +185,9 @@ class FinancialDataService:
             Dictionary mapping symbols to their financial data
         """
         try:
-            logger.info(f"Getting batch financial {data_type} for {len(symbols)} symbols")
+            logger.info(
+                f"Getting batch financial {data_type} for {len(symbols)} symbols"
+            )
 
             result = {}
 
@@ -313,7 +334,9 @@ class FinancialDataService:
             summaries = FinancialSummary.from_akshare_data(symbol, asset_id, df)
 
             # Save to database (replace existing data)
-            self.db.query(FinancialSummary).filter(FinancialSummary.symbol == symbol).delete()
+            self.db.query(FinancialSummary).filter(
+                FinancialSummary.symbol == symbol
+            ).delete()
 
             for summary in summaries:
                 self.db.add(summary)
@@ -373,7 +396,9 @@ class FinancialDataService:
                     "asset_id": asset_id,
                     "report_period": datetime.now().strftime("%Y%m%d"),
                     "raw_data": (
-                        df.to_dict("records") if len(df) < 100 else df.head(50).to_dict("records")
+                        df.to_dict("records")
+                        if len(df) < 100
+                        else df.head(50).to_dict("records")
                     ),
                 }
 
@@ -411,7 +436,9 @@ class FinancialDataService:
                 "data_type": "financial_indicators",
                 "periods": indicators_list,
                 "count": len(indicators_list),
-                "raw_data_shape": f"{df.shape[0]}x{df.shape[1]}" if not df.empty else "0x0",
+                "raw_data_shape": (
+                    f"{df.shape[0]}x{df.shape[1]}" if not df.empty else "0x0"
+                ),
                 "timestamp": datetime.now().isoformat(),
             }
 

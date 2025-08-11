@@ -15,7 +15,12 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
 from ..cache.akshare_adapter import AKShareAdapter
-from ..models.index_data import IndexData, IndexListCache, IndexListCacheManager, RealtimeIndexData
+from ..models.index_data import (
+    IndexData,
+    IndexListCache,
+    IndexListCacheManager,
+    RealtimeIndexData,
+)
 from ..utils.logger import logger
 
 
@@ -96,14 +101,18 @@ class IndexDataService:
             # Save to cache
             self._save_index_data_to_cache(symbol, df)
 
-            logger.info(f"Successfully retrieved {len(df)} rows of index data for {symbol}")
+            logger.info(
+                f"Successfully retrieved {len(df)} rows of index data for {symbol}"
+            )
             return df
 
         except Exception as e:
             logger.error(f"Error getting index data for {symbol}: {e}")
             raise
 
-    def get_realtime_index_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_realtime_index_data(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """
         Get realtime index data with intelligent caching.
 
@@ -115,7 +124,9 @@ class IndexDataService:
             Dictionary with realtime index data
         """
         try:
-            logger.info(f"Getting realtime index data for {symbol}, force_refresh={force_refresh}")
+            logger.info(
+                f"Getting realtime index data for {symbol}, force_refresh={force_refresh}"
+            )
 
             # Check cache first (unless force refresh)
             if not force_refresh:
@@ -182,10 +193,14 @@ class IndexDataService:
                 return self._get_cached_index_list(category)
 
             # Cache is stale or force refresh - fetch from AKShare
-            logger.info("Cache is stale or force refresh requested, fetching from AKShare")
+            logger.info(
+                "Cache is stale or force refresh requested, fetching from AKShare"
+            )
 
             # Fetch fresh data from AKShare
-            df = self.akshare_adapter.get_index_list(category=None)  # Get all categories first
+            df = self.akshare_adapter.get_index_list(
+                category=None
+            )  # Get all categories first
 
             if df.empty:
                 logger.warning("No index list data available from AKShare")
@@ -209,7 +224,9 @@ class IndexDataService:
                 logger.error(f"Fallback to cached data also failed: {fallback_error}")
                 raise e
 
-    def _get_cached_index_data(self, symbol: str, start_date: date, end_date: date) -> pd.DataFrame:
+    def _get_cached_index_data(
+        self, symbol: str, start_date: date, end_date: date
+    ) -> pd.DataFrame:
         """Get cached index data from database."""
         try:
             query = (
@@ -260,7 +277,9 @@ class IndexDataService:
                 # Check if record already exists
                 existing = (
                     self.db.query(IndexData)
-                    .filter(and_(IndexData.symbol == symbol, IndexData.date == trade_date))
+                    .filter(
+                        and_(IndexData.symbol == symbol, IndexData.date == trade_date)
+                    )
                     .first()
                 )
 
@@ -328,11 +347,15 @@ class IndexDataService:
         """Save realtime index data to cache."""
         try:
             # Delete old cache for this symbol
-            self.db.query(RealtimeIndexData).filter(RealtimeIndexData.symbol == symbol).delete()
+            self.db.query(RealtimeIndexData).filter(
+                RealtimeIndexData.symbol == symbol
+            ).delete()
 
             # Determine cache TTL based on trading hours
             is_trading = self._is_trading_hours()
-            cache_ttl = 1 if is_trading else 30  # 1 minute during trading, 30 minutes outside
+            cache_ttl = (
+                1 if is_trading else 30
+            )  # 1 minute during trading, 30 minutes outside
 
             # Create new cache entry
             realtime_data = RealtimeIndexData(
@@ -377,11 +400,14 @@ class IndexDataService:
             logger.error(f"Error checking index list cache freshness: {e}")
             return False
 
-    def _get_cached_index_list(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    def _get_cached_index_list(
+        self, category: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Get cached index list data."""
         try:
             query = self.db.query(IndexListCache).filter(
-                IndexListCache.cache_date == date.today(), IndexListCache.is_active == True
+                IndexListCache.cache_date == date.today(),
+                IndexListCache.is_active == True,
             )
 
             if category:
@@ -401,11 +427,15 @@ class IndexDataService:
         """Clear old index list cache."""
         try:
             # Mark old cache managers as not current
-            self.db.query(IndexListCacheManager).update({IndexListCacheManager.is_current: False})
+            self.db.query(IndexListCacheManager).update(
+                {IndexListCacheManager.is_current: False}
+            )
 
             # Delete old cache entries (keep last 7 days)
             cutoff_date = date.today() - timedelta(days=7)
-            self.db.query(IndexListCache).filter(IndexListCache.cache_date < cutoff_date).delete()
+            self.db.query(IndexListCache).filter(
+                IndexListCache.cache_date < cutoff_date
+            ).delete()
 
             self.db.commit()
             logger.info("Cleared old index list cache")

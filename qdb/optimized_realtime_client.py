@@ -184,7 +184,9 @@ class OptimizedRealtimeClient:
         except Exception as e:
             print(f"⚠️ 数据库缓存保存失败: {e}")
 
-    def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_realtime_data(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """
         优化的单个股票实时数据获取
 
@@ -294,7 +296,9 @@ class OptimizedRealtimeClient:
                     # 异步保存到缓存
                     self._save_to_memory_cache(symbol, data)
                     # 数据库保存可以异步进行
-                    threading.Thread(target=self._save_to_db_cache, args=(symbol, data)).start()
+                    threading.Thread(
+                        target=self._save_to_db_cache, args=(symbol, data)
+                    ).start()
                 else:
                     result[symbol] = {
                         "symbol": symbol,

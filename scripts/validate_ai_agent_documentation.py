@@ -117,7 +117,9 @@ class DocstringValidator:
         args_lines = []
 
         for line in lines:
-            if line.strip().startswith("Args:") or line.strip().startswith("Arguments:"):
+            if line.strip().startswith("Args:") or line.strip().startswith(
+                "Arguments:"
+            ):
                 in_args = True
                 continue
             elif in_args and line.strip().endswith(":") and not line.startswith("    "):
@@ -191,7 +193,9 @@ class DocstringValidator:
                 report.append(
                     f"   💡 Examples section: {'✅' if result.get('has_examples_section') else '❌'}"
                 )
-                report.append(f"   🏷️  Type hints: {'✅' if result.get('has_type_hints') else '❌'}")
+                report.append(
+                    f"   🏷️  Type hints: {'✅' if result.get('has_type_hints') else '❌'}"
+                )
 
                 param_count = result.get("parameter_count", 0)
                 documented_params = result.get("documented_params", 0)
@@ -213,7 +217,9 @@ class DocstringValidator:
         if passed_functions == total_functions:
             report.append("\n🎉 All functions meet AI agent documentation standards!")
         else:
-            report.append(f"\n⚠️  {total_functions - passed_functions} functions need improvement")
+            report.append(
+                f"\n⚠️  {total_functions - passed_functions} functions need improvement"
+            )
 
         return "\n".join(report)
 
@@ -250,7 +256,11 @@ def validate_example_code():
                     if "Examples:" in line:
                         in_examples = True
                         continue
-                    elif in_examples and line.strip().endswith(":") and not line.startswith("    "):
+                    elif (
+                        in_examples
+                        and line.strip().endswith(":")
+                        and not line.startswith("    ")
+                    ):
                         break
                     elif in_examples and line.strip().startswith(">>>"):
                         # Extract code after >>>
@@ -303,7 +313,9 @@ def check_ai_agent_schema():
             print(f"❌ Schema missing required keys: {missing_keys}")
             return False
 
-        print(f"✅ Schema file valid with {len(schema['functions'])} functions documented")
+        print(
+            f"✅ Schema file valid with {len(schema['functions'])} functions documented"
+        )
         return True
 
     except json.JSONDecodeError as e:
@@ -351,7 +363,9 @@ def main():
         return 1
     else:
         print("🔴 NEEDS WORK: QDB needs more documentation improvements")
-        print(f"   - Only {passed_functions}/{total_functions} functions properly documented")
+        print(
+            f"   - Only {passed_functions}/{total_functions} functions properly documented"
+        )
         return 2
 
 

@@ -30,10 +30,14 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
     try:
         # Get database statistics
         assets_count = db.execute(text("SELECT COUNT(*) FROM assets")).scalar()
-        daily_data_count = db.execute(text("SELECT COUNT(*) FROM daily_stock_data")).scalar()
+        daily_data_count = db.execute(
+            text("SELECT COUNT(*) FROM daily_stock_data")
+        ).scalar()
 
         # Get latest data timestamp (using trade_date since daily_stock_data doesn't have updated_at)
-        latest_data = db.execute(text("SELECT MAX(trade_date) FROM daily_stock_data")).scalar()
+        latest_data = db.execute(
+            text("SELECT MAX(trade_date) FROM daily_stock_data")
+        ).scalar()
 
         # Get database size (SQLite specific)
         db_size = db.execute(
@@ -56,7 +60,9 @@ async def get_cache_status(db: Session = Depends(get_db)) -> Dict[str, Any]:
         return stats
     except Exception as e:
         logger.error(f"Error getting cache status: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting cache status: {str(e)}"
+        )
 
 
 @router.delete("/clear")
@@ -76,7 +82,10 @@ async def clear_cache(
                 db.execute(text("DELETE FROM prices"))
                 db.commit()
                 logger.info("Cleared prices table")
-                return {"status": "success", "message": f"Table '{table}' cleared successfully"}
+                return {
+                    "status": "success",
+                    "message": f"Table '{table}' cleared successfully",
+                }
             elif table == "assets":
                 # Clear assets and related prices (cascade)
                 db.execute(text("DELETE FROM prices"))
@@ -89,7 +98,8 @@ async def clear_cache(
                 }
             else:
                 raise HTTPException(
-                    status_code=400, detail="Invalid table name. Use 'prices' or 'assets'."
+                    status_code=400,
+                    detail="Invalid table name. Use 'prices' or 'assets'.",
                 )
         else:
             # Clear all cached data
@@ -97,7 +107,10 @@ async def clear_cache(
             db.execute(text("DELETE FROM assets"))
             db.commit()
             logger.info("Cleared all cached data")
-            return {"status": "success", "message": "All cached data cleared successfully"}
+            return {
+                "status": "success",
+                "message": "All cached data cleared successfully",
+            }
     except Exception as e:
         db.rollback()
         logger.error(f"Error clearing cache: {e}")

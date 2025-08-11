@@ -48,7 +48,9 @@ class ManualTester:
         if env_file.exists():
             self.print_test("Environment file exists", True, str(env_file))
         else:
-            self.print_test("Environment file exists", False, "Run: python setup_dev_env.py")
+            self.print_test(
+                "Environment file exists", False, "Run: python setup_dev_env.py"
+            )
 
         # Test 2: Check database configuration
         try:
@@ -56,9 +58,13 @@ class ManualTester:
             from core.utils.config import DATABASE_URL, DB_TYPE
 
             if "sqlite" in DATABASE_URL.lower():
-                self.print_test("Database configuration", True, f"SQLite: {DATABASE_URL}")
+                self.print_test(
+                    "Database configuration", True, f"SQLite: {DATABASE_URL}"
+                )
             else:
-                self.print_test("Database configuration", False, f"Not SQLite: {DATABASE_URL}")
+                self.print_test(
+                    "Database configuration", False, f"Not SQLite: {DATABASE_URL}"
+                )
         except Exception as e:
             self.print_test("Database configuration", False, str(e))
 
@@ -83,7 +89,9 @@ class ManualTester:
             # Test connection
             with engine.connect() as conn:
                 result = conn.execute(text("SELECT 1"))
-                self.print_test("Database connection", True, f"Result: {result.fetchone()}")
+                self.print_test(
+                    "Database connection", True, f"Result: {result.fetchone()}"
+                )
 
             # Test table existence
             from core.database import SessionLocal
@@ -94,7 +102,9 @@ class ManualTester:
                 asset_count = session.query(Asset).count()
                 data_count = session.query(DailyStockData).count()
                 self.print_test(
-                    "Database tables", True, f"Assets: {asset_count}, Data: {data_count}"
+                    "Database tables",
+                    True,
+                    f"Assets: {asset_count}, Data: {data_count}",
                 )
             finally:
                 session.close()
@@ -141,7 +151,9 @@ class ManualTester:
             # Wait for server to start
             for _ in range(10):
                 try:
-                    response = requests.get("http://localhost:8000/api/v1/health", timeout=2)
+                    response = requests.get(
+                        "http://localhost:8000/api/v1/health", timeout=2
+                    )
                     if response.status_code == 200:
                         return True
                 except:
@@ -174,24 +186,34 @@ class ManualTester:
             # Test root endpoint
             response = requests.get("http://localhost:8000/", timeout=5)
             if response.status_code == 200:
-                self.print_test("Root endpoint", True, f"Status: {response.status_code}")
+                self.print_test(
+                    "Root endpoint", True, f"Status: {response.status_code}"
+                )
             else:
-                self.print_test("Root endpoint", False, f"Status: {response.status_code}")
+                self.print_test(
+                    "Root endpoint", False, f"Status: {response.status_code}"
+                )
 
             # Test health endpoint
             response = requests.get("http://localhost:8000/api/v1/health", timeout=5)
             if response.status_code == 200:
                 data = response.json()
-                self.print_test("Health endpoint", True, f"Version: {data.get('version')}")
+                self.print_test(
+                    "Health endpoint", True, f"Version: {data.get('version')}"
+                )
             else:
-                self.print_test("Health endpoint", False, f"Status: {response.status_code}")
+                self.print_test(
+                    "Health endpoint", False, f"Status: {response.status_code}"
+                )
 
             # Test API documentation
             response = requests.get("http://localhost:8000/api/v1/docs", timeout=5)
             if response.status_code == 200:
                 self.print_test("API documentation", True, "Swagger UI accessible")
             else:
-                self.print_test("API documentation", False, f"Status: {response.status_code}")
+                self.print_test(
+                    "API documentation", False, f"Status: {response.status_code}"
+                )
 
             # Test assets endpoint
             response = requests.get("http://localhost:8000/api/v1/assets", timeout=5)
@@ -199,7 +221,9 @@ class ManualTester:
                 data = response.json()
                 self.print_test("Assets endpoint", True, f"Assets count: {len(data)}")
             else:
-                self.print_test("Assets endpoint", False, f"Status: {response.status_code}")
+                self.print_test(
+                    "Assets endpoint", False, f"Status: {response.status_code}"
+                )
 
         except Exception as e:
             self.print_test("API endpoints", False, str(e))
@@ -261,11 +285,15 @@ class ManualTester:
             try:
                 # Test detailed coverage
                 coverage = monitor.get_detailed_coverage()
-                self.print_test("Data coverage stats", True, f"Coverage: {len(coverage)} symbols")
+                self.print_test(
+                    "Data coverage stats", True, f"Coverage: {len(coverage)} symbols"
+                )
 
                 # Test water pool status
                 status = monitor.get_water_pool_status()
-                self.print_test("Water pool status", True, f"Status keys: {list(status.keys())}")
+                self.print_test(
+                    "Water pool status", True, f"Status keys: {list(status.keys())}"
+                )
             finally:
                 db.close()
 

@@ -113,13 +113,17 @@ def main():
 
     # Page title
     st.title("⚡ Performance Monitoring")
-    st.markdown("Monitor system performance metrics, cache efficiency and response time")
+    st.markdown(
+        "Monitor system performance metrics, cache efficiency and response time"
+    )
     st.markdown("---")
 
     # Initialize services
     services = init_services()
     if not services:
-        st.error("❌ Service initialization failed, please refresh the page and try again")
+        st.error(
+            "❌ Service initialization failed, please refresh the page and try again"
+        )
         return
 
     # Display running mode
@@ -187,7 +191,9 @@ def display_performance_monitoring(services):
 
                     # Get date range
                     if "daily_stock_data" in services.get("tables", []):
-                        cursor.execute("SELECT MIN(date), MAX(date) FROM daily_stock_data")
+                        cursor.execute(
+                            "SELECT MIN(date), MAX(date) FROM daily_stock_data"
+                        )
                         date_range = cursor.fetchone()
                         if date_range[0] and date_range[1]:
                             cache_stats["date_range"] = {
@@ -221,7 +227,9 @@ def display_performance_monitoring(services):
                 from sqlalchemy import text
 
                 test_query = (
-                    services["db_session"].execute(text("SELECT COUNT(*) FROM assets")).scalar()
+                    services["db_session"]
+                    .execute(text("SELECT COUNT(*) FROM assets"))
+                    .scalar()
                 )
             elif mode == "cloud":
                 # Cloud mode: use SQLite direct connection
@@ -256,7 +264,9 @@ def display_performance_monitoring(services):
         with col3:
             # Calculate performance improvement
             performance_improvement = (
-                (akshare_response_time - cache_response_time) / akshare_response_time * 100
+                (akshare_response_time - cache_response_time)
+                / akshare_response_time
+                * 100
             )
             st.metric(
                 label="Performance Improvement",
@@ -270,7 +280,9 @@ def display_performance_monitoring(services):
             total_assets = cache_stats.get("total_assets", 0)
             total_data_points = cache_stats.get("total_data_points", 0)
             coverage_rate = (
-                min(100, (total_data_points / 1000) * 100) if total_data_points > 0 else 0
+                min(100, (total_data_points / 1000) * 100)
+                if total_data_points > 0
+                else 0
             )
 
             st.metric(
@@ -462,7 +474,9 @@ def test_data_query_performance(services):
                     "600000", "20240101", "20240105"
                 )
                 record_count = (
-                    len(stock_data) if stock_data is not None and not stock_data.empty else 0
+                    len(stock_data)
+                    if stock_data is not None and not stock_data.empty
+                    else 0
                 )
             elif mode == "cloud":
                 # 云端模式：直接查询数据库
@@ -548,7 +562,9 @@ def test_cache_performance(services):
                 times.append(response_time)
 
             avg_time = sum(times) / len(times)
-            improvement = ((times[0] - times[-1]) / times[0] * 100) if times[0] > 0 else 0
+            improvement = (
+                ((times[0] - times[-1]) / times[0] * 100) if times[0] > 0 else 0
+            )
 
             st.success("✅ Cache performance test completed")
 

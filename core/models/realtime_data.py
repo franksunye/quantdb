@@ -8,7 +8,16 @@ with appropriate caching and indexing strategies.
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
-from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+)
 from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
@@ -53,9 +62,14 @@ class RealtimeStockData(Base):
     pb_ratio = Column(Float, nullable=True, comment="Price-to-book ratio")
 
     # Timestamp information
-    timestamp = Column(DateTime, nullable=False, default=datetime.utcnow, comment="Data timestamp")
+    timestamp = Column(
+        DateTime, nullable=False, default=datetime.utcnow, comment="Data timestamp"
+    )
     created_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, comment="Record creation time"
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        comment="Record creation time",
     )
     updated_at = Column(
         DateTime,
@@ -66,7 +80,9 @@ class RealtimeStockData(Base):
     )
 
     # Cache metadata
-    cache_ttl_minutes = Column(Integer, nullable=False, default=5, comment="Cache TTL in minutes")
+    cache_ttl_minutes = Column(
+        Integer, nullable=False, default=5, comment="Cache TTL in minutes"
+    )
     is_trading_hours = Column(
         Boolean,
         nullable=False,
@@ -151,11 +167,17 @@ class RealtimeStockData(Base):
             low_price=float(akshare_row.get("最低", akshare_row.get("low", 0))),
             prev_close=float(akshare_row.get("昨收", akshare_row.get("prev_close", 0))),
             change=float(akshare_row.get("涨跌额", akshare_row.get("change", 0))),
-            pct_change=float(akshare_row.get("涨跌幅", akshare_row.get("pct_change", 0))),
+            pct_change=float(
+                akshare_row.get("涨跌幅", akshare_row.get("pct_change", 0))
+            ),
             volume=float(akshare_row.get("成交量", akshare_row.get("volume", 0))),
             turnover=float(akshare_row.get("成交额", akshare_row.get("turnover", 0))),
-            turnover_rate=float(akshare_row.get("换手率", akshare_row.get("turnover_rate", 0))),
-            market_cap=float(akshare_row.get("总市值", akshare_row.get("market_cap", 0))),
+            turnover_rate=float(
+                akshare_row.get("换手率", akshare_row.get("turnover_rate", 0))
+            ),
+            market_cap=float(
+                akshare_row.get("总市值", akshare_row.get("market_cap", 0))
+            ),
             pe_ratio=float(akshare_row.get("市盈率", akshare_row.get("pe_ratio", 0))),
             pb_ratio=float(akshare_row.get("市净率", akshare_row.get("pb_ratio", 0))),
             timestamp=datetime.utcnow(),
@@ -185,7 +207,9 @@ class RealtimeStockData(Base):
         minute = now.minute
 
         morning_start = (
-            (hour == 9 and minute >= 30) or (hour == 10) or (hour == 11 and minute <= 30)
+            (hour == 9 and minute >= 30)
+            or (hour == 10)
+            or (hour == 11 and minute <= 30)
         )
         afternoon_start = hour >= 13 and hour < 15
 
@@ -219,7 +243,9 @@ class RealtimeDataCache:
         Returns:
             Number of records deleted
         """
-        cutoff_time = datetime.utcnow() - timedelta(hours=1)  # Remove data older than 1 hour
+        cutoff_time = datetime.utcnow() - timedelta(
+            hours=1
+        )  # Remove data older than 1 hour
 
         deleted_count = (
             self.db.query(RealtimeStockData)
@@ -240,7 +266,9 @@ class RealtimeDataCache:
         total_records = self.db.query(RealtimeStockData).count()
         valid_records = (
             self.db.query(RealtimeStockData)
-            .filter(RealtimeStockData.timestamp > datetime.utcnow() - timedelta(minutes=5))
+            .filter(
+                RealtimeStockData.timestamp > datetime.utcnow() - timedelta(minutes=5)
+            )
             .count()
         )
 
@@ -250,5 +278,7 @@ class RealtimeDataCache:
             "total_records": total_records,
             "valid_records": valid_records,
             "unique_symbols": unique_symbols,
-            "cache_hit_ratio": (valid_records / total_records * 100) if total_records > 0 else 0,
+            "cache_hit_ratio": (
+                (valid_records / total_records * 100) if total_records > 0 else 0
+            ),
         }

@@ -149,12 +149,19 @@ async def get_config():
         return {
             "database": {
                 "type": DB_TYPE,
-                "url": DATABASE_URL.split("@")[0] + "@***" if "@" in DATABASE_URL else DATABASE_URL,
+                "url": (
+                    DATABASE_URL.split("@")[0] + "@***"
+                    if "@" in DATABASE_URL
+                    else DATABASE_URL
+                ),
             },
             "api": {"host": API_HOST, "port": API_PORT},
             "logging": {"level": LOG_LEVEL},
             "cache": {"enabled": ENABLE_CACHE, "ttl": CACHE_TTL},
-            "environment": {"development": is_development(), "production": is_production()},
+            "environment": {
+                "development": is_development(),
+                "production": is_production(),
+            },
         }
 
     except Exception as e:

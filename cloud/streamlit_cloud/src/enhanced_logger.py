@@ -30,7 +30,9 @@ os.makedirs(LOG_DIR, exist_ok=True)
 
 # Default log format
 DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - [%(levelname)s] - %(message)s"
-DETAILED_LOG_FORMAT = "%(asctime)s - %(name)s - [%(levelname)s] - [%(context_id)s] - %(message)s"
+DETAILED_LOG_FORMAT = (
+    "%(asctime)s - %(name)s - [%(levelname)s] - [%(context_id)s] - %(message)s"
+)
 
 # Log levels
 LOG_LEVELS = {
@@ -126,7 +128,9 @@ class EnhancedLogger:
         self.metrics = {}
 
     def start_context(
-        self, context_id: Optional[str] = None, metadata: Optional[Dict[str, Any]] = None
+        self,
+        context_id: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Start a new logging context.
@@ -199,7 +203,9 @@ class EnhancedLogger:
             value: Metric value
         """
         if not self.context_id:
-            self._log("warning", f"Attempted to add metric '{name}' but no context is active")
+            self._log(
+                "warning", f"Attempted to add metric '{name}' but no context is active"
+            )
             return
 
         self.metrics[name] = value
@@ -255,7 +261,9 @@ class EnhancedLogger:
             exc_info: Optional exception instance
         """
         if exc_info:
-            tb = traceback.format_exception(type(exc_info), exc_info, exc_info.__traceback__)
+            tb = traceback.format_exception(
+                type(exc_info), exc_info, exc_info.__traceback__
+            )
             self._log("error", f"{message}\n{''.join(tb)}")
         else:
             self._log("error", message)
@@ -269,7 +277,9 @@ class EnhancedLogger:
             exc_info: Optional exception instance
         """
         if exc_info:
-            tb = traceback.format_exception(type(exc_info), exc_info, exc_info.__traceback__)
+            tb = traceback.format_exception(
+                type(exc_info), exc_info, exc_info.__traceback__
+            )
             self._log("critical", f"{message}\n{''.join(tb)}")
         else:
             self._log("critical", message)
@@ -329,7 +339,8 @@ def log_function(logger=None, level: str = "info"):
 
                 # Log success
                 logger._log(
-                    level, f"FUNCTION END: {func.__name__} - Success - Duration: {duration:.4f}s"
+                    level,
+                    f"FUNCTION END: {func.__name__} - Success - Duration: {duration:.4f}s",
                 )
                 logger.add_metric(f"{func.__name__}_duration", duration)
 
@@ -340,7 +351,8 @@ def log_function(logger=None, level: str = "info"):
 
                 # Log error
                 logger.error(
-                    f"FUNCTION ERROR: {func.__name__} - {type(e).__name__}: {str(e)}", exc_info=e
+                    f"FUNCTION ERROR: {func.__name__} - {type(e).__name__}: {str(e)}",
+                    exc_info=e,
                 )
                 logger.add_metric(f"{func.__name__}_duration", duration)
                 logger.add_metric(f"{func.__name__}_error", str(e))

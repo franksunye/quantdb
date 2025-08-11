@@ -243,7 +243,9 @@ def simulate_advanced_usage():
 
     print_step(1, "批量获取多只股票")
     print_user_thought("我需要分析一个投资组合，获取多只股票数据")
-    print_user_action("qdb.get_multiple_stocks(['000001', '000002', '600000'], days=30)")
+    print_user_action(
+        "qdb.get_multiple_stocks(['000001', '000002', '600000'], days=30)"
+    )
 
     try:
         import qdb
@@ -272,7 +274,9 @@ def simulate_advanced_usage():
 
     print_step(2, "AKShare兼容性测试")
     print_user_thought("我原来用AKShare，看看是否兼容")
-    print_user_action("qdb.stock_zh_a_hist('000001', start_date='20240101', end_date='20240201')")
+    print_user_action(
+        "qdb.stock_zh_a_hist('000001', start_date='20240101', end_date='20240201')"
+    )
 
     try:
         import qdb

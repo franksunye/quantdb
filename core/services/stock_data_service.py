@@ -86,7 +86,9 @@ class StockDataService:
         # Check database for existing data
         existing_data = self.db_cache.get(symbol, trading_days)
         existing_dates = set(existing_data.keys())
-        logger.info(f"Found {len(existing_dates)} existing records in database for {symbol}")
+        logger.info(
+            f"Found {len(existing_dates)} existing records in database for {symbol}"
+        )
 
         # Find missing dates (only among actual trading days)
         missing_dates = [day for day in trading_days if day not in existing_dates]
@@ -100,15 +102,22 @@ class StockDataService:
             logger.info(f"Grouped into {len(date_groups)} date ranges for {symbol}")
 
             for group_start, group_end in date_groups:
-                logger.info(f"Fetching data for {symbol} from {group_start} to {group_end}")
+                logger.info(
+                    f"Fetching data for {symbol} from {group_start} to {group_end}"
+                )
 
                 # Fetch data from AKShare
                 akshare_data = self.akshare_adapter.get_stock_data(
-                    symbol=symbol, start_date=group_start, end_date=group_end, adjust=adjust
+                    symbol=symbol,
+                    start_date=group_start,
+                    end_date=group_end,
+                    adjust=adjust,
                 )
 
                 if not akshare_data.empty:
-                    logger.info(f"Successfully fetched {len(akshare_data)} rows for {symbol}")
+                    logger.info(
+                        f"Successfully fetched {len(akshare_data)} rows for {symbol}"
+                    )
 
                     # Convert DataFrame to dictionary format for database storage
                     data_dict = self._dataframe_to_dict(akshare_data)
@@ -143,7 +152,9 @@ class StockDataService:
             result_df = self._dict_to_dataframe(existing_data)
 
             # Filter to requested date range
-            result_df = self._filter_dataframe_by_date_range(result_df, start_date, end_date)
+            result_df = self._filter_dataframe_by_date_range(
+                result_df, start_date, end_date
+            )
 
             # Sort by date
             result_df = result_df.sort_values("date")
@@ -218,7 +229,9 @@ class StockDataService:
             trading_calendar = get_trading_calendar()
             trading_days = trading_calendar.get_trading_days(start_date, end_date)
 
-            logger.info(f"Using official trading calendar: found {len(trading_days)} trading days")
+            logger.info(
+                f"Using official trading calendar: found {len(trading_days)} trading days"
+            )
             return trading_days
 
         except Exception as e:
@@ -294,7 +307,9 @@ class StockDataService:
 
         for _, row in df.iterrows():
             date_str = (
-                row["date"].strftime("%Y%m%d") if isinstance(row["date"], datetime) else row["date"]
+                row["date"].strftime("%Y%m%d")
+                if isinstance(row["date"], datetime)
+                else row["date"]
             )
             result[date_str] = row.to_dict()
 

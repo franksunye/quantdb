@@ -60,7 +60,9 @@ freshness_tracker = SimpleFreshnessTracker()
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 async def get_historical_stock_data(
     symbol: str,
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query(
         "",
@@ -79,7 +81,9 @@ async def get_historical_stock_data(
     try:
         # Validate symbol format
         if not symbol.isdigit() or len(symbol) != 6:
-            raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
+            raise HTTPException(
+                status_code=400, detail="Symbol must be a 6-digit number"
+            )
 
         # Check if asset exists in database
         asset = db.query(Asset).filter(Asset.symbol == symbol).first()
@@ -164,7 +168,9 @@ async def get_historical_stock_data(
 
         except Exception as e:
             logger.error(f"Error fetching historical data for {symbol}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error fetching data: {str(e)}"
+            )
 
     except HTTPException:
         raise

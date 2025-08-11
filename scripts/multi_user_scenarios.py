@@ -59,7 +59,9 @@ def scenario_quantitative_analyst():
         portfolio_data = qdb.get_multiple_stocks(stocks, days=90)
         end_time = time.time()
 
-        print_result(f"获取{len(portfolio_data)}只股票90天数据，耗时{end_time-start_time:.2f}秒")
+        print_result(
+            f"获取{len(portfolio_data)}只股票90天数据，耗时{end_time-start_time:.2f}秒"
+        )
 
         # 模拟策略计算
         print_action("计算移动平均策略信号")

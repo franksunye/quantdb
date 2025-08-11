@@ -128,7 +128,9 @@ def create_candlestick_chart(df: pd.DataFrame, title: str = "K线图") -> go.Fig
     Returns:
         Plotly图表对象
     """
-    if df.empty or not all(col in df.columns for col in ["open", "high", "low", "close"]):
+    if df.empty or not all(
+        col in df.columns for col in ["open", "high", "low", "close"]
+    ):
         fig = go.Figure()
         fig.add_annotation(
             text="暂无K线数据",
@@ -224,7 +226,9 @@ def create_volume_chart(df: pd.DataFrame, title: str = "成交量") -> go.Figure
     return fig
 
 
-def create_returns_distribution(df: pd.DataFrame, title: str = "收益率分布") -> go.Figure:
+def create_returns_distribution(
+    df: pd.DataFrame, title: str = "收益率分布"
+) -> go.Figure:
     """
     创建收益率分布图
 
@@ -300,13 +304,19 @@ def create_metrics_dashboard(metrics: Dict[str, Any]) -> None:
         )
 
     with col2:
-        st.metric(label="最高价", value=f"¥{metrics.get('high_price', 0):.2f}", delta=None)
+        st.metric(
+            label="最高价", value=f"¥{metrics.get('high_price', 0):.2f}", delta=None
+        )
 
     with col3:
-        st.metric(label="最低价", value=f"¥{metrics.get('low_price', 0):.2f}", delta=None)
+        st.metric(
+            label="最低价", value=f"¥{metrics.get('low_price', 0):.2f}", delta=None
+        )
 
     with col4:
-        st.metric(label="平均价格", value=f"¥{metrics.get('avg_price', 0):.2f}", delta=None)
+        st.metric(
+            label="平均价格", value=f"¥{metrics.get('avg_price', 0):.2f}", delta=None
+        )
 
 
 def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Any]:
@@ -325,7 +335,9 @@ def calculate_basic_metrics(df: pd.DataFrame) -> Dict[str, Any]:
     latest_price = df["close"].iloc[-1] if len(df) > 0 else 0
     previous_price = df["close"].iloc[-2] if len(df) > 1 else latest_price
     price_change = (
-        ((latest_price - previous_price) / previous_price * 100) if previous_price != 0 else 0
+        ((latest_price - previous_price) / previous_price * 100)
+        if previous_price != 0
+        else 0
     )
 
     return {
@@ -357,7 +369,9 @@ def format_large_number(num: float) -> str:
         return f"{num:.2f}"
 
 
-def create_performance_comparison_chart(cache_time: float, akshare_time: float) -> go.Figure:
+def create_performance_comparison_chart(
+    cache_time: float, akshare_time: float
+) -> go.Figure:
     """
     创建性能对比图表
 
@@ -384,7 +398,9 @@ def create_performance_comparison_chart(cache_time: float, akshare_time: float) 
     )
 
     # 计算性能提升
-    improvement = ((akshare_time - cache_time) / akshare_time * 100) if akshare_time > 0 else 0
+    improvement = (
+        ((akshare_time - cache_time) / akshare_time * 100) if akshare_time > 0 else 0
+    )
 
     fig.update_layout(
         title=f"性能对比 - 缓存提升 {improvement:.1f}%",
@@ -479,7 +495,9 @@ def create_cache_hit_pie_chart(cache_hits: int, cache_misses: int) -> go.Figure:
     )
 
     fig.update_layout(
-        title=f"缓存命中率 - {hit_rate:.1f}%", height=config.CHART_HEIGHT, template="plotly_white"
+        title=f"缓存命中率 - {hit_rate:.1f}%",
+        height=config.CHART_HEIGHT,
+        template="plotly_white",
     )
 
     return fig
@@ -489,22 +507,30 @@ class StockChartBuilder:
     """股票图表构建器 - 云端版本"""
 
     @staticmethod
-    def create_price_trend_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+    def create_price_trend_chart(
+        df: pd.DataFrame, symbol: str, name: str = None
+    ) -> go.Figure:
         """创建价格趋势图"""
         return create_price_chart(df, f"{name or symbol} - 收盘价趋势")
 
     @staticmethod
-    def create_volume_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+    def create_volume_chart(
+        df: pd.DataFrame, symbol: str, name: str = None
+    ) -> go.Figure:
         """创建成交量图表"""
         return create_volume_chart(df, f"{name or symbol} - 成交量")
 
     @staticmethod
-    def create_candlestick_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+    def create_candlestick_chart(
+        df: pd.DataFrame, symbol: str, name: str = None
+    ) -> go.Figure:
         """创建K线图"""
         return create_candlestick_chart(df, f"{name or symbol} - K线图")
 
     @staticmethod
-    def create_returns_chart(df: pd.DataFrame, symbol: str, name: str = None) -> go.Figure:
+    def create_returns_chart(
+        df: pd.DataFrame, symbol: str, name: str = None
+    ) -> go.Figure:
         """创建收益率图表"""
         return create_returns_distribution(df, f"{name or symbol} - 收益率分布")
 
@@ -516,7 +542,10 @@ class StockChartBuilder:
         colors = ["#2ca02c", "#ff7f0e"]
 
         fig = px.pie(
-            values=values, names=categories, title="查询来源分布", color_discrete_sequence=colors
+            values=values,
+            names=categories,
+            title="查询来源分布",
+            color_discrete_sequence=colors,
         )
 
         fig.update_traces(

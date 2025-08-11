@@ -119,16 +119,32 @@ def benchmark_akshare_direct():
         print("⚠️ AKShare not available, using realistic simulated data")
         return [
             {"scenario": "Single Stock (30 days)", "akshare_time": 1.2, "records": 30},
-            {"scenario": "Multiple Stocks (3×30 days)", "akshare_time": 3.8, "records": 90},
-            {"scenario": "Large Dataset (5×90 days)", "akshare_time": 12.5, "records": 450},
+            {
+                "scenario": "Multiple Stocks (3×30 days)",
+                "akshare_time": 3.8,
+                "records": 90,
+            },
+            {
+                "scenario": "Large Dataset (5×90 days)",
+                "akshare_time": 12.5,
+                "records": 450,
+            },
         ]
     except Exception as e:
         print(f"⚠️ AKShare benchmark failed: {e}")
         print("📊 Using realistic simulated data based on typical AKShare performance")
         return [
             {"scenario": "Single Stock (30 days)", "akshare_time": 1.2, "records": 30},
-            {"scenario": "Multiple Stocks (3×30 days)", "akshare_time": 3.8, "records": 90},
-            {"scenario": "Large Dataset (5×90 days)", "akshare_time": 12.5, "records": 450},
+            {
+                "scenario": "Multiple Stocks (3×30 days)",
+                "akshare_time": 3.8,
+                "records": 90,
+            },
+            {
+                "scenario": "Large Dataset (5×90 days)",
+                "akshare_time": 12.5,
+                "records": 450,
+            },
         ]
 
 
@@ -152,7 +168,9 @@ def benchmark_quantdb_performance():
 
         print("⚡ Testing QuantDB - Single stock (cache hit)...")
         start_time = time.time()
-        data1_cache = qdb.get_stock_data("000001", start_date="20240101", end_date="20240201")
+        data1_cache = qdb.get_stock_data(
+            "000001", start_date="20240101", end_date="20240201"
+        )
         cache_time = time.time() - start_time
 
         scenarios.append(
@@ -169,7 +187,9 @@ def benchmark_quantdb_performance():
         print("📡 Testing QuantDB - Multiple stocks (mixed calls)...")
         symbols = ["000002", "600000", "600036"]  # Use different symbols
         start_time = time.time()
-        multi_data = qdb.get_multiple_stocks(symbols, start_date="20240101", end_date="20240201")
+        multi_data = qdb.get_multiple_stocks(
+            symbols, start_date="20240101", end_date="20240201"
+        )
         multi_first_time = time.time() - start_time
 
         print("⚡ Testing QuantDB - Multiple stocks (all cache)...")
@@ -188,11 +208,19 @@ def benchmark_quantdb_performance():
                 "records": total_records,
             }
         )
-        print(f"   QuantDB first: {multi_first_time:.3f}s, cache: {multi_cache_time:.3f}s")
+        print(
+            f"   QuantDB first: {multi_first_time:.3f}s, cache: {multi_cache_time:.3f}s"
+        )
 
         # Large dataset test
         print("📡 Testing QuantDB - Large dataset...")
-        large_symbols = ["000858", "002415", "300015", "002594", "000725"]  # New symbols
+        large_symbols = [
+            "000858",
+            "002415",
+            "300015",
+            "002594",
+            "000725",
+        ]  # New symbols
         start_time = time.time()
         large_data = qdb.get_multiple_stocks(
             large_symbols, start_date="20231001", end_date="20240201"
@@ -215,7 +243,9 @@ def benchmark_quantdb_performance():
                 "records": large_records,
             }
         )
-        print(f"   QuantDB first: {large_first_time:.3f}s, cache: {large_cache_time:.3f}s")
+        print(
+            f"   QuantDB first: {large_first_time:.3f}s, cache: {large_cache_time:.3f}s"
+        )
 
         return scenarios
 
@@ -257,7 +287,11 @@ def create_realistic_performance_chart():
     # Combine data
     scenarios = []
     for i, scenario_name in enumerate(
-        ["Single Stock\n(30 days)", "Multiple Stocks\n(3×30 days)", "Large Dataset\n(5×90 days)"]
+        [
+            "Single Stock\n(30 days)",
+            "Multiple Stocks\n(3×30 days)",
+            "Large Dataset\n(5×90 days)",
+        ]
     ):
         akshare_time = akshare_data[i]["akshare_time"]
         quantdb_first = quantdb_data[i]["quantdb_first"]
@@ -317,7 +351,9 @@ def create_realistic_performance_chart():
 
     ax1.set_xlabel("Data Retrieval Scenario", fontweight="bold")
     ax1.set_ylabel("Response Time (seconds)", fontweight="bold")
-    ax1.set_title("Performance Comparison: AKShare vs QuantDB", fontweight="bold", pad=20)
+    ax1.set_title(
+        "Performance Comparison: AKShare vs QuantDB", fontweight="bold", pad=20
+    )
     ax1.set_xticks(x)
     ax1.set_xticklabels([s["name"] for s in scenarios])
     ax1.legend(frameon=True, fancybox=True, shadow=True)
@@ -352,7 +388,9 @@ def create_realistic_performance_chart():
     )
 
     ax2.set_ylabel("Performance Improvement (%)", fontweight="bold")
-    ax2.set_title("QuantDB Cache Performance Improvement vs AKShare", fontweight="bold", pad=20)
+    ax2.set_title(
+        "QuantDB Cache Performance Improvement vs AKShare", fontweight="bold", pad=20
+    )
     ax2.set_ylim(0, 100)
 
     # Add percentage labels
@@ -373,7 +411,9 @@ def create_realistic_performance_chart():
 
     # Save chart
     chart_path = "docs/promo/realistic_performance_comparison.png"
-    plt.savefig(chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none")
+    plt.savefig(
+        chart_path, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none"
+    )
     print(f"✅ Realistic performance chart saved: {chart_path}")
 
     # Print summary
@@ -393,7 +433,9 @@ def main():
     """Main execution"""
     print("🚀 Realistic QuantDB Performance Benchmark")
     print("=" * 60)
-    print("🎯 Goal: Generate realistic data that demonstrates QuantDB's value proposition")
+    print(
+        "🎯 Goal: Generate realistic data that demonstrates QuantDB's value proposition"
+    )
     print()
 
     chart_path, scenarios = create_realistic_performance_chart()

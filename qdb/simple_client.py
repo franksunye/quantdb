@@ -105,7 +105,9 @@ class SimpleQDBClient:
             # Handle days parameter
             if days is not None:
                 end_date = datetime.now().strftime("%Y%m%d")
-                start_date = (datetime.now() - timedelta(days=days * 2)).strftime("%Y%m%d")
+                start_date = (datetime.now() - timedelta(days=days * 2)).strftime(
+                    "%Y%m%d"
+                )
 
             # Use core service if available
             if hasattr(self, "_use_legacy") and self._use_legacy:
@@ -113,7 +115,9 @@ class SimpleQDBClient:
                     symbol, start_date, end_date, days, adjust
                 )
             else:
-                return self._stock_service.get_stock_data(symbol, start_date, end_date, adjust)
+                return self._stock_service.get_stock_data(
+                    symbol, start_date, end_date, adjust
+                )
 
         except Exception as e:
             raise DataError(f"Failed to get stock data for {symbol}: {str(e)}")
@@ -156,7 +160,10 @@ class SimpleQDBClient:
     # Additional methods for compatibility
     def get_realtime_data(self, symbol: str) -> Dict[str, Any]:
         """Get realtime data (placeholder)"""
-        return {"symbol": symbol, "error": "Realtime data not implemented in simple client"}
+        return {
+            "symbol": symbol,
+            "error": "Realtime data not implemented in simple client",
+        }
 
     def get_realtime_data_batch(self, symbols: List[str]) -> Dict[str, Dict[str, Any]]:
         """Get batch realtime data (placeholder)"""
@@ -174,7 +181,10 @@ class SimpleQDBClient:
 
     def get_index_realtime(self, symbol: str) -> Dict[str, Any]:
         """Get index realtime data (placeholder)"""
-        return {"symbol": symbol, "error": "Index data not implemented in simple client"}
+        return {
+            "symbol": symbol,
+            "error": "Index data not implemented in simple client",
+        }
 
     def get_index_list(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get index list (placeholder)"""
@@ -182,11 +192,17 @@ class SimpleQDBClient:
 
     def get_financial_summary(self, symbol: str) -> Dict[str, Any]:
         """Get financial summary (placeholder)"""
-        return {"symbol": symbol, "error": "Financial data not implemented in simple client"}
+        return {
+            "symbol": symbol,
+            "error": "Financial data not implemented in simple client",
+        }
 
     def get_financial_indicators(self, symbol: str) -> Dict[str, Any]:
         """Get financial indicators (placeholder)"""
-        return {"symbol": symbol, "error": "Financial data not implemented in simple client"}
+        return {
+            "symbol": symbol,
+            "error": "Financial data not implemented in simple client",
+        }
 
     def get_asset_info(self, symbol: str) -> Dict[str, Any]:
         """Get asset info (placeholder)"""

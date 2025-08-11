@@ -135,7 +135,9 @@ class E2EServerManager:
 
                 # 等待进程结束
                 try:
-                    self.server_process.wait(timeout=self.config.SERVER_SHUTDOWN_TIMEOUT)
+                    self.server_process.wait(
+                        timeout=self.config.SERVER_SHUTDOWN_TIMEOUT
+                    )
                 except subprocess.TimeoutExpired:
                     # 如果进程没有在超时时间内结束，强制杀死
                     logger.warning("服务器未在超时时间内停止，强制终止")

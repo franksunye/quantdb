@@ -64,7 +64,8 @@ def get_akshare_adapter(db: Session = Depends(get_db)):
 
 
 def get_realtime_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get realtime data service instance."""
     return RealtimeDataService(db, akshare_adapter)
@@ -161,7 +162,9 @@ async def get_batch_realtime_data(
             raise HTTPException(status_code=400, detail="Symbols list cannot be empty")
 
         if len(symbols) > 100:  # Limit batch size
-            raise HTTPException(status_code=400, detail="Maximum 100 symbols per batch request")
+            raise HTTPException(
+                status_code=400, detail="Maximum 100 symbols per batch request"
+            )
 
         # Clean and validate symbols
         clean_symbols = []
@@ -173,7 +176,9 @@ async def get_batch_realtime_data(
             raise HTTPException(status_code=400, detail="No valid symbols provided")
 
         # Get batch realtime data
-        batch_data = realtime_service.get_realtime_data_batch(clean_symbols, force_refresh)
+        batch_data = realtime_service.get_realtime_data_batch(
+            clean_symbols, force_refresh
+        )
 
         # Count successful vs failed requests
         successful_count = sum(1 for data in batch_data.values() if "error" not in data)

@@ -33,7 +33,8 @@ def get_akshare_adapter(db: Session = Depends(get_db)):
 
 
 def get_stock_data_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get stock data service instance."""
     return StockDataService(db, akshare_adapter)
@@ -61,7 +62,9 @@ router = APIRouter(
 async def get_historical_stock_data(
     symbol: str,
     request: Request,
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query(
         "",
@@ -147,7 +150,9 @@ async def get_historical_stock_data(
                 data_points.append(data_point)
 
             # Get cache info
-            cache_info = _get_cache_info(symbol, start_date, end_date, df, stock_data_service)
+            cache_info = _get_cache_info(
+                symbol, start_date, end_date, df, stock_data_service
+            )
 
             # Create response
             response = {
@@ -169,7 +174,9 @@ async def get_historical_stock_data(
 
         except Exception as e:
             logger.error(f"Error fetching historical data for {symbol}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error fetching data: {str(e)}"
+            )
 
     except HTTPException:
         raise
@@ -181,7 +188,9 @@ async def get_historical_stock_data(
 @router.get("/cache/status")
 async def get_database_cache_status(
     symbol: Optional[str] = Query(None, description="Stock symbol"),
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     database_cache: DatabaseCache = Depends(get_database_cache),
 ):
@@ -195,7 +204,9 @@ async def get_database_cache_status(
     try:
         # If symbol and date range provided, get coverage information
         if symbol and start_date and end_date:
-            coverage_info = database_cache.get_date_range_coverage(symbol, start_date, end_date)
+            coverage_info = database_cache.get_date_range_coverage(
+                symbol, start_date, end_date
+            )
             return {
                 "symbol": symbol,
                 "start_date": start_date,
@@ -209,10 +220,14 @@ async def get_database_cache_status(
 
     except Exception as e:
         logger.error(f"Error getting database cache status: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting cache status: {str(e)}"
+        )
 
 
-def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_service) -> dict:
+def _get_cache_info(
+    symbol: str, start_date: str, end_date: str, df, stock_data_service
+) -> dict:
     """Get real cache status information"""
     try:
         from core.services.trading_calendar import get_trading_calendar
@@ -228,7 +243,9 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
         cached_days = len(existing_data)
 
         # Calculate cache hit ratio
-        cache_hit_ratio = cached_days / total_trading_days if total_trading_days > 0 else 0.0
+        cache_hit_ratio = (
+            cached_days / total_trading_days if total_trading_days > 0 else 0.0
+        )
 
         # Determine if AKShare was called
         akshare_called = cached_days < total_trading_days

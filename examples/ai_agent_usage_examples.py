@@ -40,7 +40,9 @@ def example_date_range_data():
     try:
         # Get data for specific period
         df = qdb.get_stock_data(
-            "600000", start_date="20240101", end_date="20240201"  # Pudong Development Bank
+            "600000",
+            start_date="20240101",
+            end_date="20240201",  # Pudong Development Bank
         )
         print(f"✅ Retrieved {len(df)} trading days for 600000")
 
@@ -113,7 +115,9 @@ def example_stock_list_filtering():
 
         # Show first 5 stocks
         for stock in sh_stocks[:5]:
-            print(f"   {stock['symbol']}: {stock['name']} ({stock.get('industry', 'N/A')})")
+            print(
+                f"   {stock['symbol']}: {stock['name']} ({stock.get('industry', 'N/A')})"
+            )
 
         # Get all stocks and analyze by market
         all_stocks = qdb.get_stock_list()

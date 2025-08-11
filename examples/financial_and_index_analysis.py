@@ -66,7 +66,9 @@ def example_financial_summary_analysis():
                     previous_profit = previous.get("net_profit")
 
                     if current_profit and previous_profit:
-                        growth = ((current_profit - previous_profit) / previous_profit) * 100
+                        growth = (
+                            (current_profit - previous_profit) / previous_profit
+                        ) * 100
                         print(f"   QoQ profit growth: {growth:+.1f}%")
 
         except Exception as e:
@@ -150,7 +152,9 @@ def example_index_data_analysis():
 
                 # Recent performance
                 if len(df) >= 5:
-                    recent_return = (df.iloc[-1]["close"] / df.iloc[-6]["close"] - 1) * 100
+                    recent_return = (
+                        df.iloc[-1]["close"] / df.iloc[-6]["close"] - 1
+                    ) * 100
                     print(f"   Last 5 days: {recent_return:+.2f}%")
 
         except Exception as e:
@@ -192,7 +196,9 @@ def example_index_realtime_monitoring():
                 open_val = data["open"]
                 high_val = data["high"]
                 low_val = data["low"]
-                print(f"      Range: {low_val:.2f} - {high_val:.2f} (Open: {open_val:.2f})")
+                print(
+                    f"      Range: {low_val:.2f} - {high_val:.2f} (Open: {open_val:.2f})"
+                )
 
         except Exception as e:
             print(f"   ❌ {name}: Error - {e}")
@@ -279,7 +285,9 @@ def example_comparative_analysis():
 
     for idx_symbol in market_indices:
         try:
-            df = qdb.get_index_data(idx_symbol, start_date="20240101", end_date="20240201")
+            df = qdb.get_index_data(
+                idx_symbol, start_date="20240101", end_date="20240201"
+            )
             if not df.empty and len(df) >= 2:
                 idx_return = (df.iloc[-1]["close"] / df.iloc[0]["close"] - 1) * 100
                 print(f"   Index {idx_symbol}: {idx_return:+.2f}%")

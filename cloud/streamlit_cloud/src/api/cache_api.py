@@ -39,7 +39,9 @@ async def get_cache_stats(db: Session = Depends(get_db)) -> Dict[str, Any]:
         price_count = db.query(DailyStockData).count()
 
         # Get latest price date
-        latest_price = db.query(DailyStockData).order_by(DailyStockData.trade_date.desc()).first()
+        latest_price = (
+            db.query(DailyStockData).order_by(DailyStockData.trade_date.desc()).first()
+        )
         latest_date = latest_price.trade_date if latest_price else None
 
         stats = {
@@ -85,7 +87,9 @@ async def clear_cache(db: Session = Depends(get_db)) -> Dict[str, str]:
 
 
 @router.delete("/clear/{symbol}")
-async def clear_symbol_cache(symbol: str, db: Session = Depends(get_db)) -> Dict[str, str]:
+async def clear_symbol_cache(
+    symbol: str, db: Session = Depends(get_db)
+) -> Dict[str, str]:
     """
     Clear cached data for a specific symbol.
 
@@ -103,7 +107,9 @@ async def clear_symbol_cache(symbol: str, db: Session = Depends(get_db)) -> Dict
 
         # Delete price data for this asset
         deleted_count = (
-            db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).delete()
+            db.query(DailyStockData)
+            .filter(DailyStockData.asset_id == asset.asset_id)
+            .delete()
         )
         db.commit()
 
@@ -119,7 +125,9 @@ async def clear_symbol_cache(symbol: str, db: Session = Depends(get_db)) -> Dict
     except Exception as e:
         logger.error(f"Error clearing cache for symbol {symbol}: {e}")
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to clear cache for symbol {symbol}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to clear cache for symbol {symbol}"
+        )
 
 
 @router.get("/symbols")
@@ -138,7 +146,9 @@ async def get_cached_symbols(db: Session = Depends(get_db)) -> List[Dict[str, An
         for asset in assets_with_prices:
             # Get price count and date range for this asset
             price_count = (
-                db.query(DailyStockData).filter(DailyStockData.asset_id == asset.asset_id).count()
+                db.query(DailyStockData)
+                .filter(DailyStockData.asset_id == asset.asset_id)
+                .count()
             )
 
             earliest_price = (
@@ -159,7 +169,9 @@ async def get_cached_symbols(db: Session = Depends(get_db)) -> List[Dict[str, An
                     "symbol": asset.symbol,
                     "name": asset.name,
                     "price_count": price_count,
-                    "earliest_date": earliest_price.trade_date if earliest_price else None,
+                    "earliest_date": (
+                        earliest_price.trade_date if earliest_price else None
+                    ),
                     "latest_date": latest_price.trade_date if latest_price else None,
                 }
             )
@@ -193,4 +205,8 @@ async def cache_health_check(db: Session = Depends(get_db)) -> Dict[str, Any]:
 
     except Exception as e:
         logger.error(f"Cache health check failed: {e}")
-        return {"status": "unhealthy", "error": str(e), "timestamp": datetime.now().isoformat()}
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.now().isoformat(),
+        }

@@ -60,7 +60,9 @@ def main():
 
     if stock_data.empty:
         print("❌ No stock data available for Tencent (00700).")
-        print("💡 This is likely due to network connectivity issues with AKShare's HK API.")
+        print(
+            "💡 This is likely due to network connectivity issues with AKShare's HK API."
+        )
         return
 
     # Try multiple benchmark symbols
@@ -81,7 +83,9 @@ def main():
 
     if market_data is None or market_data.empty:
         print("❌ No benchmark data available. All benchmark symbols failed.")
-        print("💡 This is likely due to network connectivity issues with AKShare's HK API.")
+        print(
+            "💡 This is likely due to network connectivity issues with AKShare's HK API."
+        )
         print("   Common causes:")
         print("   - SSL connection problems with data provider servers")
         print("   - Network firewall or proxy restrictions")

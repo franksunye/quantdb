@@ -148,7 +148,9 @@ class DatabaseCache:
 
                 if existing_data:
                     # Skip if data already exists
-                    logger.debug(f"Data already exists for {symbol} on {date_str}, skipping")
+                    logger.debug(
+                        f"Data already exists for {symbol} on {date_str}, skipping"
+                    )
                     skipped_count += 1
                     continue
 
@@ -200,7 +202,9 @@ class DatabaseCache:
         Returns:
             Dictionary with coverage information
         """
-        logger.info(f"Getting date range coverage for {symbol} from {start_date} to {end_date}")
+        logger.info(
+            f"Getting date range coverage for {symbol} from {start_date} to {end_date}"
+        )
 
         try:
             # Get asset ID
@@ -277,13 +281,18 @@ class DatabaseCache:
 
             # Get top assets by data points
             asset_counts = (
-                self.db.query(DailyStockData.asset_id, func.count(DailyStockData.id).label("count"))
+                self.db.query(
+                    DailyStockData.asset_id,
+                    func.count(DailyStockData.id).label("count"),
+                )
                 .group_by(DailyStockData.asset_id)
                 .subquery()
             )
 
             top_assets_query = (
-                self.db.query(Asset.symbol, Asset.name, Asset.asset_id, asset_counts.c.count)
+                self.db.query(
+                    Asset.symbol, Asset.name, Asset.asset_id, asset_counts.c.count
+                )
                 .join(asset_counts, Asset.asset_id == asset_counts.c.asset_id)
                 .order_by(asset_counts.c.count.desc())
                 .limit(5)
@@ -291,7 +300,9 @@ class DatabaseCache:
 
             top_assets = []
             for symbol, name, asset_id, count in top_assets_query:
-                top_assets.append({"symbol": symbol, "name": name, "data_points": count})
+                top_assets.append(
+                    {"symbol": symbol, "name": name, "data_points": count}
+                )
 
             return {
                 "total_assets": total_assets,

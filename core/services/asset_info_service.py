@@ -131,7 +131,9 @@ class AssetInfoService:
 
         # 首先检查环境变量强制设置
         if os.getenv("QUANTDB_READONLY_MODE", "").lower() in ("true", "1", "yes"):
-            logger.info("Read-only mode forced by environment variable QUANTDB_READONLY_MODE")
+            logger.info(
+                "Read-only mode forced by environment variable QUANTDB_READONLY_MODE"
+            )
             return True
 
         # 注意：Streamlit Cloud运行时数据库是可写的，只有重启时才会重置
@@ -141,7 +143,9 @@ class AssetInfoService:
             # 尝试创建一个临时表来测试写权限
             from sqlalchemy import text
 
-            self.db.execute(text("CREATE TEMP TABLE test_write_permission (id INTEGER)"))
+            self.db.execute(
+                text("CREATE TEMP TABLE test_write_permission (id INTEGER)")
+            )
             self.db.execute(text("DROP TABLE test_write_permission"))
             self.db.rollback()  # 回滚测试操作
             return False
@@ -175,7 +179,11 @@ class AssetInfoService:
             logger.info("Fetching HK stock data from AKShare")
             hk_data = ak.stock_hk_spot_em()
 
-            if hk_data.empty or "代码" not in hk_data.columns or "名称" not in hk_data.columns:
+            if (
+                hk_data.empty
+                or "代码" not in hk_data.columns
+                or "名称" not in hk_data.columns
+            ):
                 logger.error("Invalid HK stock data format")
                 return {"success": False, "error": "Invalid data format"}
 
@@ -192,7 +200,9 @@ class AssetInfoService:
 
                 try:
                     # 检查是否已存在
-                    existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+                    existing_asset = (
+                        self.db.query(Asset).filter(Asset.symbol == symbol).first()
+                    )
 
                     if existing_asset:
                         if force_update:
@@ -258,7 +268,9 @@ class AssetInfoService:
             是否成功刷新
         """
         if self._is_readonly:
-            logger.warning(f"Cannot refresh HK stock {symbol} in read-only database mode")
+            logger.warning(
+                f"Cannot refresh HK stock {symbol} in read-only database mode"
+            )
             return False
 
         logger.info(f"Force refreshing HK stock: {symbol}")
@@ -267,7 +279,11 @@ class AssetInfoService:
             # 获取最新数据
             hk_data = ak.stock_hk_spot_em()
 
-            if hk_data.empty or "代码" not in hk_data.columns or "名称" not in hk_data.columns:
+            if (
+                hk_data.empty
+                or "代码" not in hk_data.columns
+                or "名称" not in hk_data.columns
+            ):
                 logger.error("Invalid HK stock data format")
                 return False
 
@@ -363,7 +379,9 @@ class AssetInfoService:
         # 在创建前再次检查是否已存在（防止并发创建）
         existing_asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
         if existing_asset:
-            logger.info(f"Asset {symbol} already exists (concurrent creation), returning existing")
+            logger.info(
+                f"Asset {symbol} already exists (concurrent creation), returning existing"
+            )
             return existing_asset
 
         try:
@@ -421,7 +439,9 @@ class AssetInfoService:
                 "readonly database" in error_msg
                 or "attempt to write a readonly database" in error_msg
             ):
-                logger.warning(f"Database is read-only, creating virtual asset for {symbol}")
+                logger.warning(
+                    f"Database is read-only, creating virtual asset for {symbol}"
+                )
                 return self._create_virtual_asset(symbol)
 
             # 再次检查是否已存在（可能是并发创建导致的错误）
@@ -468,7 +488,9 @@ class AssetInfoService:
                 return asset
 
             except Exception as fallback_error:
-                logger.error(f"Fallback asset creation also failed for {symbol}: {fallback_error}")
+                logger.error(
+                    f"Fallback asset creation also failed for {symbol}: {fallback_error}"
+                )
                 # 如果连fallback都失败，创建虚拟资产
                 return self._create_virtual_asset(symbol)
 
@@ -612,7 +634,9 @@ class AssetInfoService:
         if symbol in self._get_known_stock_defaults() and not symbol.startswith("TEST"):
             defaults = self._get_known_stock_defaults()[symbol]
             asset_info.update(defaults)
-            logger.info(f"Using default values for known stock {symbol}: {defaults['name']}")
+            logger.info(
+                f"Using default values for known stock {symbol}: {defaults['name']}"
+            )
             return asset_info
 
         try:
@@ -624,14 +648,24 @@ class AssetInfoService:
                 # Also handle test symbols for testing purposes
                 individual_info = ak.stock_individual_info_em(symbol=symbol)
                 if not individual_info.empty:
-                    info_dict = dict(zip(individual_info["item"], individual_info["value"]))
+                    info_dict = dict(
+                        zip(individual_info["item"], individual_info["value"])
+                    )
 
                     # Extract relevant information
                     asset_info["name"] = info_dict.get("股票简称", f"Stock {symbol}")
-                    asset_info["listing_date"] = self._parse_date(info_dict.get("上市时间"))
-                    asset_info["total_shares"] = self._parse_number(info_dict.get("总股本"))
-                    asset_info["circulating_shares"] = self._parse_number(info_dict.get("流通股"))
-                    asset_info["market_cap"] = self._parse_number(info_dict.get("总市值"))
+                    asset_info["listing_date"] = self._parse_date(
+                        info_dict.get("上市时间")
+                    )
+                    asset_info["total_shares"] = self._parse_number(
+                        info_dict.get("总股本")
+                    )
+                    asset_info["circulating_shares"] = self._parse_number(
+                        info_dict.get("流通股")
+                    )
+                    asset_info["market_cap"] = self._parse_number(
+                        info_dict.get("总市值")
+                    )
 
                     logger.info(
                         f"Successfully fetched individual info for {symbol}: {asset_info['name']}"
@@ -651,7 +685,9 @@ class AssetInfoService:
                 if existing_hk_asset and existing_hk_asset.name:
                     # 从数据库获取股票名称
                     asset_info["name"] = existing_hk_asset.name
-                    logger.info(f"Found HK stock {symbol} in database: {asset_info['name']}")
+                    logger.info(
+                        f"Found HK stock {symbol} in database: {asset_info['name']}"
+                    )
                 else:
                     # 数据库中没有，检查是否需要批量导入
                     if self._is_readonly:
@@ -663,7 +699,9 @@ class AssetInfoService:
                     else:
                         # 可写模式下，检查是否需要批量导入
                         hk_assets_count = (
-                            self.db.query(Asset).filter(Asset.exchange == "HKEX").count()
+                            self.db.query(Asset)
+                            .filter(Asset.exchange == "HKEX")
+                            .count()
                         )
 
                         if hk_assets_count < 1000:  # 如果港股数据太少，触发批量导入
@@ -676,7 +714,9 @@ class AssetInfoService:
                                 # 重新查询数据库
                                 existing_hk_asset = (
                                     self.db.query(Asset)
-                                    .filter(Asset.symbol == symbol, Asset.exchange == "HKEX")
+                                    .filter(
+                                        Asset.symbol == symbol, Asset.exchange == "HKEX"
+                                    )
                                     .first()
                                 )
 
@@ -686,7 +726,9 @@ class AssetInfoService:
                                         f"Found HK stock {symbol} after bulk import: {asset_info['name']}"
                                     )
                                 else:
-                                    asset_info["name"] = self._get_default_hk_name(symbol)
+                                    asset_info["name"] = self._get_default_hk_name(
+                                        symbol
+                                    )
                                     logger.info(
                                         f"HK stock {symbol} not found after bulk import, using default: {asset_info['name']}"
                                     )

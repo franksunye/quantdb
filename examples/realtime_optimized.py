@@ -23,7 +23,9 @@ class RealtimeDataManager:
         self.last_batch_fetch = None
         self.batch_data = {}
 
-    def get_cached_or_fetch(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+    def get_cached_or_fetch(
+        self, symbol: str, force_refresh: bool = False
+    ) -> Dict[str, Any]:
         """获取缓存数据或从源获取"""
         now = time.time()
 
@@ -219,7 +221,9 @@ def monitoring_dashboard():
                     if "error" not in info:
                         price = info.get("current_price", info.get("price", 0))
                         change = info.get("change", 0)
-                        change_pct = info.get("change_percent", info.get("pct_change", 0))
+                        change_pct = info.get(
+                            "change_percent", info.get("pct_change", 0)
+                        )
                         cache_hit = info.get("cache_hit", False)
 
                         cache_icon = "🚀" if cache_hit else "📡"

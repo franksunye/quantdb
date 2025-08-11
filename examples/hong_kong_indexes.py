@@ -57,7 +57,9 @@ def demo_hk_historical_data():
                 print("   📋 Sample data (last 3 days):")
                 sample = df.tail(3)[["date", "open", "high", "low", "close", "volume"]]
                 for _, row in sample.iterrows():
-                    print(f"      {row['date']}: {row['close']:,.2f} (Vol: {row['volume']:,})")
+                    print(
+                        f"      {row['date']}: {row['close']:,.2f} (Vol: {row['volume']:,})"
+                    )
             else:
                 print("   ❌ No data available")
 
@@ -143,19 +145,27 @@ def demo_hk_index_list():
 
             # Show major indexes first
             major_symbols = ["HSI", "HSCEI", "HSTECH"]
-            major_indexes = [idx for idx in hk_indexes if idx["symbol"] in major_symbols]
+            major_indexes = [
+                idx for idx in hk_indexes if idx["symbol"] in major_symbols
+            ]
 
             if major_indexes:
                 print("🌟 Major Indexes:")
                 for idx in major_indexes:
-                    print(f"   {idx['symbol']:8} | {idx['name']:20} | {idx['price']:>10,.2f}")
+                    print(
+                        f"   {idx['symbol']:8} | {idx['name']:20} | {idx['price']:>10,.2f}"
+                    )
 
             # Show other indexes (first 10)
-            other_indexes = [idx for idx in hk_indexes if idx["symbol"] not in major_symbols][:10]
+            other_indexes = [
+                idx for idx in hk_indexes if idx["symbol"] not in major_symbols
+            ][:10]
             if other_indexes:
                 print(f"\n📈 Other Indexes (showing first 10 of {len(other_indexes)}):")
                 for idx in other_indexes:
-                    print(f"   {idx['symbol']:8} | {idx['name']:20} | {idx['price']:>10,.2f}")
+                    print(
+                        f"   {idx['symbol']:8} | {idx['name']:20} | {idx['price']:>10,.2f}"
+                    )
 
         else:
             print("❌ No Hong Kong indexes found")

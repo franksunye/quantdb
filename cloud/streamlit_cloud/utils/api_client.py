@@ -69,7 +69,9 @@ class QuantDBClient:
         url = self._get_url(endpoint)
 
         try:
-            response = self.session.request(method=method, url=url, timeout=self.timeout, **kwargs)
+            response = self.session.request(
+                method=method, url=url, timeout=self.timeout, **kwargs
+            )
 
             # 检查HTTP状态码
             if response.status_code == 200:

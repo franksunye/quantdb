@@ -28,7 +28,9 @@ class StockListCache(Base):
     id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String(20), nullable=False, index=True, comment="Stock symbol")
     name = Column(String(100), nullable=False, comment="Stock name")
-    market = Column(String(10), nullable=False, index=True, comment="Market code (SHSE/SZSE/HKEX)")
+    market = Column(
+        String(10), nullable=False, index=True, comment="Market code (SHSE/SZSE/HKEX)"
+    )
 
     # Market data (optional, from stock_zh_a_spot_em)
     price = Column(Float, comment="Latest price")
@@ -53,7 +55,10 @@ class StockListCache(Base):
         Date, nullable=False, default=date.today, comment="Date when data was cached"
     )
     created_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, comment="Record creation time"
+        DateTime,
+        nullable=False,
+        default=datetime.utcnow,
+        comment="Record creation time",
     )
     updated_at = Column(
         DateTime,
@@ -63,7 +68,10 @@ class StockListCache(Base):
         comment="Record update time",
     )
     is_active = Column(
-        Boolean, nullable=False, default=True, comment="Whether the stock is actively traded"
+        Boolean,
+        nullable=False,
+        default=True,
+        comment="Whether the stock is actively traded",
     )
 
     @classmethod
@@ -170,7 +178,11 @@ class StockListCacheManager:
         today = date.today()
 
         # Check if we have any records from today
-        count = self.db.query(StockListCache).filter(StockListCache.cache_date == today).count()
+        count = (
+            self.db.query(StockListCache)
+            .filter(StockListCache.cache_date == today)
+            .count()
+        )
 
         return count > 0
 
@@ -184,7 +196,9 @@ class StockListCacheManager:
         today = date.today()
 
         deleted_count = (
-            self.db.query(StockListCache).filter(StockListCache.cache_date < today).delete()
+            self.db.query(StockListCache)
+            .filter(StockListCache.cache_date < today)
+            .delete()
         )
 
         self.db.commit()
@@ -202,7 +216,9 @@ class StockListCacheManager:
 
         total_records = self.db.query(StockListCache).count()
         fresh_records = (
-            self.db.query(StockListCache).filter(StockListCache.cache_date == today).count()
+            self.db.query(StockListCache)
+            .filter(StockListCache.cache_date == today)
+            .count()
         )
 
         # Count by market
@@ -210,7 +226,9 @@ class StockListCacheManager:
         for market in ["SHSE", "SZSE", "HKEX"]:
             count = (
                 self.db.query(StockListCache)
-                .filter(StockListCache.market == market, StockListCache.cache_date == today)
+                .filter(
+                    StockListCache.market == market, StockListCache.cache_date == today
+                )
                 .count()
             )
             market_counts[market] = count

@@ -146,11 +146,15 @@ async def get_latest_version():
     """
     logger.info("Getting information about the latest API version")
 
-    return VersionResponse(**VERSION_INFO["v2"].model_dump())  # Return latest version (v2)
+    return VersionResponse(
+        **VERSION_INFO["v2"].model_dump()
+    )  # Return latest version (v2)
 
 
 @router.get("/{version}", response_model=VersionResponse)
-async def get_version(version: str = Path(..., description="API version to get information for")):
+async def get_version(
+    version: str = Path(..., description="API version to get information for")
+):
     """
     Get information about a specific API version.
 
@@ -164,6 +168,8 @@ async def get_version(version: str = Path(..., description="API version to get i
 
     if version not in VERSION_INFO:
         logger.warning(f"Invalid API version: {version}")
-        raise HTTPException(status_code=404, detail=f"API version '{version}' not found")
+        raise HTTPException(
+            status_code=404, detail=f"API version '{version}' not found"
+        )
 
     return VersionResponse(**VERSION_INFO[version].model_dump())

@@ -51,7 +51,9 @@ try:
         ENVIRONMENT_INFO = "Local complete environment detected, using full mode"
 except Exception as e:
     CLOUD_MODE = True
-    ENVIRONMENT_INFO = f"Environment detection failed, using cloud mode: {str(e)[:100]}..."
+    ENVIRONMENT_INFO = (
+        f"Environment detection failed, using cloud mode: {str(e)[:100]}..."
+    )
 
 # Page configuration
 st.set_page_config(
@@ -145,7 +147,9 @@ def verify_database():
 
         if len(existing_tables) > 0:
             result["status"] = "success"
-            result["message"] = f"Database verification successful, found tables: {existing_tables}"
+            result["message"] = (
+                f"Database verification successful, found tables: {existing_tables}"
+            )
             if missing_tables:
                 result["message"] += f", missing tables: {missing_tables}"
         else:
@@ -186,7 +190,11 @@ def init_services():
             try:
                 from core.cache import AKShareAdapter
                 from core.database import get_db
-                from core.services import AssetInfoService, DatabaseCache, StockDataService
+                from core.services import (
+                    AssetInfoService,
+                    DatabaseCache,
+                    StockDataService,
+                )
 
                 # Create database session
                 db_session = next(get_db())
@@ -255,7 +263,9 @@ def init_services():
             services["db_path"] = str(db_path)
             services["table_count"] = len(tables)
             services["tables"] = [table[0] for table in tables]
-            services["message"] = f"云端服务初始化成功，数据库连接正常（{len(tables)}个表）"
+            services["message"] = (
+                f"云端服务初始化成功，数据库连接正常（{len(tables)}个表）"
+            )
 
         except Exception as db_error:
             services["status"] = "error"
@@ -505,15 +515,25 @@ def main():
         with col1:
             st.metric(
                 label="API Status",
-                value="Running" if system_status["api_status"] == "running" else "Error",
-                delta="Normal" if system_status["api_status"] == "running" else "Check Required",
+                value=(
+                    "Running" if system_status["api_status"] == "running" else "Error"
+                ),
+                delta=(
+                    "Normal"
+                    if system_status["api_status"] == "running"
+                    else "Check Required"
+                ),
             )
 
         with col2:
             st.metric(
                 label="Response Time",
                 value=f"{system_status['api_response_time']:.1f}ms",
-                delta="Excellent" if system_status["api_response_time"] < 100 else "Normal",
+                delta=(
+                    "Excellent"
+                    if system_status["api_response_time"] < 100
+                    else "Normal"
+                ),
             )
 
         with col3:
@@ -554,7 +574,9 @@ def main():
 
         # Debug information (only show if there are issues)
         if asset_count == 0 and "debug_info" in system_status:
-            with st.expander("🔍 Debug Information (shown when asset count is 0)", expanded=True):
+            with st.expander(
+                "🔍 Debug Information (shown when asset count is 0)", expanded=True
+            ):
                 debug_info = system_status["debug_info"]
                 st.write("**Database Configuration:**")
                 st.json(debug_info)

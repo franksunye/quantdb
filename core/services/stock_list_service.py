@@ -62,10 +62,14 @@ class StockListService:
                 return self._get_cached_stock_list(market)
 
             # Cache is stale or force refresh - fetch from AKShare
-            logger.info("Cache is stale or force refresh requested, fetching from AKShare")
+            logger.info(
+                "Cache is stale or force refresh requested, fetching from AKShare"
+            )
 
             # Fetch fresh data from AKShare
-            df = self.akshare_adapter.get_stock_list(market=None)  # Get all markets first
+            df = self.akshare_adapter.get_stock_list(
+                market=None
+            )  # Get all markets first
 
             if df.empty:
                 logger.warning("No stock list data available from AKShare")
@@ -89,7 +93,9 @@ class StockListService:
                 logger.error(f"Fallback to cached data also failed: {fallback_error}")
                 raise e
 
-    def _get_cached_stock_list(self, market: Optional[str] = None) -> List[Dict[str, Any]]:
+    def _get_cached_stock_list(
+        self, market: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """
         Get stock list from cache.
 
@@ -121,7 +127,9 @@ class StockListService:
         stocks = query.all()
         result = [stock.to_dict() for stock in stocks]
 
-        logger.info(f"Retrieved {len(result)} stocks from cache for market: {market or 'all'}")
+        logger.info(
+            f"Retrieved {len(result)} stocks from cache for market: {market or 'all'}"
+        )
         return result
 
     def _save_stock_list_to_cache(self, df) -> int:
@@ -153,7 +161,9 @@ class StockListService:
                     saved_count += 1
 
                 except Exception as e:
-                    logger.warning(f"Error saving stock {row.get('symbol', 'unknown')}: {e}")
+                    logger.warning(
+                        f"Error saving stock {row.get('symbol', 'unknown')}: {e}"
+                    )
                     continue
 
             # Commit all changes
@@ -194,12 +204,16 @@ class StockListService:
                 if market_stocks:
                     # Calculate market statistics
                     prices = [s.price for s in market_stocks if s.price is not None]
-                    pct_changes = [s.pct_change for s in market_stocks if s.pct_change is not None]
+                    pct_changes = [
+                        s.pct_change for s in market_stocks if s.pct_change is not None
+                    ]
 
                     market_summary = {
                         "count": len(market_stocks),
                         "avg_price": sum(prices) / len(prices) if prices else 0,
-                        "avg_pct_change": sum(pct_changes) / len(pct_changes) if pct_changes else 0,
+                        "avg_pct_change": (
+                            sum(pct_changes) / len(pct_changes) if pct_changes else 0
+                        ),
                         "gainers": len([p for p in pct_changes if p > 0]),
                         "losers": len([p for p in pct_changes if p < 0]),
                         "unchanged": len([p for p in pct_changes if p == 0]),
@@ -217,7 +231,9 @@ class StockListService:
                 summary["markets"][market] = market_summary
                 summary["total_stocks"] += market_summary["count"]
 
-            logger.info(f"Generated market summary for {summary['total_stocks']} stocks")
+            logger.info(
+                f"Generated market summary for {summary['total_stocks']} stocks"
+            )
             return summary
 
         except Exception as e:

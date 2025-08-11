@@ -31,7 +31,9 @@ except ImportError as e:
     BACKEND_SERVICES_AVAILABLE = False
 
 # Set page configuration
-st.set_page_config(page_title="Asset Information - QuantDB", page_icon="📊", layout="wide")
+st.set_page_config(
+    page_title="Asset Information - QuantDB", page_icon="📊", layout="wide"
+)
 
 
 def init_services():
@@ -142,7 +144,9 @@ def main():
 
             else:
                 # Browse existing assets
-                symbol, query_button, refresh_button = display_asset_browser(query_service)
+                symbol, query_button, refresh_button = display_asset_browser(
+                    query_service
+                )
 
             # Display recent queries
             display_recent_queries()
@@ -154,13 +158,23 @@ def main():
         st.session_state.auto_query_asset = False
 
     # Check for saved query state (to maintain page state)
-    if not query_button and not refresh_button and st.session_state.get("current_asset_symbol"):
+    if (
+        not query_button
+        and not refresh_button
+        and st.session_state.get("current_asset_symbol")
+    ):
         symbol = st.session_state.get("current_asset_symbol")
-        query_button = True  # Automatically redisplay previously queried asset information
+        query_button = (
+            True  # Automatically redisplay previously queried asset information
+        )
 
     # Left main content area
     with col_main:
-        if query_button or refresh_button or st.session_state.get("auto_query_asset", False):
+        if (
+            query_button
+            or refresh_button
+            or st.session_state.get("auto_query_asset", False)
+        ):
 
             # Validate input
             if not symbol:
@@ -195,7 +209,9 @@ def main():
                         # Choose different processing methods based on button type
                         if refresh_button:
                             # Refresh button: force update asset information
-                            st.info("🔄 Force fetching latest asset information from AKShare...")
+                            st.info(
+                                "🔄 Force fetching latest asset information from AKShare..."
+                            )
                             asset_obj = asset_service.update_asset_info(symbol)
                             metadata = {
                                 "cache_info": {
@@ -271,7 +287,9 @@ def main():
                     st.session_state.current_asset_metadata = asset_metadata
 
                     # Add to recent query list
-                    add_to_recent_queries(symbol, asset_data.get("name", f"Stock {symbol}"))
+                    add_to_recent_queries(
+                        symbol, asset_data.get("name", f"Stock {symbol}")
+                    )
 
                     # Display asset information
                     display_asset_info(asset_data, symbol)
@@ -293,7 +311,9 @@ def main():
                         or "attempt to write a readonly database" in error_msg.lower()
                     ):
                         st.error("❌ Database is in read-only mode")
-                        st.info("🔍 Cloud environment detected - using read-only database mode")
+                        st.info(
+                            "🔍 Cloud environment detected - using read-only database mode"
+                        )
                         st.markdown(
                             """
                         **💡 In read-only mode:**
@@ -306,8 +326,12 @@ def main():
 
                         # 尝试使用默认信息显示
                         try:
-                            if asset_service and hasattr(asset_service, "_get_default_hk_name"):
-                                default_name = asset_service._get_default_hk_name(symbol)
+                            if asset_service and hasattr(
+                                asset_service, "_get_default_hk_name"
+                            ):
+                                default_name = asset_service._get_default_hk_name(
+                                    symbol
+                                )
                                 st.info(
                                     f"📋 Using default information for {symbol}: {default_name}"
                                 )
@@ -320,13 +344,19 @@ def main():
                                     "exchange": (
                                         "HKEX"
                                         if len(symbol) == 5
-                                        else ("SHSE" if symbol.startswith("6") else "SZSE")
+                                        else (
+                                            "SHSE" if symbol.startswith("6") else "SZSE"
+                                        )
                                     ),
                                     "currency": "HKD" if len(symbol) == 5 else "CNY",
                                     "industry": "N/A",
                                     "concept": "N/A",
-                                    "area": "Hong Kong" if len(symbol) == 5 else "China",
-                                    "market": "HK Stock" if len(symbol) == 5 else "A-Share",
+                                    "area": (
+                                        "Hong Kong" if len(symbol) == 5 else "China"
+                                    ),
+                                    "market": (
+                                        "HK Stock" if len(symbol) == 5 else "A-Share"
+                                    ),
                                     "list_date": None,
                                     "pe_ratio": None,
                                     "pb_ratio": None,
@@ -351,7 +381,9 @@ def main():
                                 display_asset_cache_info(readonly_metadata)
 
                         except Exception as fallback_error:
-                            st.error(f"❌ Fallback display also failed: {str(fallback_error)}")
+                            st.error(
+                                f"❌ Fallback display also failed: {str(fallback_error)}"
+                            )
                     else:
                         st.error(f"❌ Error occurred during query: {error_msg}")
                         st.info("Please check service status or try again later")
@@ -394,7 +426,9 @@ def display_asset_info(asset_data: dict, symbol: str):
         list_date = asset_data.get("list_date")
         if list_date:
             list_date_str = (
-                list_date.strftime("%Y-%m-%d") if hasattr(list_date, "strftime") else str(list_date)
+                list_date.strftime("%Y-%m-%d")
+                if hasattr(list_date, "strftime")
+                else str(list_date)
             )
         else:
             list_date_str = "N/A"
@@ -416,7 +450,9 @@ def display_asset_info(asset_data: dict, symbol: str):
         if pe_ratio is not None and pe_ratio > 0:
             pe_value = f"{pe_ratio:.2f}"
             pe_delta = (
-                "Reasonable" if 10 <= pe_ratio <= 30 else ("Low" if pe_ratio < 10 else "High")
+                "Reasonable"
+                if 10 <= pe_ratio <= 30
+                else ("Low" if pe_ratio < 10 else "High")
             )
         else:
             pe_value = "N/A"
@@ -432,7 +468,11 @@ def display_asset_info(asset_data: dict, symbol: str):
         pb_ratio = asset_data.get("pb_ratio")
         if pb_ratio is not None and pb_ratio > 0:
             pb_value = f"{pb_ratio:.2f}"
-            pb_delta = "Reasonable" if 1 <= pb_ratio <= 3 else ("Low" if pb_ratio < 1 else "High")
+            pb_delta = (
+                "Reasonable"
+                if 1 <= pb_ratio <= 3
+                else ("Low" if pb_ratio < 1 else "High")
+            )
         else:
             pb_value = "N/A"
             pb_delta = None
@@ -447,7 +487,9 @@ def display_asset_info(asset_data: dict, symbol: str):
         roe = asset_data.get("roe")
         if roe is not None and roe > 0:
             roe_value = f"{roe:.2f}%"
-            roe_delta = "Excellent" if roe >= 15 else ("Good" if roe >= 10 else "Average")
+            roe_delta = (
+                "Excellent" if roe >= 15 else ("Good" if roe >= 10 else "Average")
+            )
         else:
             roe_value = "N/A"
             roe_delta = None
@@ -506,7 +548,11 @@ def display_asset_info(asset_data: dict, symbol: str):
             circulating_shares_display = "N/A"
             circ_delta = None
 
-        st.metric(label="Circulating Shares", value=circulating_shares_display, delta=circ_delta)
+        st.metric(
+            label="Circulating Shares",
+            value=circulating_shares_display,
+            delta=circ_delta,
+        )
 
     with col3:
         # Calculate earnings per share (if P/E ratio and market cap data available)
@@ -514,7 +560,13 @@ def display_asset_info(asset_data: dict, symbol: str):
         market_cap = asset_data.get("market_cap")
         total_shares = asset_data.get("total_shares")
 
-        if pe_ratio and market_cap and total_shares and pe_ratio > 0 and total_shares > 0:
+        if (
+            pe_ratio
+            and market_cap
+            and total_shares
+            and pe_ratio > 0
+            and total_shares > 0
+        ):
             # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
             # EPS = Stock price / PE
@@ -536,7 +588,13 @@ def display_asset_info(asset_data: dict, symbol: str):
         # Calculate book value per share (if P/B ratio and market cap data available)
         pb_ratio = asset_data.get("pb_ratio")
 
-        if pb_ratio and market_cap and total_shares and pb_ratio > 0 and total_shares > 0:
+        if (
+            pb_ratio
+            and market_cap
+            and total_shares
+            and pb_ratio > 0
+            and total_shares > 0
+        ):
             # Stock price = Market cap / Total shares
             stock_price = market_cap / total_shares
             # BPS = Stock price / PB
@@ -676,7 +734,9 @@ def display_asset_browser(query_service):
         }
 
         selected_display = st.selectbox(
-            "Select Stock", list(default_options.keys()), help="Select stock from default list"
+            "Select Stock",
+            list(default_options.keys()),
+            help="Select stock from default list",
         )
 
         selected_symbol = default_options[selected_display]
@@ -684,7 +744,9 @@ def display_asset_browser(query_service):
         # Action buttons
         col1, col2 = st.columns(2)
         with col1:
-            query_button = st.button("🔍 View Details", type="primary", use_container_width=True)
+            query_button = st.button(
+                "🔍 View Details", type="primary", use_container_width=True
+            )
         with col2:
             refresh_button = st.button("🔄 Refresh Data", use_container_width=True)
 
@@ -781,7 +843,9 @@ def display_asset_cache_info(metadata: dict):
         else:
             response_time = cache_info.get("response_time_ms", 0)
             st.metric(
-                label="Response Time", value=f"{response_time:.1f}ms", help="API response time"
+                label="Response Time",
+                value=f"{response_time:.1f}ms",
+                help="API response time",
             )
 
     # 如果是只读模式，显示特殊说明
@@ -824,7 +888,9 @@ def display_data_coverage(symbol: str):
             # Find asset
             asset = db_session.query(Asset).filter(Asset.symbol == symbol).first()
             if not asset:
-                st.info("📝 No asset information available, please query this stock first")
+                st.info(
+                    "📝 No asset information available, please query this stock first"
+                )
                 return
 
             # Query data coverage for last 30 days
@@ -994,7 +1060,9 @@ def show_usage_guide():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        if st.button("SPDB(600000)", use_container_width=True, key="quick_asset_600000"):
+        if st.button(
+            "SPDB(600000)", use_container_width=True, key="quick_asset_600000"
+        ):
             st.session_state.update({"symbol": "600000", "auto_query_asset": True})
             st.rerun()
 
@@ -1004,12 +1072,18 @@ def show_usage_guide():
             st.rerun()
 
     with col3:
-        if st.button("Kweichow Moutai(600519)", use_container_width=True, key="quick_asset_600519"):
+        if st.button(
+            "Kweichow Moutai(600519)",
+            use_container_width=True,
+            key="quick_asset_600519",
+        ):
             st.session_state.update({"symbol": "600519", "auto_query_asset": True})
             st.rerun()
 
     with col4:
-        if st.button("Vanke A(000002)", use_container_width=True, key="quick_asset_000002"):
+        if st.button(
+            "Vanke A(000002)", use_container_width=True, key="quick_asset_000002"
+        ):
             st.session_state.update({"symbol": "000002", "auto_query_asset": True})
             st.rerun()
 

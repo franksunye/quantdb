@@ -12,7 +12,16 @@ from pathlib import Path
 # Add the parent directory to the path so we can import # Migrated to core
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from sqlalchemy import BigInteger, Column, Date, DateTime, Float, String, create_engine, text
+from sqlalchemy import (
+    BigInteger,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    String,
+    create_engine,
+    text,
+)
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker
 
@@ -68,27 +77,45 @@ def migrate_database():
             for column in missing_columns:
                 try:
                     if column == "industry":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN industry VARCHAR"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN industry VARCHAR")
+                        )
                     elif column == "concept":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN concept VARCHAR"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN concept VARCHAR")
+                        )
                     elif column == "listing_date":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN listing_date DATE"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN listing_date DATE")
+                        )
                     elif column == "total_shares":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN total_shares BIGINT"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN total_shares BIGINT")
+                        )
                     elif column == "circulating_shares":
                         conn.execute(
-                            text("ALTER TABLE assets ADD COLUMN circulating_shares BIGINT")
+                            text(
+                                "ALTER TABLE assets ADD COLUMN circulating_shares BIGINT"
+                            )
                         )
                     elif column == "market_cap":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN market_cap BIGINT"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN market_cap BIGINT")
+                        )
                     elif column == "pe_ratio":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN pe_ratio FLOAT"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN pe_ratio FLOAT")
+                        )
                     elif column == "pb_ratio":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN pb_ratio FLOAT"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN pb_ratio FLOAT")
+                        )
                     elif column == "roe":
                         conn.execute(text("ALTER TABLE assets ADD COLUMN roe FLOAT"))
                     elif column == "last_updated":
-                        conn.execute(text("ALTER TABLE assets ADD COLUMN last_updated DATETIME"))
+                        conn.execute(
+                            text("ALTER TABLE assets ADD COLUMN last_updated DATETIME")
+                        )
                     elif column == "data_source":
                         conn.execute(
                             text(
@@ -190,7 +217,9 @@ def verify_migration():
             missing_columns = [col for col in expected_columns if col not in columns]
 
             if missing_columns:
-                logger.error(f"Migration verification failed. Missing columns: {missing_columns}")
+                logger.error(
+                    f"Migration verification failed. Missing columns: {missing_columns}"
+                )
                 return False
 
             logger.info("All expected columns are present")
@@ -202,7 +231,9 @@ def verify_migration():
             logger.info(f"Found {len(assets)} assets in database")
 
             for asset in assets[:3]:  # Show first 3 assets
-                logger.info(f"Asset: {asset.symbol} - {asset.name} - Industry: {asset.industry}")
+                logger.info(
+                    f"Asset: {asset.symbol} - {asset.name} - Industry: {asset.industry}"
+                )
 
         finally:
             db.close()
@@ -226,7 +257,9 @@ if __name__ == "__main__":
         verify_success = verify_migration()
 
         if verify_success:
-            logger.info("Asset model migration and verification completed successfully!")
+            logger.info(
+                "Asset model migration and verification completed successfully!"
+            )
             sys.exit(0)
         else:
             logger.error("Migration verification failed!")

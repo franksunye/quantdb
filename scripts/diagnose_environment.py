@@ -36,7 +36,10 @@ def diagnose_environment():
     print("\n3. Relevant Environment Variables:")
     relevant_vars = []
     for key, value in os.environ.items():
-        if any(keyword in key.upper() for keyword in ["DATABASE", "SUPABASE", "POSTGRES", "SQL"]):
+        if any(
+            keyword in key.upper()
+            for keyword in ["DATABASE", "SUPABASE", "POSTGRES", "SQL"]
+        ):
             relevant_vars.append((key, value))
 
     if relevant_vars:

@@ -101,7 +101,9 @@ def main():
     # Initialize services
     services = init_services()
     if not services:
-        st.error("❌ Service initialization failed, please refresh the page and try again")
+        st.error(
+            "❌ Service initialization failed, please refresh the page and try again"
+        )
         return
 
     # Display running mode
@@ -173,11 +175,15 @@ def main():
             col_start, col_end = st.columns(2)
             with col_start:
                 start_date = st.date_input(
-                    "Start Date", value=date.today() - timedelta(days=30), max_value=date.today()
+                    "Start Date",
+                    value=date.today() - timedelta(days=30),
+                    max_value=date.today(),
                 )
 
             with col_end:
-                end_date = st.date_input("End Date", value=date.today(), max_value=date.today())
+                end_date = st.date_input(
+                    "End Date", value=date.today(), max_value=date.today()
+                )
 
     # Export button
     st.markdown("---")
@@ -185,7 +191,9 @@ def main():
     if st.button("🚀 Start Export", type="primary", use_container_width=True):
         if export_type == "Stock Historical Data":
             if symbols and start_date < end_date:
-                export_stock_data(symbols, start_date, end_date, export_format, services)
+                export_stock_data(
+                    symbols, start_date, end_date, export_format, services
+                )
             else:
                 st.error("Please check stock codes and date range")
 
@@ -234,10 +242,12 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
 
                         # 获取股票名称
                         try:
-                            asset_info, metadata = services["asset_service"].get_or_create_asset(
-                                symbol
+                            asset_info, metadata = services[
+                                "asset_service"
+                            ].get_or_create_asset(symbol)
+                            stock_name = (
+                                asset_info.name if asset_info else f"股票{symbol}"
                             )
-                            stock_name = asset_info.name if asset_info else f"股票{symbol}"
                             df["name"] = stock_name
                         except:
                             df["name"] = f"股票{symbol}"
@@ -259,12 +269,16 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
                     ORDER BY d.date
                     """
 
-                    df = pd.read_sql_query(query, conn, params=(symbol, start_date, end_date))
+                    df = pd.read_sql_query(
+                        query, conn, params=(symbol, start_date, end_date)
+                    )
                     conn.close()
 
                     if not df.empty:
                         # 格式化日期
-                        df["trade_date"] = pd.to_datetime(df["date"]).dt.strftime("%Y-%m-%d")
+                        df["trade_date"] = pd.to_datetime(df["date"]).dt.strftime(
+                            "%Y-%m-%d"
+                        )
                         all_data.append(df)
 
                 else:
@@ -308,7 +322,9 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
             if "turnover" in combined_df.columns:
                 columns_order.append("turnover")
 
-            combined_df = combined_df[[col for col in columns_order if col in combined_df.columns]]
+            combined_df = combined_df[
+                [col for col in columns_order if col in combined_df.columns]
+            ]
 
             # 重命名列
             column_names = {
@@ -341,12 +357,19 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
                     excel_buffer = io.BytesIO()
                     try:
                         with pd.ExcelWriter(excel_buffer, engine="openpyxl") as writer:
-                            combined_df.to_excel(writer, sheet_name="股票数据", index=False)
+                            combined_df.to_excel(
+                                writer, sheet_name="股票数据", index=False
+                            )
 
                             # 添加汇总信息
                             summary_df = pd.DataFrame(
                                 {
-                                    "导出信息": ["导出时间", "数据范围", "股票数量", "记录总数"],
+                                    "导出信息": [
+                                        "导出时间",
+                                        "数据范围",
+                                        "股票数量",
+                                        "记录总数",
+                                    ],
                                     "值": [
                                         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                         f"{start_date} 至 {end_date}",
@@ -355,7 +378,9 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
                                     ],
                                 }
                             )
-                            summary_df.to_excel(writer, sheet_name="导出信息", index=False)
+                            summary_df.to_excel(
+                                writer, sheet_name="导出信息", index=False
+                            )
 
                         excel_data = excel_buffer.getvalue()
                         st.download_button(
@@ -379,7 +404,9 @@ def export_stock_data(symbols, start_date, end_date, export_format, services):
             st.dataframe(combined_df.head(10), use_container_width=True)
 
             # 保存导出记录
-            save_export_record("股票历史数据", len(symbols), len(combined_df), export_format)
+            save_export_record(
+                "股票历史数据", len(symbols), len(combined_df), export_format
+            )
 
         else:
             st.error("❌ 未获取到任何数据")
@@ -408,7 +435,9 @@ def export_asset_info(symbols, export_format, services):
             try:
                 if mode == "full":
                     # 完整模式：使用asset_service
-                    asset_info, metadata = services["asset_service"].get_or_create_asset(symbol)
+                    asset_info, metadata = services[
+                        "asset_service"
+                    ].get_or_create_asset(symbol)
 
                     if asset_info:
                         asset_dict = {
@@ -491,7 +520,9 @@ def export_asset_info(symbols, export_format, services):
             }
 
             # 只保留存在的列
-            df = df.rename(columns={k: v for k, v in column_names.items() if k in df.columns})
+            df = df.rename(
+                columns={k: v for k, v in column_names.items() if k in df.columns}
+            )
 
             # 生成文件
             filename = f"资产信息_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
@@ -561,7 +592,11 @@ def export_watchlist(export_format):
             data = []
             for symbol, info in watchlist.items():
                 data.append(
-                    {"股票代码": symbol, "股票名称": info["name"], "添加日期": info["added_date"]}
+                    {
+                        "股票代码": symbol,
+                        "股票名称": info["name"],
+                        "添加日期": info["added_date"],
+                    }
                 )
 
             df = pd.DataFrame(data)
@@ -663,7 +698,9 @@ def display_export_history():
             if history:
                 # 转换为DataFrame
                 df = pd.DataFrame(history)
-                df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.strftime("%Y-%m-%d %H:%M:%S")
+                df["timestamp"] = pd.to_datetime(df["timestamp"]).dt.strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
 
                 # 重命名列
                 df = df.rename(

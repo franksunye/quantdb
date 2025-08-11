@@ -39,7 +39,9 @@ class AKShareAdapter:
         logger.info("AKShare adapter initialized")
 
     @retry(
-        stop=stop_after_attempt(5), wait=wait_exponential(multiplier=1, min=2, max=30), reraise=True
+        stop=stop_after_attempt(5),
+        wait=wait_exponential(multiplier=1, min=2, max=30),
+        reraise=True,
     )
     def _safe_call(self, func: Any, *args, **kwargs) -> Any:
         """
@@ -60,22 +62,30 @@ class AKShareAdapter:
             # Log detailed call information
             arg_str = ", ".join([str(arg) for arg in args])
             kwarg_str = ", ".join([f"{k}={v}" for k, v in kwargs.items()])
-            logger.info(f"Calling AKShare function {func.__name__}({arg_str}, {kwarg_str})")
+            logger.info(
+                f"Calling AKShare function {func.__name__}({arg_str}, {kwarg_str})"
+            )
 
             # Execute function call
             result = func(*args, **kwargs)
 
             # Check if result is DataFrame and empty
             if isinstance(result, pd.DataFrame) and result.empty:
-                logger.warning(f"AKShare function {func.__name__} returned empty DataFrame")
-                logger.warning(f"Empty DataFrame returned for args={args}, kwargs={kwargs}")
+                logger.warning(
+                    f"AKShare function {func.__name__} returned empty DataFrame"
+                )
+                logger.warning(
+                    f"Empty DataFrame returned for args={args}, kwargs={kwargs}"
+                )
             elif isinstance(result, pd.DataFrame):
                 logger.info(
                     f"AKShare function {func.__name__} returned DataFrame with {len(result)} rows"
                 )
                 # Log date range information (if time series data)
                 if "date" in result.columns:
-                    logger.info(f"Date range: {result['date'].min()} to {result['date'].max()}")
+                    logger.info(
+                        f"Date range: {result['date'].min()} to {result['date'].max()}"
+                    )
 
             return result
         except Exception as e:
@@ -85,7 +95,11 @@ class AKShareAdapter:
             logger.error(f"Traceback: {traceback.format_exc()}")
 
             # Log network-related error information
-            if "ConnectionError" in str(e) or "Timeout" in str(e) or "HTTPError" in str(e):
+            if (
+                "ConnectionError" in str(e)
+                or "Timeout" in str(e)
+                or "HTTPError" in str(e)
+            ):
                 logger.error(
                     f"Network-related error detected. This might be due to connectivity issues or API changes."
                 )
@@ -136,14 +150,22 @@ class AKShareAdapter:
         # Validate period parameter
         valid_periods = ["daily", "weekly", "monthly"]
         if period not in valid_periods:
-            logger.error(f"Invalid period: {period}. Valid options are: {valid_periods}")
-            raise ValueError(f"Invalid period: {period}. Valid options are: {valid_periods}")
+            logger.error(
+                f"Invalid period: {period}. Valid options are: {valid_periods}"
+            )
+            raise ValueError(
+                f"Invalid period: {period}. Valid options are: {valid_periods}"
+            )
 
         # Validate adjust parameter
         valid_adjusts = ["", "qfq", "hfq"]
         if adjust not in valid_adjusts:
-            logger.error(f"Invalid adjust: {adjust}. Valid options are: {valid_adjusts}")
-            raise ValueError(f"Invalid adjust: {adjust}. Valid options are: {valid_adjusts}")
+            logger.error(
+                f"Invalid adjust: {adjust}. Valid options are: {valid_adjusts}"
+            )
+            raise ValueError(
+                f"Invalid adjust: {adjust}. Valid options are: {valid_adjusts}"
+            )
 
         # Validate symbol format
         if not self._validate_symbol(symbol):
@@ -154,11 +176,15 @@ class AKShareAdapter:
                 if end_date is None:
                     end_date = datetime.now().strftime("%Y%m%d")
                 if start_date is None:
-                    start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
+                    start_date = (datetime.now() - timedelta(days=365)).strftime(
+                        "%Y%m%d"
+                    )
                 # Validate and format dates
                 start_date = self._validate_and_format_date(start_date)
                 end_date = self._validate_and_format_date(end_date)
-                return self._generate_mock_stock_data(symbol, start_date, end_date, adjust, period)
+                return self._generate_mock_stock_data(
+                    symbol, start_date, end_date, adjust, period
+                )
             else:
                 raise ValueError(
                     f"Invalid symbol format: {symbol}. "
@@ -177,11 +203,17 @@ class AKShareAdapter:
                 start_date = (datetime.now() - timedelta(days=365)).strftime("%Y%m%d")
             elif period == "weekly":
                 # Default to 2 years of weekly data
-                start_date = (datetime.now() - timedelta(days=2 * 365)).strftime("%Y%m%d")
+                start_date = (datetime.now() - timedelta(days=2 * 365)).strftime(
+                    "%Y%m%d"
+                )
             else:  # monthly
                 # Default to 5 years of monthly data
-                start_date = (datetime.now() - timedelta(days=5 * 365)).strftime("%Y%m%d")
-            logger.info(f"No start date provided, using default for {period} period: {start_date}")
+                start_date = (datetime.now() - timedelta(days=5 * 365)).strftime(
+                    "%Y%m%d"
+                )
+            logger.info(
+                f"No start date provided, using default for {period} period: {start_date}"
+            )
 
         # Validate and format dates
         original_start_date = start_date
@@ -192,7 +224,9 @@ class AKShareAdapter:
 
         # Log date transformations for debugging
         if original_start_date != start_date:
-            logger.info(f"Start date transformed from {original_start_date} to {start_date}")
+            logger.info(
+                f"Start date transformed from {original_start_date} to {start_date}"
+            )
         if original_end_date != end_date:
             logger.info(f"End date transformed from {original_end_date} to {end_date}")
 
@@ -203,7 +237,9 @@ class AKShareAdapter:
 
         if self._compare_dates(start_date, end_date) > 0:
             logger.error(f"Start date {start_date} is after end date {end_date}")
-            raise ValueError(f"Start date {start_date} cannot be after end date {end_date}")
+            raise ValueError(
+                f"Start date {start_date} cannot be after end date {end_date}"
+            )
 
         # Detect market type and get data accordingly
         try:
@@ -219,7 +255,9 @@ class AKShareAdapter:
                     clean_symbol = clean_symbol.split(".")[0]
 
                 # Remove possible market prefix
-                if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                if clean_symbol.lower().startswith(
+                    "sh"
+                ) or clean_symbol.lower().startswith("sz"):
                     clean_symbol = clean_symbol[2:]
 
                 logger.info(
@@ -277,7 +315,10 @@ class AKShareAdapter:
 
         # Check if the date range is in the future
         today = datetime.now().strftime("%Y%m%d")
-        if self._compare_dates(start_date, today) > 0 and self._compare_dates(end_date, today) > 0:
+        if (
+            self._compare_dates(start_date, today) > 0
+            and self._compare_dates(end_date, today) > 0
+        ):
             logger.warning(
                 f"Date range {start_date} to {end_date} is entirely in the future. No data available."
             )
@@ -296,11 +337,17 @@ class AKShareAdapter:
 
         # If all methods fail and mock data is allowed
         if use_mock_data:
-            logger.warning(f"All data sources failed for {symbol}. Using mock data as requested.")
-            return self._generate_mock_stock_data(symbol, start_date, end_date, adjust, period)
+            logger.warning(
+                f"All data sources failed for {symbol}. Using mock data as requested."
+            )
+            return self._generate_mock_stock_data(
+                symbol, start_date, end_date, adjust, period
+            )
 
         # If all methods fail, return empty DataFrame
-        logger.error(f"All methods failed to get data for {symbol}. Returning empty DataFrame.")
+        logger.error(
+            f"All methods failed to get data for {symbol}. Returning empty DataFrame."
+        )
         return pd.DataFrame()
 
     def _validate_symbol(self, symbol: str) -> bool:
@@ -351,7 +398,9 @@ class AKShareAdapter:
         clean_symbol = symbol
 
         # Remove market prefix if present (for A-shares)
-        if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+        if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith(
+            "sz"
+        ):
             clean_symbol = clean_symbol[2:]
 
         # Remove suffix if present
@@ -359,7 +408,9 @@ class AKShareAdapter:
             clean_symbol = clean_symbol.split(".")[0]
 
         if not clean_symbol.isdigit():
-            raise ValueError(f"Invalid symbol format: {symbol}. Symbol must be numeric.")
+            raise ValueError(
+                f"Invalid symbol format: {symbol}. Symbol must be numeric."
+            )
 
         # A-shares: 6-digit number
         if len(clean_symbol) == 6:
@@ -541,7 +592,9 @@ class AKShareAdapter:
         Returns:
             DataFrame with mock stock data.
         """
-        logger.info(f"Generating mock data for {symbol} from {start_date} to {end_date}")
+        logger.info(
+            f"Generating mock data for {symbol} from {start_date} to {end_date}"
+        )
 
         # Create date range
         start_dt = datetime.strptime(start_date, "%Y%m%d")
@@ -594,7 +647,9 @@ class AKShareAdapter:
                     "turnover": round(close * volume, 2),
                     "amplitude": round((high - low) / close * 100, 2),
                     "pct_change": (
-                        round((close - open_price) / open_price * 100, 2) if open_price > 0 else 0
+                        round((close - open_price) / open_price * 100, 2)
+                        if open_price > 0
+                        else 0
                     ),
                     "change": round(close - open_price, 2),
                     "turnover_rate": round(np.random.uniform(0.5, 5.0), 2),
@@ -629,7 +684,9 @@ class AKShareAdapter:
                 clean_symbol = symbol
                 if "." in clean_symbol:
                     clean_symbol = clean_symbol.split(".")[0]
-                if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+                if clean_symbol.lower().startswith(
+                    "sh"
+                ) or clean_symbol.lower().startswith("sz"):
                     clean_symbol = clean_symbol[2:]
 
                 logger.info(f"Getting A-share realtime data for {clean_symbol}")
@@ -648,7 +705,9 @@ class AKShareAdapter:
                         symbol_df["symbol"] = clean_symbol
                         return symbol_df
                     else:
-                        logger.warning(f"Symbol {clean_symbol} not found in realtime data")
+                        logger.warning(
+                            f"Symbol {clean_symbol} not found in realtime data"
+                        )
                         return pd.DataFrame()
                 else:
                     logger.warning(f"No realtime data available")
@@ -656,7 +715,9 @@ class AKShareAdapter:
 
             elif market == "HK_STOCK":
                 # For Hong Kong stocks, we might need a different approach
-                logger.warning(f"Hong Kong stock realtime data not yet implemented for {symbol}")
+                logger.warning(
+                    f"Hong Kong stock realtime data not yet implemented for {symbol}"
+                )
                 return pd.DataFrame()
             else:
                 raise ValueError(f"Unsupported market: {market}")
@@ -693,9 +754,9 @@ class AKShareAdapter:
                     clean_symbol = symbol
                     if "." in clean_symbol:
                         clean_symbol = clean_symbol.split(".")[0]
-                    if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith(
-                        "sz"
-                    ):
+                    if clean_symbol.lower().startswith(
+                        "sh"
+                    ) or clean_symbol.lower().startswith("sz"):
                         clean_symbol = clean_symbol[2:]
 
                     # Filter data for this symbol
@@ -725,7 +786,9 @@ class AKShareAdapter:
                     logger.error(f"Error processing symbol {symbol}: {e}")
                     continue
 
-            logger.info(f"Successfully retrieved realtime data for {len(result)} symbols")
+            logger.info(
+                f"Successfully retrieved realtime data for {len(result)} symbols"
+            )
             return result
 
         except Exception as e:
@@ -765,9 +828,13 @@ class AKShareAdapter:
 
                 # Use stock_financial_abstract for financial summary
                 try:
-                    df = self._safe_call(ak.stock_financial_abstract, symbol=clean_symbol)
+                    df = self._safe_call(
+                        ak.stock_financial_abstract, symbol=clean_symbol
+                    )
                 except Exception as e:
-                    logger.error(f"Failed to get financial summary for {clean_symbol}: {e}")
+                    logger.error(
+                        f"Failed to get financial summary for {clean_symbol}: {e}"
+                    )
                     df = pd.DataFrame()
 
                 if df is not None and not df.empty:
@@ -818,20 +885,30 @@ class AKShareAdapter:
 
                 # Use stock_financial_analysis_indicator for detailed indicators
                 try:
-                    df = self._safe_call(ak.stock_financial_analysis_indicator, symbol=clean_symbol)
+                    df = self._safe_call(
+                        ak.stock_financial_analysis_indicator, symbol=clean_symbol
+                    )
                 except Exception as e:
-                    logger.error(f"Failed to get financial indicators for {clean_symbol}: {e}")
+                    logger.error(
+                        f"Failed to get financial indicators for {clean_symbol}: {e}"
+                    )
                     df = pd.DataFrame()
 
                 if df is not None and not df.empty:
-                    logger.info(f"Retrieved financial indicators with shape: {df.shape}")
+                    logger.info(
+                        f"Retrieved financial indicators with shape: {df.shape}"
+                    )
                     return df
                 else:
-                    logger.warning(f"No financial indicators data available for {symbol}")
+                    logger.warning(
+                        f"No financial indicators data available for {symbol}"
+                    )
                     return pd.DataFrame()
 
             else:
-                logger.warning(f"Financial indicators not supported for market: {market}")
+                logger.warning(
+                    f"Financial indicators not supported for market: {market}"
+                )
                 return pd.DataFrame()
 
         except Exception as e:
@@ -985,8 +1062,12 @@ class AKShareAdapter:
             # Validate period parameter
             valid_periods = ["daily", "weekly", "monthly"]
             if period not in valid_periods:
-                logger.error(f"Invalid period: {period}. Valid options are: {valid_periods}")
-                raise ValueError(f"Invalid period: {period}. Valid options are: {valid_periods}")
+                logger.error(
+                    f"Invalid period: {period}. Valid options are: {valid_periods}"
+                )
+                raise ValueError(
+                    f"Invalid period: {period}. Valid options are: {valid_periods}"
+                )
 
             # Set default dates if not provided
             if end_date is None:
@@ -1002,7 +1083,9 @@ class AKShareAdapter:
             clean_symbol = symbol
             if "." in clean_symbol:
                 clean_symbol = clean_symbol.split(".")[0]
-            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith(
+                "sz"
+            ):
                 clean_symbol = clean_symbol[2:]
 
             # Detect if HK major index
@@ -1013,7 +1096,9 @@ class AKShareAdapter:
                 )
                 # For HK indices, AKShare provides stock_hk_index_daily_sina(symbol)
                 # symbol choices include HSI, HSCEI, HSTECH etc; returns columns: date, open, high, low, close, volume
-                df = self._safe_call(ak.stock_hk_index_daily_sina, symbol=hk_info["code"])
+                df = self._safe_call(
+                    ak.stock_hk_index_daily_sina, symbol=hk_info["code"]
+                )
                 if df is None or df.empty:
                     logger.warning(f"No HK index data available for {symbol}")
                     return pd.DataFrame()
@@ -1121,7 +1206,9 @@ class AKShareAdapter:
             clean_symbol = symbol
             if "." in clean_symbol:
                 clean_symbol = clean_symbol.split(".")[0]
-            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
+            if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith(
+                "sz"
+            ):
                 clean_symbol = clean_symbol[2:]
 
             # If HK index, use HK index realtime interface
@@ -1138,7 +1225,9 @@ class AKShareAdapter:
                     else pd.DataFrame()
                 )
                 if symbol_df.empty:
-                    logger.warning(f"HK Index {hk_info['code']} not found in realtime data")
+                    logger.warning(
+                        f"HK Index {hk_info['code']} not found in realtime data"
+                    )
                     return pd.DataFrame()
             else:
                 # Use stock_zh_index_spot_em for A-share realtime index data
@@ -1152,7 +1241,11 @@ class AKShareAdapter:
                 # Filter for the specific symbol
                 # Note: The API returns Chinese column names, we need to handle this
             # Filter for the specific symbol (A-share index path)
-            symbol_df = df[df["代码"] == clean_symbol] if "代码" in df.columns else pd.DataFrame()
+            symbol_df = (
+                df[df["代码"] == clean_symbol]
+                if "代码" in df.columns
+                else pd.DataFrame()
+            )
 
             if symbol_df.empty:
                 logger.warning(f"Index {clean_symbol} not found in realtime data")
@@ -1281,7 +1374,9 @@ class AKShareAdapter:
             # Remove duplicates based on symbol
             df = df.drop_duplicates(subset=["symbol"], keep="first")
 
-            logger.info(f"Retrieved {len(df)} indexes for category: {category or 'all'}")
+            logger.info(
+                f"Retrieved {len(df)} indexes for category: {category or 'all'}"
+            )
             return df
 
         except Exception as e:
@@ -1308,11 +1403,19 @@ class AKShareAdapter:
             return "HKEX"
 
         # Shanghai Stock Exchange (SHSE)
-        elif symbol.startswith("60") or symbol.startswith("68") or symbol.startswith("90"):
+        elif (
+            symbol.startswith("60")
+            or symbol.startswith("68")
+            or symbol.startswith("90")
+        ):
             return "SHSE"
 
         # Shenzhen Stock Exchange (SZSE)
-        elif symbol.startswith("00") or symbol.startswith("30") or symbol.startswith("20"):
+        elif (
+            symbol.startswith("00")
+            or symbol.startswith("30")
+            or symbol.startswith("20")
+        ):
             return "SZSE"
 
         # Default to SZSE for other patterns

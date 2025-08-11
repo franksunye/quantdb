@@ -32,7 +32,8 @@ def get_akshare_adapter(db: Session = Depends(get_db)):
 
 
 def get_stock_data_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get stock data service instance."""
     return StockDataService(db, akshare_adapter)
@@ -44,7 +45,8 @@ def get_asset_info_service(db: Session = Depends(get_db)):
 
 
 def get_stock_list_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get stock list service instance."""
     return StockListService(db, akshare_adapter)
@@ -65,7 +67,9 @@ router = APIRouter(
 async def get_historical_stock_data(
     symbol: str,
     request: Request,
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     adjust: Optional[str] = Query(
         "",
@@ -86,7 +90,9 @@ async def get_historical_stock_data(
     try:
         # Validate symbol format - support both A-shares and Hong Kong stocks
         if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
-            raise HTTPException(status_code=400, detail="Symbol must be a 6-digit number")
+            raise HTTPException(
+                status_code=400, detail="Symbol must be a 6-digit number"
+            )
 
         # Get or create asset with enhanced information
         asset, asset_metadata = asset_info_service.get_or_create_asset(symbol)
@@ -110,7 +116,9 @@ async def get_historical_stock_data(
                 )
 
                 # 提供更详细的错误分析
-                error_analysis = _analyze_empty_data_reason(symbol, start_date, end_date)
+                error_analysis = _analyze_empty_data_reason(
+                    symbol, start_date, end_date
+                )
 
                 return {
                     "symbol": symbol,
@@ -152,7 +160,9 @@ async def get_historical_stock_data(
                 data_points.append(data_point)
 
             # 获取真实的缓存状态信息
-            cache_info = _get_cache_info(symbol, start_date, end_date, df, stock_data_service)
+            cache_info = _get_cache_info(
+                symbol, start_date, end_date, df, stock_data_service
+            )
 
             # Create response
             response = {
@@ -174,7 +184,9 @@ async def get_historical_stock_data(
 
         except Exception as e:
             logger.error(f"Error fetching historical data for {symbol}: {e}")
-            raise HTTPException(status_code=500, detail=f"Error fetching data: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Error fetching data: {str(e)}"
+            )
 
     except HTTPException:
         raise
@@ -183,7 +195,9 @@ async def get_historical_stock_data(
         raise HTTPException(status_code=500, detail=f"Unexpected error: {str(e)}")
 
 
-def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_service) -> dict:
+def _get_cache_info(
+    symbol: str, start_date: str, end_date: str, df, stock_data_service
+) -> dict:
     """
     获取真实的缓存状态信息
 
@@ -211,7 +225,9 @@ def _get_cache_info(symbol: str, start_date: str, end_date: str, df, stock_data_
         cached_days = len(existing_data)
 
         # 计算缓存命中率
-        cache_hit_ratio = cached_days / total_trading_days if total_trading_days > 0 else 0.0
+        cache_hit_ratio = (
+            cached_days / total_trading_days if total_trading_days > 0 else 0.0
+        )
 
         # 判断是否调用了AKShare
         akshare_called = cached_days < total_trading_days
@@ -311,8 +327,12 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
         }
 
         if symbol in problematic_stocks:
-            analysis["possible_reasons"].append(f"已知问题股票: {problematic_stocks[symbol]}")
-            analysis["recommendations"].append("尝试查询活跃股票如600000、000001、600519")
+            analysis["possible_reasons"].append(
+                f"已知问题股票: {problematic_stocks[symbol]}"
+            )
+            analysis["recommendations"].append(
+                "尝试查询活跃股票如600000、000001、600519"
+            )
 
         # 日期范围建议
         if date_diff < 7:
@@ -333,7 +353,9 @@ def get_database_cache(db: Session = Depends(get_db)):
 @router.get("/database/cache/status")
 async def get_database_cache_status(
     symbol: Optional[str] = Query(None, description="Stock symbol"),
-    start_date: Optional[str] = Query(None, description="Start date in format YYYYMMDD"),
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
     end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
     database_cache: DatabaseCache = Depends(get_database_cache),
 ):
@@ -347,7 +369,9 @@ async def get_database_cache_status(
     try:
         # If symbol and date range provided, get coverage information
         if symbol and start_date and end_date:
-            coverage_info = database_cache.get_date_range_coverage(symbol, start_date, end_date)
+            coverage_info = database_cache.get_date_range_coverage(
+                symbol, start_date, end_date
+            )
             return {
                 "symbol": symbol,
                 "start_date": start_date,
@@ -361,7 +385,9 @@ async def get_database_cache_status(
 
     except Exception as e:
         logger.error(f"Error getting database cache status: {e}")
-        raise HTTPException(status_code=500, detail=f"Error getting cache status: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting cache status: {str(e)}"
+        )
 
 
 @router.get("/list")
@@ -388,7 +414,9 @@ async def get_stock_list(
         )
 
         # Get stock list from service
-        stocks = stock_list_service.get_stock_list(market=market, force_refresh=force_refresh)
+        stocks = stock_list_service.get_stock_list(
+            market=market, force_refresh=force_refresh
+        )
 
         # Get cache statistics
         cache_stats = stock_list_service.get_cache_stats()
@@ -404,7 +432,9 @@ async def get_stock_list(
             },
         }
 
-        logger.info(f"Successfully returned {len(stocks)} stocks for market: {market or 'all'}")
+        logger.info(
+            f"Successfully returned {len(stocks)} stocks for market: {market or 'all'}"
+        )
         return response
 
     except Exception as e:

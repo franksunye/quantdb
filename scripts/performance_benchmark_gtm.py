@@ -205,15 +205,24 @@ def create_performance_comparison_chart(benchmark_results):
     width = 0.35
 
     bars1 = ax1.bar(
-        x - width / 2, first_calls, width, label="First Call (Network)", color="#ff7f7f", alpha=0.8
+        x - width / 2,
+        first_calls,
+        width,
+        label="First Call (Network)",
+        color="#ff7f7f",
+        alpha=0.8,
     )
-    bars2 = ax1.bar(x + width / 2, cache_hits, width, label="Cache Hit", color="#7fbf7f", alpha=0.8)
+    bars2 = ax1.bar(
+        x + width / 2, cache_hits, width, label="Cache Hit", color="#7fbf7f", alpha=0.8
+    )
 
     ax1.set_xlabel("Scenario")
     ax1.set_ylabel("Response Time (seconds)")
     ax1.set_title("QuantDB Performance: Network vs Cache")
     ax1.set_xticks(x)
-    ax1.set_xticklabels([s.replace(" (", "\n(") for s in scenarios], rotation=0, ha="center")
+    ax1.set_xticklabels(
+        [s.replace(" (", "\n(") for s in scenarios], rotation=0, ha="center"
+    )
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
@@ -247,7 +256,9 @@ def create_performance_comparison_chart(benchmark_results):
     bars = ax2.bar(scenarios, improvements, color=colors, alpha=0.8)
     ax2.set_ylabel("Performance Improvement (%)")
     ax2.set_title("QuantDB Cache Performance Improvement")
-    ax2.set_xticklabels([s.replace(" (", "\n(") for s in scenarios], rotation=0, ha="center")
+    ax2.set_xticklabels(
+        [s.replace(" (", "\n(") for s in scenarios], rotation=0, ha="center"
+    )
     ax2.grid(True, alpha=0.3)
     ax2.set_ylim(0, 100)
 
@@ -328,7 +339,9 @@ def create_summary_infographic(benchmark_results):
     ax.axis("off")
 
     # Title
-    fig.suptitle("QuantDB Performance Benchmark Results", fontsize=24, fontweight="bold", y=0.95)
+    fig.suptitle(
+        "QuantDB Performance Benchmark Results", fontsize=24, fontweight="bold", y=0.95
+    )
 
     # Calculate overall metrics
     avg_improvement = np.mean([r["improvement_pct"] for r in benchmark_results])
@@ -342,8 +355,16 @@ def create_summary_infographic(benchmark_results):
             "value": f"{avg_improvement:.1f}%",
             "color": "#4CAF50",
         },
-        {"title": "Maximum Speedup\nFactor", "value": f"{max_speedup:.0f}x", "color": "#2196F3"},
-        {"title": "Total Records\nTested", "value": f"{total_records:,}", "color": "#FF9800"},
+        {
+            "title": "Maximum Speedup\nFactor",
+            "value": f"{max_speedup:.0f}x",
+            "color": "#2196F3",
+        },
+        {
+            "title": "Total Records\nTested",
+            "value": f"{total_records:,}",
+            "color": "#FF9800",
+        },
     ]
 
     # Draw metric boxes
@@ -408,14 +429,29 @@ def create_summary_infographic(benchmark_results):
 
     table_y -= 0.05
     for i, (header, pos) in enumerate(zip(headers, col_positions)):
-        ax.text(pos, table_y, header, ha="center", va="center", fontsize=12, fontweight="bold")
+        ax.text(
+            pos,
+            table_y,
+            header,
+            ha="center",
+            va="center",
+            fontsize=12,
+            fontweight="bold",
+        )
 
     # Table data
     for i, result in enumerate(benchmark_results):
         row_y = table_y - 0.05 * (i + 1)
 
         # Scenario
-        ax.text(col_positions[0], row_y, result["scenario"], ha="left", va="center", fontsize=10)
+        ax.text(
+            col_positions[0],
+            row_y,
+            result["scenario"],
+            ha="left",
+            va="center",
+            fontsize=10,
+        )
 
         # Network call
         ax.text(

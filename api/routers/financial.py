@@ -109,7 +109,8 @@ def get_akshare_adapter(db: Session = Depends(get_db)):
 
 
 def get_financial_service(
-    db: Session = Depends(get_db), akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter)
+    db: Session = Depends(get_db),
+    akshare_adapter: AKShareAdapter = Depends(get_akshare_adapter),
 ):
     """Get financial data service instance."""
     return FinancialDataService(db, akshare_adapter)
@@ -273,7 +274,9 @@ async def get_batch_financial_data(
             raise HTTPException(status_code=400, detail="Symbols list cannot be empty")
 
         if len(request.symbols) > 50:
-            raise HTTPException(status_code=400, detail="Maximum 50 symbols per batch request")
+            raise HTTPException(
+                status_code=400, detail="Maximum 50 symbols per batch request"
+            )
 
         if request.data_type not in ["summary", "indicators"]:
             raise HTTPException(
@@ -294,7 +297,9 @@ async def get_batch_financial_data(
                 "data_type": request.data_type,
                 "data_source": "akshare",
                 "timestamp": (
-                    data.get(list(data.keys())[0], {}).get("timestamp", "") if data else ""
+                    data.get(list(data.keys())[0], {}).get("timestamp", "")
+                    if data
+                    else ""
                 ),
                 "response_time_ms": 0,  # Will be set by middleware
             },

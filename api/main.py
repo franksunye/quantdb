@@ -115,7 +115,9 @@ app.include_router(assets.router, prefix=f"{API_PREFIX}/assets", tags=["assets"]
 app.include_router(stocks.router, prefix=f"{API_PREFIX}/stocks", tags=["stocks"])
 
 # Add historical data route alias for backward compatibility
-app.include_router(stocks.router, prefix=f"{API_PREFIX}/historical", tags=["historical"])
+app.include_router(
+    stocks.router, prefix=f"{API_PREFIX}/historical", tags=["historical"]
+)
 
 app.include_router(cache.router, prefix=f"{API_PREFIX}/cache", tags=["cache"])
 
@@ -128,7 +130,9 @@ app.include_router(version.router, prefix="/api/v2/version", tags=["version-v2"]
 
 # Add asset management router
 app.include_router(
-    asset_management.router, prefix=f"{API_PREFIX}/management", tags=["asset-management"]
+    asset_management.router,
+    prefix=f"{API_PREFIX}/management",
+    tags=["asset-management"],
 )
 
 # Add realtime data router

@@ -91,7 +91,9 @@ def create_performance_comparison():
 
     ax1.set_xlabel("Data Retrieval Scenario", fontweight="bold")
     ax1.set_ylabel("Response Time (seconds)", fontweight="bold")
-    ax1.set_title("QuantDB vs AKShare Performance Comparison", fontweight="bold", pad=20)
+    ax1.set_title(
+        "QuantDB vs AKShare Performance Comparison", fontweight="bold", pad=20
+    )
     ax1.set_xticks(x)
     ax1.set_xticklabels(scenarios)
     ax1.legend(frameon=True, fancybox=True, shadow=True)
@@ -113,16 +115,24 @@ def create_performance_comparison():
 
     # Chart 2: Performance Improvement Percentage
     improvements_vs_akshare = [
-        (akshare - cache) / akshare * 100 for akshare, cache in zip(akshare_times, quantdb_cache)
+        (akshare - cache) / akshare * 100
+        for akshare, cache in zip(akshare_times, quantdb_cache)
     ]
 
     colors = ["#2ECC71", "#3498DB", "#9B59B6"]
     bars = ax2.bar(
-        scenarios, improvements_vs_akshare, color=colors, alpha=0.8, edgecolor="white", linewidth=1
+        scenarios,
+        improvements_vs_akshare,
+        color=colors,
+        alpha=0.8,
+        edgecolor="white",
+        linewidth=1,
     )
 
     ax2.set_ylabel("Performance Improvement (%)", fontweight="bold")
-    ax2.set_title("QuantDB Cache Performance Improvement vs AKShare", fontweight="bold", pad=20)
+    ax2.set_title(
+        "QuantDB Cache Performance Improvement vs AKShare", fontweight="bold", pad=20
+    )
     ax2.set_ylim(0, 100)
 
     # Add percentage labels
@@ -164,7 +174,9 @@ def create_speedup_chart():
     ]
     akshare_times = [1.2, 3.8, 12.5]
     quantdb_cache = [0.015, 0.025, 0.035]
-    speedup_factors = [akshare / cache for akshare, cache in zip(akshare_times, quantdb_cache)]
+    speedup_factors = [
+        akshare / cache for akshare, cache in zip(akshare_times, quantdb_cache)
+    ]
 
     fig, ax = plt.subplots(figsize=(12, 8))
 
@@ -181,7 +193,9 @@ def create_speedup_chart():
     )
 
     ax.set_xlabel("Speedup Factor (× times faster)", fontweight="bold")
-    ax.set_title("QuantDB Cache Speedup vs AKShare Direct Calls", fontweight="bold", pad=20)
+    ax.set_title(
+        "QuantDB Cache Speedup vs AKShare Direct Calls", fontweight="bold", pad=20
+    )
     ax.set_xlim(0, max(speedup_factors) * 1.1)
 
     # Add speedup labels
@@ -220,7 +234,10 @@ def create_gtm_infographic():
 
     # Title
     fig.suptitle(
-        "QuantDB: Intelligent Stock Data Caching for Python", fontsize=28, fontweight="bold", y=0.95
+        "QuantDB: Intelligent Stock Data Caching for Python",
+        fontsize=28,
+        fontweight="bold",
+        y=0.95,
     )
 
     # Subtitle
@@ -245,9 +262,24 @@ def create_gtm_infographic():
             "color": "#2ECC71",
             "icon": "⚡",
         },
-        {"title": "Maximum Speedup\nFactor", "value": "80×", "color": "#3498DB", "icon": "🚀"},
-        {"title": "Cache Hit Response\nTime", "value": "<50ms", "color": "#E74C3C", "icon": "⏱️"},
-        {"title": "Installation\nComplexity", "value": "1 Line", "color": "#F39C12", "icon": "📦"},
+        {
+            "title": "Maximum Speedup\nFactor",
+            "value": "80×",
+            "color": "#3498DB",
+            "icon": "🚀",
+        },
+        {
+            "title": "Cache Hit Response\nTime",
+            "value": "<50ms",
+            "color": "#E74C3C",
+            "icon": "⏱️",
+        },
+        {
+            "title": "Installation\nComplexity",
+            "value": "1 Line",
+            "color": "#F39C12",
+            "icon": "📦",
+        },
     ]
 
     for i, metric in enumerate(metrics):
@@ -255,7 +287,9 @@ def create_gtm_infographic():
         y_pos = 0.5
 
         # Icon
-        ax1.text(x_pos, y_pos + 0.15, metric["icon"], ha="center", va="center", fontsize=40)
+        ax1.text(
+            x_pos, y_pos + 0.15, metric["icon"], ha="center", va="center", fontsize=40
+        )
 
         # Value
         ax1.text(
@@ -291,10 +325,20 @@ def create_gtm_infographic():
     width = 0.35
 
     bars1 = ax2.bar(
-        x - width / 2, akshare_times, width, label="AKShare Direct", color="#FF6B6B", alpha=0.8
+        x - width / 2,
+        akshare_times,
+        width,
+        label="AKShare Direct",
+        color="#FF6B6B",
+        alpha=0.8,
     )
     bars2 = ax2.bar(
-        x + width / 2, quantdb_cache, width, label="QuantDB Cache", color="#45B7D1", alpha=0.8
+        x + width / 2,
+        quantdb_cache,
+        width,
+        label="QuantDB Cache",
+        color="#45B7D1",
+        alpha=0.8,
     )
 
     ax2.set_ylabel("Response Time (seconds)", fontweight="bold")
@@ -347,7 +391,15 @@ def create_gtm_infographic():
 
     for i, feature in enumerate(features):
         y_pos = 0.8 - i * 0.1
-        ax3.text(0.1, y_pos, feature, ha="left", va="center", fontsize=11, transform=ax3.transAxes)
+        ax3.text(
+            0.1,
+            y_pos,
+            feature,
+            ha="left",
+            va="center",
+            fontsize=11,
+            transform=ax3.transAxes,
+        )
 
     # Usage example
     ax4 = plt.subplot2grid((4, 3), (3, 0), colspan=3, rowspan=1)

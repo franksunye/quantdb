@@ -137,7 +137,9 @@ app.include_router(
     cache_api_router, prefix=f"{API_PREFIX}/cache-management", tags=["cache-management"]
 )
 
-app.include_router(historical_data.router, prefix=f"{API_PREFIX}/historical", tags=["historical"])
+app.include_router(
+    historical_data.router, prefix=f"{API_PREFIX}/historical", tags=["historical"]
+)
 
 app.include_router(batch_assets.router, prefix=f"{API_PREFIX}", tags=["batch"])
 

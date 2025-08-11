@@ -101,7 +101,11 @@ class Config:
 
         # 移除可能的前缀和后缀 (仅对A股)
         clean_symbol = (
-            symbol.upper().replace("SH", "").replace("SZ", "").replace(".SH", "").replace(".SZ", "")
+            symbol.upper()
+            .replace("SH", "")
+            .replace("SZ", "")
+            .replace(".SH", "")
+            .replace(".SZ", "")
         )
 
         # A股: 6位数字 (000001, 600000)

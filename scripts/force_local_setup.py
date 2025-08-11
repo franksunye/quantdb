@@ -7,7 +7,9 @@ import sys
 from pathlib import Path
 
 # Import init_db function
-sys.path.insert(0, str(Path(__file__).parent.parent / "cloud" / "streamlit_cloud" / "src"))
+sys.path.insert(
+    0, str(Path(__file__).parent.parent / "cloud" / "streamlit_cloud" / "src")
+)
 from scripts.init_db import init_db
 
 

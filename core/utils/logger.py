@@ -35,7 +35,9 @@ class QuantDBLogger:
         detailed_formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s"
         )
-        simple_formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        simple_formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s"
+        )
 
         # Console handler
         console_handler = logging.StreamHandler(sys.stdout)
@@ -186,7 +188,9 @@ def log_function(logger=None, level: str = "info"):
                 return result
             except Exception as e:
                 duration = time.time() - start_time
-                logger.error(f"FUNCTION ERROR: {func.__name__} - {type(e).__name__}: {str(e)}")
+                logger.error(
+                    f"FUNCTION ERROR: {func.__name__} - {type(e).__name__}: {str(e)}"
+                )
                 logger.add_metric(f"{func.__name__}_duration", duration)
                 raise
             finally:

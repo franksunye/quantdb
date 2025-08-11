@@ -35,7 +35,9 @@ router = APIRouter(
 @router.get("/", response_model=List[AssetSchema])
 async def get_assets(
     skip: int = Query(0, ge=0, description="Number of assets to skip"),
-    limit: int = Query(100, ge=1, le=1000, description="Maximum number of assets to return"),
+    limit: int = Query(
+        100, ge=1, le=1000, description="Maximum number of assets to return"
+    ),
     symbol: Optional[str] = Query(None, description="Filter by symbol"),
     name: Optional[str] = Query(None, description="Filter by name"),
     asset_type: Optional[str] = Query(None, description="Filter by asset type"),

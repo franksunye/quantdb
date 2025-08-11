@@ -103,7 +103,9 @@ def main():
     # 初始化服务
     services = init_services()
     if not services:
-        st.error("❌ Service initialization failed, please refresh the page and try again")
+        st.error(
+            "❌ Service initialization failed, please refresh the page and try again"
+        )
         return
 
     # Load watchlist data
@@ -117,7 +119,9 @@ def main():
         # Add stock
         st.subheader("➕ Add Stock")
         new_symbol = st.text_input(
-            "Stock Code", placeholder="Enter 6-digit stock code", help="e.g.: 600000, 000001"
+            "Stock Code",
+            placeholder="Enter 6-digit stock code",
+            help="e.g.: 600000, 000001",
         )
 
         if st.button("Add to Watchlist", use_container_width=True):
@@ -128,7 +132,9 @@ def main():
             st.subheader("💡 Recommended Stocks")
             recommendations = get_stock_recommendations()
             for rec in recommendations[:3]:
-                if st.button(f"{rec['symbol']} - {rec['name']}", key=f"rec_{rec['symbol']}"):
+                if st.button(
+                    f"{rec['symbol']} - {rec['name']}", key=f"rec_{rec['symbol']}"
+                ):
                     add_to_watchlist(rec["symbol"], services)
 
         st.markdown("---")
@@ -240,14 +246,16 @@ def display_watchlist_overview():
             days = (today - added_date).days
             total_days += days
         avg_days = (
-            total_days // len(st.session_state.watchlist) if st.session_state.watchlist else 0
+            total_days // len(st.session_state.watchlist)
+            if st.session_state.watchlist
+            else 0
         )
         st.metric("Average Watch Days", f"{avg_days} days")
 
     with col3:
-        latest_added = max(st.session_state.watchlist.values(), key=lambda x: x["added_date"])[
-            "added_date"
-        ]
+        latest_added = max(
+            st.session_state.watchlist.values(), key=lambda x: x["added_date"]
+        )["added_date"]
         st.metric("Latest Added", latest_added)
 
     # Stock list
@@ -291,7 +299,9 @@ def display_watchlist_overview():
                     remove_from_watchlist(row["Stock Code"])
 
     # Display selected stock details
-    if st.session_state.get("show_stock_detail", False) and st.session_state.get("selected_stock"):
+    if st.session_state.get("show_stock_detail", False) and st.session_state.get(
+        "selected_stock"
+    ):
         display_stock_detail(st.session_state.selected_stock)
 
 
@@ -336,7 +346,9 @@ def display_stock_detail(symbol):
                 latest_price = df["close"].iloc[-1] if len(df) > 0 else 0
                 first_price = df["close"].iloc[0] if len(df) > 0 else latest_price
                 price_change = (
-                    ((latest_price - first_price) / first_price * 100) if first_price != 0 else 0
+                    ((latest_price - first_price) / first_price * 100)
+                    if first_price != 0
+                    else 0
                 )
 
                 metrics = {
@@ -370,7 +382,9 @@ def display_stock_detail(symbol):
                 # Simple chart
                 import plotly.express as px
 
-                price_chart = px.line(df, x="trade_date", y="close", title=f"{symbol} Price Trend")
+                price_chart = px.line(
+                    df, x="trade_date", y="close", title=f"{symbol} Price Trend"
+                )
 
             st.plotly_chart(price_chart, use_container_width=True)
 
@@ -448,7 +462,9 @@ def display_batch_query_results(services):
                         "最新价格": summary_info.get("latest_price", "N/A"),
                         "涨跌幅(%)": summary_info.get("price_change_pct", "N/A"),
                         "数据来源": summary_info.get("data_source", "unknown"),
-                        "有价格数据": "✅" if summary_info.get("has_price_data") else "❌",
+                        "有价格数据": (
+                            "✅" if summary_info.get("has_price_data") else "❌"
+                        ),
                     }
                 )
 
@@ -482,12 +498,16 @@ def display_batch_query_results(services):
 
                 # 应用样式
                 styled_df = df.copy()
-                styled_df["涨跌幅(%)"] = styled_df["涨跌幅(%)"].apply(format_price_change)
+                styled_df["涨跌幅(%)"] = styled_df["涨跌幅(%)"].apply(
+                    format_price_change
+                )
 
                 st.dataframe(styled_df, use_container_width=True, hide_index=True)
 
                 # 统计信息
-                valid_changes = [x for x in df["涨跌幅(%)"] if isinstance(x, (int, float))]
+                valid_changes = [
+                    x for x in df["涨跌幅(%)"] if isinstance(x, (int, float))
+                ]
                 if valid_changes:
                     col1, col2, col3 = st.columns(3)
 
@@ -561,7 +581,11 @@ def display_basic_batch_query(services):
                     "最新价格": latest_price,
                     "涨跌幅": price_change,
                     "数据来源": asset_info.data_source if asset_info else "N/A",
-                    "状态": "✅" if stock_data is not None and not stock_data.empty else "❌",
+                    "状态": (
+                        "✅"
+                        if stock_data is not None and not stock_data.empty
+                        else "❌"
+                    ),
                 }
             )
 
@@ -611,7 +635,11 @@ def export_watchlist():
         export_data = []
         for symbol, info in st.session_state.watchlist.items():
             export_data.append(
-                {"股票代码": symbol, "股票名称": info["name"], "添加日期": info["added_date"]}
+                {
+                    "股票代码": symbol,
+                    "股票名称": info["name"],
+                    "添加日期": info["added_date"],
+                }
             )
 
         if export_data:

@@ -80,10 +80,14 @@ class MonitoringService:
             return
 
         # 查找或创建覆盖记录
-        coverage = self.db.query(DataCoverage).filter(DataCoverage.symbol == symbol).first()
+        coverage = (
+            self.db.query(DataCoverage).filter(DataCoverage.symbol == symbol).first()
+        )
 
         if not coverage:
-            coverage = DataCoverage(symbol=symbol, first_requested=datetime.now(), access_count=1)
+            coverage = DataCoverage(
+                symbol=symbol, first_requested=datetime.now(), access_count=1
+            )
             self.db.add(coverage)
         else:
             coverage.access_count += 1
@@ -92,7 +96,9 @@ class MonitoringService:
         coverage.earliest_date = (
             data_stats.earliest.strftime("%Y%m%d") if data_stats.earliest else None
         )
-        coverage.latest_date = data_stats.latest.strftime("%Y%m%d") if data_stats.latest else None
+        coverage.latest_date = (
+            data_stats.latest.strftime("%Y%m%d") if data_stats.latest else None
+        )
         coverage.total_records = data_stats.total
         coverage.last_accessed = datetime.now()
         coverage.last_updated = datetime.now()
@@ -119,7 +125,9 @@ class MonitoringService:
 
         today_akshare_calls = (
             self.db.query(func.count(RequestLog.id))
-            .filter(RequestLog.timestamp >= today_start, RequestLog.akshare_called == True)
+            .filter(
+                RequestLog.timestamp >= today_start, RequestLog.akshare_called == True
+            )
             .scalar()
             or 0
         )
@@ -148,7 +156,9 @@ class MonitoringService:
 
         # 热门股票 (今日访问最多的前10只)
         hot_stocks = (
-            self.db.query(RequestLog.symbol, func.count(RequestLog.id).label("requests"))
+            self.db.query(
+                RequestLog.symbol, func.count(RequestLog.id).label("requests")
+            )
             .filter(RequestLog.timestamp >= today_start)
             .group_by(RequestLog.symbol)
             .order_by(desc("requests"))
@@ -172,7 +182,8 @@ class MonitoringService:
                 "cost_savings": f"节省 {today_requests - today_akshare_calls} 次AKShare调用",
             },
             "hot_stocks": [
-                {"symbol": stock.symbol, "requests": stock.requests} for stock in hot_stocks
+                {"symbol": stock.symbol, "requests": stock.requests}
+                for stock in hot_stocks
             ],
         }
 
@@ -180,7 +191,10 @@ class MonitoringService:
         """获取详细的数据覆盖情况"""
 
         coverages = (
-            self.db.query(DataCoverage).order_by(desc(DataCoverage.access_count)).limit(20).all()
+            self.db.query(DataCoverage)
+            .order_by(desc(DataCoverage.access_count))
+            .limit(20)
+            .all()
         )
 
         result = []
@@ -225,7 +239,9 @@ class MonitoringService:
             self.db.query(
                 func.date(RequestLog.timestamp).label("date"),
                 func.count(RequestLog.id).label("total_requests"),
-                func.sum(func.cast(RequestLog.akshare_called, Integer)).label("akshare_calls"),
+                func.sum(func.cast(RequestLog.akshare_called, Integer)).label(
+                    "akshare_calls"
+                ),
                 func.avg(RequestLog.response_time_ms).label("avg_response_time"),
                 func.count(func.distinct(RequestLog.symbol)).label("active_symbols"),
             )
@@ -246,7 +262,9 @@ class MonitoringService:
             trends.append(
                 {
                     "date": (
-                        stat.date if isinstance(stat.date, str) else stat.date.strftime("%Y-%m-%d")
+                        stat.date
+                        if isinstance(stat.date, str)
+                        else stat.date.strftime("%Y-%m-%d")
                     ),
                     "total_requests": stat.total_requests,
                     "akshare_calls": stat.akshare_calls,

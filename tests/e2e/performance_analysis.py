@@ -108,7 +108,9 @@ class PerformanceAnalyzer:
             if response.status_code == 200:
                 data = response.json()
                 record_count = len(data.get("data", []))
-                logger.info(f"首次请求耗时: {first_time:.3f}秒，获取 {record_count} 条记录")
+                logger.info(
+                    f"首次请求耗时: {first_time:.3f}秒，获取 {record_count} 条记录"
+                )
             else:
                 logger.warning(f"首次请求失败: {response.status_code}")
                 continue
@@ -129,7 +131,9 @@ class PerformanceAnalyzer:
             if first_time > 0:
                 improvement = (first_time - cache_time) / first_time * 100
                 results["cache_performance_improvement"].append(improvement)
-                logger.info(f"缓存命中耗时: {cache_time:.3f}秒，性能提升: {improvement:.1f}%")
+                logger.info(
+                    f"缓存命中耗时: {cache_time:.3f}秒，性能提升: {improvement:.1f}%"
+                )
 
             # 短暂休息
             time.sleep(0.5)
@@ -154,7 +158,10 @@ class PerformanceAnalyzer:
             response1, small_time = self.measure_request_time(
                 lambda: self.get(
                     f"/historical/stock/{test_symbol}",
-                    params={"start_date": self.config.TEST_START_DATE, "end_date": small_end_date},
+                    params={
+                        "start_date": self.config.TEST_START_DATE,
+                        "end_date": small_end_date,
+                    },
                 )
             )
             results["small_range"].append(small_time)
@@ -178,7 +185,9 @@ class PerformanceAnalyzer:
 
             if response2.status_code == 200:
                 expanded_count = len(response2.json().get("data", []))
-                logger.info(f"扩展范围请求: {expanded_time:.3f}秒，{expanded_count} 条记录")
+                logger.info(
+                    f"扩展范围请求: {expanded_time:.3f}秒，{expanded_count} 条记录"
+                )
 
                 # 计算扩展比例
                 if small_time > 0:
@@ -224,7 +233,9 @@ class PerformanceAnalyzer:
         # 性能总结
         logger.info(f"\n性能总结:")
         if basic_results["cache_performance_improvement"]:
-            avg_improvement = statistics.mean(basic_results["cache_performance_improvement"])
+            avg_improvement = statistics.mean(
+                basic_results["cache_performance_improvement"]
+            )
             logger.info(f"  缓存平均性能提升: {avg_improvement:.1f}%")
 
         if basic_results["first_request"] and basic_results["cache_hit"]:

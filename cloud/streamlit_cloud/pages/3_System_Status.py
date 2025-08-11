@@ -134,7 +134,9 @@ def main():
     """Main page"""
 
     st.title("⚡ System Status")
-    st.markdown("Monitor system health status, database information and performance metrics")
+    st.markdown(
+        "Monitor system health status, database information and performance metrics"
+    )
     st.markdown("---")
 
     # System health check
@@ -149,7 +151,9 @@ def main():
 
     with col1:
         st.metric(
-            "Service Status", service_status, delta="Running" if cache_service else "Needs Check"
+            "Service Status",
+            service_status,
+            delta="Running" if cache_service else "Needs Check",
         )
 
     # Check database connection
@@ -171,7 +175,11 @@ def main():
             else "Needs Data"
         )
         with col3:
-            st.metric("Data Integrity", data_integrity, delta=f"{db_info['asset_count']} Assets")
+            st.metric(
+                "Data Integrity",
+                data_integrity,
+                delta=f"{db_info['asset_count']} Assets",
+            )
     else:
         with col3:
             st.metric("Data Integrity", "Unknown", delta="Cannot Check")
@@ -205,7 +213,9 @@ def main():
 
         with col3:
             latest_date = (
-                db_info["latest_date"].strftime("%Y-%m-%d") if db_info["latest_date"] else "N/A"
+                db_info["latest_date"].strftime("%Y-%m-%d")
+                if db_info["latest_date"]
+                else "N/A"
             )
             st.metric("Latest Data", latest_date)
 
@@ -227,16 +237,22 @@ def main():
                 col1, col2, col3, col4 = st.columns(4)
 
                 with col1:
-                    st.metric("Database Query", f"{perf_results['db_query_time']:.1f}ms")
+                    st.metric(
+                        "Database Query", f"{perf_results['db_query_time']:.1f}ms"
+                    )
 
                 with col2:
-                    st.metric("Cache Query", f"{perf_results['cache_query_time']:.1f}ms")
+                    st.metric(
+                        "Cache Query", f"{perf_results['cache_query_time']:.1f}ms"
+                    )
 
                 with col3:
                     st.metric("Sample Data", f"{perf_results['assets_sample']} records")
 
                 with col4:
-                    total_time = perf_results["db_query_time"] + perf_results["cache_query_time"]
+                    total_time = (
+                        perf_results["db_query_time"] + perf_results["cache_query_time"]
+                    )
                     st.metric("Total Response Time", f"{total_time:.1f}ms")
 
                 # Cache statistics

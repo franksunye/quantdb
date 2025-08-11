@@ -200,5 +200,9 @@ class SystemMetricsSchema(BaseModel):
     akshare_requests_today: int = Field(default=0, description="AKShare requests today")
     requests_today: int = Field(default=0, description="Total requests today")
     active_symbols_today: int = Field(default=0, description="Active symbols today")
-    performance_improvement: float = Field(default=0.0, description="Performance improvement ratio")
-    cost_savings: float = Field(default=0.0, description="Cost savings (request reduction)")
+    performance_improvement: float = Field(
+        default=0.0, description="Performance improvement ratio"
+    )
+    cost_savings: float = Field(
+        default=0.0, description="Cost savings (request reduction)"
+    )

@@ -10,7 +10,17 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from sqlalchemy import JSON, Column, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Column,
+    Date,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
@@ -88,7 +98,9 @@ class FinancialSummary(Base):
             return summaries
 
         # Get date columns (exclude '选项' and '指标' columns)
-        date_columns = [col for col in akshare_df.columns if col not in ["选项", "指标"]]
+        date_columns = [
+            col for col in akshare_df.columns if col not in ["选项", "指标"]
+        ]
 
         # Process each quarter
         for date_col in date_columns[:8]:  # Latest 8 quarters
@@ -137,11 +149,17 @@ class FinancialSummary(Base):
 
                 # Calculate derived metrics
                 if summary.total_revenue and summary.operating_cost:
-                    summary.gross_profit = summary.total_revenue - summary.operating_cost
-                    summary.gross_margin = (summary.gross_profit / summary.total_revenue) * 100
+                    summary.gross_profit = (
+                        summary.total_revenue - summary.operating_cost
+                    )
+                    summary.gross_margin = (
+                        summary.gross_profit / summary.total_revenue
+                    ) * 100
 
                 if summary.net_profit and summary.total_revenue:
-                    summary.net_margin = (summary.net_profit / summary.total_revenue) * 100
+                    summary.net_margin = (
+                        summary.net_profit / summary.total_revenue
+                    ) * 100
 
                 # Store raw data
                 quarter_data = {}
@@ -279,7 +297,9 @@ class FinancialDataCache(Base):
 
         # Update existing record or create new one
         cache_record = (
-            db_session.query(cls).filter(cls.symbol == symbol, cls.data_type == data_type).first()
+            db_session.query(cls)
+            .filter(cls.symbol == symbol, cls.data_type == data_type)
+            .first()
         )
 
         if cache_record:
@@ -288,7 +308,10 @@ class FinancialDataCache(Base):
             cache_record.cache_hit_count += 1
         else:
             cache_record = cls(
-                symbol=symbol, data_type=data_type, expires_at=expires_at, cache_hit_count=1
+                symbol=symbol,
+                data_type=data_type,
+                expires_at=expires_at,
+                cache_hit_count=1,
             )
             db_session.add(cache_record)
 

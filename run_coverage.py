@@ -126,13 +126,18 @@ Examples:
     )
 
     parser.add_argument(
-        "--threshold", type=int, default=70, help="Coverage threshold percentage (default: 70)"
+        "--threshold",
+        type=int,
+        default=70,
+        help="Coverage threshold percentage (default: 70)",
     )
 
     parser.add_argument("--verbose", action="store_true", help="Enable verbose output")
 
     parser.add_argument(
-        "--summary-only", action="store_true", help="Only show coverage summary (don't run tests)"
+        "--summary-only",
+        action="store_true",
+        help="Only show coverage summary (don't run tests)",
     )
 
     args = parser.parse_args()

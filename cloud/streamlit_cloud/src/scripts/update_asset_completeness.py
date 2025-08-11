@@ -87,7 +87,9 @@ def update_asset_completeness():
                 else:
                     logger.info(f"Asset {asset.symbol} already has complete data")
 
-            logger.info(f"Asset completeness update completed. Updated {updated_count} assets.")
+            logger.info(
+                f"Asset completeness update completed. Updated {updated_count} assets."
+            )
             return True
 
         finally:
@@ -133,16 +135,24 @@ def verify_completeness():
 
                 if missing_fields:
                     incomplete_assets.append(
-                        {"symbol": asset.symbol, "name": asset.name, "missing": missing_fields}
+                        {
+                            "symbol": asset.symbol,
+                            "name": asset.name,
+                            "missing": missing_fields,
+                        }
                     )
-                    logger.warning(f"Incomplete data for {asset.symbol}: missing {missing_fields}")
+                    logger.warning(
+                        f"Incomplete data for {asset.symbol}: missing {missing_fields}"
+                    )
                 else:
                     complete_count += 1
                     logger.info(f"✅ Complete data for {asset.symbol}: {asset.name}")
 
             # Summary
             total_assets = len(assets)
-            completeness_rate = (complete_count / total_assets * 100) if total_assets > 0 else 0
+            completeness_rate = (
+                (complete_count / total_assets * 100) if total_assets > 0 else 0
+            )
 
             logger.info(f"\n=== Asset Data Completeness Summary ===")
             logger.info(f"Total assets: {total_assets}")

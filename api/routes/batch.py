@@ -39,7 +39,9 @@ class BatchAssetResponse(BaseModel):
 
 @router.post("/assets", response_model=BatchAssetResponse)
 async def get_batch_assets(
-    request: BatchAssetRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+    request: BatchAssetRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
 ):
     """
     Get asset information for multiple stocks in batch.
@@ -92,7 +94,9 @@ async def get_batch_assets(
                         "industry": asset.industry,
                         "concept": asset.concept,
                         "listing_date": (
-                            asset.listing_date.isoformat() if asset.listing_date else None
+                            asset.listing_date.isoformat()
+                            if asset.listing_date
+                            else None
                         ),
                         "total_shares": asset.total_shares,
                         "circulating_shares": asset.circulating_shares,
@@ -101,7 +105,9 @@ async def get_batch_assets(
                         "pb_ratio": asset.pb_ratio,
                         "roe": asset.roe,
                         "last_updated": (
-                            asset.last_updated.isoformat() if asset.last_updated else None
+                            asset.last_updated.isoformat()
+                            if asset.last_updated
+                            else None
                         ),
                         "data_source": asset.data_source,
                         "cache_info": metadata.get("cache_info", {}),
@@ -128,7 +134,9 @@ async def get_batch_assets(
             "include_financial_data": request.include_financial_data,
         }
 
-        logger.info(f"Batch asset request completed: {success_count} success, {error_count} errors")
+        logger.info(
+            f"Batch asset request completed: {success_count} success, {error_count} errors"
+        )
 
         return BatchAssetResponse(
             success_count=success_count,
@@ -140,7 +148,9 @@ async def get_batch_assets(
 
     except Exception as e:
         logger.error(f"Error in batch asset processing: {e}")
-        raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Batch processing failed: {str(e)}"
+        )
 
 
 @router.post("/assets/minimal", response_model=Dict[str, Dict[str, Any]])
@@ -205,4 +215,6 @@ async def get_batch_assets_minimal(symbols: List[str], db: Session = Depends(get
 
     except Exception as e:
         logger.error(f"Error in minimal batch asset processing: {e}")
-        raise HTTPException(status_code=500, detail=f"Minimal batch processing failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Minimal batch processing failed: {str(e)}"
+        )

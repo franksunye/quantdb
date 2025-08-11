@@ -34,10 +34,17 @@ def run_command(cmd, description, cwd=None, timeout=300):
     try:
         if isinstance(cmd, str):
             result = subprocess.run(
-                cmd, shell=True, capture_output=True, text=True, cwd=cwd, timeout=timeout
+                cmd,
+                shell=True,
+                capture_output=True,
+                text=True,
+                cwd=cwd,
+                timeout=timeout,
             )
         else:
-            result = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=timeout)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, cwd=cwd, timeout=timeout
+            )
 
         if result.returncode == 0:
             print(f"✅ {description} - 成功")
@@ -65,7 +72,9 @@ def test_fresh_installation():
         venv_path = Path(temp_dir) / "quantdb_test_env"
 
         print_step(1, "创建虚拟环境")
-        success, _, _ = run_command([sys.executable, "-m", "venv", str(venv_path)], "创建虚拟环境")
+        success, _, _ = run_command(
+            [sys.executable, "-m", "venv", str(venv_path)], "创建虚拟环境"
+        )
 
         if not success:
             return False
@@ -79,7 +88,9 @@ def test_fresh_installation():
             pip_path = venv_path / "bin" / "pip"
 
         print_step(2, "升级pip")
-        success, _, _ = run_command([str(pip_path), "install", "--upgrade", "pip"], "升级pip")
+        success, _, _ = run_command(
+            [str(pip_path), "install", "--upgrade", "pip"], "升级pip"
+        )
 
         if not success:
             return False
@@ -100,7 +111,9 @@ print(f"✅ QuantDB版本: {getattr(qdb, '__version__', '未知')}")
 print("✅ 导入成功")
 """
 
-        success, stdout, stderr = run_command([str(python_path), "-c", test_import], "验证导入")
+        success, stdout, stderr = run_command(
+            [str(python_path), "-c", test_import], "验证导入"
+        )
 
         return success
 
@@ -271,7 +284,9 @@ except Exception as e:
 print("✅ 性能测试完成")
 """
 
-    success, stdout, stderr = run_command([sys.executable, "-c", perf_test], "性能测试", timeout=60)
+    success, stdout, stderr = run_command(
+        [sys.executable, "-c", perf_test], "性能测试", timeout=60
+    )
 
     return success
 

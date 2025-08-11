@@ -71,7 +71,9 @@ async def bulk_import_hk_stocks(
 
 
 @router.post("/hk-stocks/{symbol}/refresh")
-async def refresh_hk_stock(symbol: str, db: Session = Depends(get_db)) -> Dict[str, Any]:
+async def refresh_hk_stock(
+    symbol: str, db: Session = Depends(get_db)
+) -> Dict[str, Any]:
     """
     Force refresh a specific Hong Kong stock.
 
@@ -91,7 +93,8 @@ async def refresh_hk_stock(symbol: str, db: Session = Depends(get_db)) -> Dict[s
         # Validate symbol format
         if not symbol.isdigit() or len(symbol) != 5:
             raise HTTPException(
-                status_code=400, detail="Invalid HK stock symbol format. Expected 5-digit number."
+                status_code=400,
+                detail="Invalid HK stock symbol format. Expected 5-digit number.",
             )
 
         asset_service = AssetInfoService(db)
