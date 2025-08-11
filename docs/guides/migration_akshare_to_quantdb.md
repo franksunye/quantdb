@@ -1,123 +1,122 @@
-# AKShare → QuantDB 迁移指南：零改动、可回滚
+# AKShare → QuantDB Migration Guide: Zero Changes, Rollback-Ready
 
-适用版本：v2.2.8 ｜ 最后更新：2025-08-08
+Applicable Version: v2.2.8 | Last Updated: 2025-08-08
 
-## TL;DR（一分钟上手）
-1. 安装：
+## TL;DR (One-Minute Quick Start)
+1. Install:
 ```bash
 pip install quantdb
 ```
-2. 导入：
+2. Import:
 ```python
-import qdb  # 包名：quantdb；导入名：qdb
+import qdb  # Package name: quantdb; Import name: qdb
 ```
-3. 替换调用（示例）：
+3. Replace calls (example):
 ```python
 # Before (AKShare)
 # from akshare import stock_zh_a_hist
 # df = stock_zh_a_hist(symbol="000001", start_date="20240101", end_date="20240201")
 
-# After (QuantDB, 完全兼容接口)
+# After (QuantDB, fully compatible interface)
 import qdb
 
 df = qdb.stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
 ```
-4. 其他常用调用：
+4. Other common calls:
 ```python
-# 最近30天数据（简化API）
+# Recent 30 days data (simplified API)
 df = qdb.get_stock_data("000001", days=30)
-# 实时
+# Real-time
 entry = qdb.get_realtime_data("000001")
-# 股票列表
+# Stock list
 stocks = qdb.get_stock_list()
 ```
 
-## 为什么迁移到 QuantDB？
-- 98.1% 性能提升：缓存命中 ~18ms（从 ~1000ms 降到毫秒级）
-- 100% AKShare 接口兼容：最小改动、保留原工作流
-- 生产就绪：259 个测试 100% 通过，错误处理完善
-- 多市场支持：A 股 + 港股统一 API
+## Why Migrate to QuantDB?
+- 98.1% performance improvement: Cache hits ~18ms (from ~1000ms to millisecond level)
+- 100% AKShare interface compatibility: Minimal changes, preserve original workflow
+- Production ready: 259 tests 100% passed, comprehensive error handling
+- Multi-market support: A-shares + Hong Kong stocks unified API
 
-## 常见 API 映射
-- 历史数据：
+## Common API Mappings
+- Historical data:
   - AKShare: `stock_zh_a_hist(symbol, start_date, end_date, ...)`
   - QuantDB: `qdb.stock_zh_a_hist(symbol, start_date, end_date, ...)`
-  - QuantDB（简化）：`qdb.get_stock_data(symbol, days=30)`
-- 实时数据：
+  - QuantDB (simplified): `qdb.get_stock_data(symbol, days=30)`
+- Real-time data:
   - QuantDB: `qdb.get_realtime_data(symbol)` / `qdb.get_realtime_data_batch(symbols)`
-- 股票列表：
+- Stock list:
   - QuantDB: `qdb.get_stock_list(market=None)`
-- 财务数据：
+- Financial data:
   - QuantDB: `qdb.get_financial_summary(symbol)` / `qdb.get_financial_indicators(symbol)`
-- 指数数据：
-  - QuantDB: `qdb.get_index_data(symbol, start_date, end_date)` 等
+- Index data:
+  - QuantDB: `qdb.get_index_data(symbol, start_date, end_date)` etc.
 
-提示：QuantDB 保持与 AKShare 一致的数据结构和语义；不同之处在于缓存、性能与稳定性。
+Note: QuantDB maintains consistent data structure and semantics with AKShare; the difference lies in caching, performance, and stability.
 
-## 迁移路径选型
+## Migration Path Options
 
-### 路径 A：最小变更（推荐）
-- 在原有使用处，将 AKShare 的调用替换为 `qdb.*` 等价接口
-- 优点：可控、渐进式；无需大规模重构
-- 示例：
+### Path A: Minimal Changes (Recommended)
+- Replace AKShare calls with equivalent `qdb.*` interfaces at existing usage points
+- Advantages: Controllable, progressive; no need for large-scale refactoring
+- Example:
 ```python
-# 原代码
+# Original code
 # from akshare import stock_zh_a_hist
 # df = stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
 
-# 替换后
+# After replacement
 import qdb
 
 df = qdb.stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
 ```
 
-### 路径 B：适配器（别名兼容）
-- 在边界层定义别名，尽量减少业务代码变更
+### Path B: Adapter (Alias Compatibility)
+- Define aliases at the boundary layer to minimize business code changes
 ```python
 import qdb
 
-# 在你项目的 data_api.py 边界层
+# In your project's data_api.py boundary layer
 stock_zh_a_hist = qdb.stock_zh_a_hist
 get_realtime_data = qdb.get_realtime_data
 get_stock_list = qdb.get_stock_list
 ```
-- 业务层继续 `from data_api import stock_zh_a_hist`，实现平滑替换
+- Business layer continues with `from data_api import stock_zh_a_hist`, achieving smooth replacement
 
-## 性能与验证
+## Performance and Validation
 
-### 验收清单
-- [ ] 核心路径可用（历史/实时/列表）
-- [ ] 首次请求 ~1-2s；重复请求 ~10-50ms
-- [ ] 结果与 AKShare 一致（字段/语义）
-- [ ] 日志与错误处理正常
+### Acceptance Checklist
+- [ ] Core paths available (historical/real-time/list)
+- [ ] First request ~1-2s; repeated requests ~10-50ms
+- [ ] Results consistent with AKShare (fields/semantics)
+- [ ] Logging and error handling normal
 
-### 基准测试示例
+### Benchmark Testing Example
 ```python
 import time
 import qdb
 
 symbol = "000001"
 
-# 冷启动（会访问 AKShare）
+# Cold start (will access AKShare)
 start = time.time(); qdb.get_stock_data(symbol, days=30); cold = time.time() - start
-# 缓存命中
+# Cache hit
 start = time.time(); qdb.get_stock_data(symbol, days=30); warm = time.time() - start
 
-print(f"首次: {cold:.3f}s, 缓存命中: {warm:.3f}s, 提升: {(cold-warm)/cold*100:.1f}%")
+print(f"First: {cold:.3f}s, Cache hit: {warm:.3f}s, Improvement: {(cold-warm)/cold*100:.1f}%")
 ```
 
-## 回退策略
-- QuantDB 为兼容增强，不会破坏原流程；如需回退，只需将导入和调用切回 AKShare
-- 保留一处“切换开关”（如环境变量/配置项），可快速切换数据层以便排障
+## Rollback Strategy
+- QuantDB is a compatible enhancement that won't break original workflows; if rollback is needed, simply switch imports and calls back to AKShare
+- Keep a "switch" (like environment variable/config item) to quickly switch data layers for troubleshooting
 
-## 常见问题（FAQ）
-- 首次仍然较慢？正常，首次会请求 AKShare；后续命中缓存即为毫秒级
-- 导入失败？请确认使用 `pip install quantdb`，且导入名为 `import qdb`
-- 缓存目录权限（Windows）？建议使用项目内或用户目录路径
+## Frequently Asked Questions (FAQ)
+- Still slow on first request? Normal, first request accesses AKShare; subsequent cache hits are millisecond-level
+- Import failure? Please confirm using `pip install quantdb` and import name is `import qdb`
+- Cache directory permissions (Windows)? Recommend using project-internal or user directory paths
 
-## 参考与资源
-- 文档站：https://franksunye.github.io/quantdb/
-- PyPI：https://pypi.org/project/quantdb/
-- GitHub：https://github.com/franksunye/quantdb
-- Issues：https://github.com/franksunye/quantdb/issues
-
+## References and Resources
+- Documentation: https://franksunye.github.io/quantdb/
+- PyPI: https://pypi.org/project/quantdb/
+- GitHub: https://github.com/franksunye/quantdb
+- Issues: https://github.com/franksunye/quantdb/issues
