@@ -46,6 +46,10 @@ nav:
   - API Reference:
     - Overview: api-reference.md
     - Detailed Reference: api-reference-detailed.md
+  - Guides:
+    - Overview: guides/index.md
+    - Hong Kong Index Guide: guides/hong-kong-index-guide.md
+    - Migration from AKShare: guides/migration_akshare_to_quantdb.md
   - AI Agent:
     - Overview: ai-agent/index.md
     - Developer Guide: ai-agent/developer-guide.md
