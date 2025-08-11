@@ -1,63 +1,88 @@
-# QuantDB 文档
+# QuantDB Documentation
 
-本目录包含 QuantDB 项目的核心文档。
+This directory contains the core documentation for the QuantDB project.
 
-## 📚 核心文档
+## 📚 Core Documentation
 
-### 📋 项目管理
-| 文档 | 描述 |
-|------|------|
-| [🎯 里程碑规划](./02_MILESTONES.md) | 项目里程碑和发布策略 |
-| [📋 开发任务](./00_BACKLOG.md) | 当前待办任务和优先级 |
-| [📅 更新日志](./01_CHANGELOG.md) | 版本历史和已完成工作 |
+### 📋 User Guides
+| Document | Description |
+|----------|-------------|
+| [📅 Changelog](./changelog.md) | Version history and completed features |
+| [🚀 Get Started](./get-started.md) | Quick start guide and installation |
+| [📖 User Guide](./user-guide.md) | Comprehensive usage documentation |
+| [❓ FAQ](./faq.md) | Frequently asked questions |
 
-### 🏗️ 技术文档
-| 文档 | 描述 |
-|------|------|
-| [🏗️ 系统架构](./10_ARCHITECTURE.md) | 架构设计和技术组件 |
-| [🗄️ 数据库架构](./11_DATABASE_ARCHITECTURE.md) | 数据库设计和模型 |
-| [📊 API 文档](./20_API.md) | 完整 API 使用指南 |
-| [🚀 API服务指南](./03_API_SERVICE_GUIDE.md) | 独立API服务发布指南 |
-| [☁️ 云平台指南](./04_CLOUD_PLATFORM_GUIDE.md) | 云版本平台开发指南 |
+### 🏗️ Technical Documentation
+| Document | Description |
+|----------|-------------|
+| [📊 API Reference](./api-reference.md) | Complete API usage guide |
+| [📊 Detailed API Reference](./api-reference-detailed.md) | In-depth API documentation |
+| [🤖 AI Agent Guide](./ai-agent-documentation-guide.md) | AI agent integration documentation |
+| [⚡ Realtime Optimization](./realtime_optimization_guide.md) | Performance optimization guide |
 
-### 🛠️ 开发指南
-| 文档 | 描述 |
-|------|------|
-| [🛠️ 开发指南](./30_DEVELOPMENT.md) | 开发环境和流程 |
-| [🧪 测试指南](./31_TESTING.md) | 测试运行和编写 |
-| [🌿 分支管理](./32_BRANCH_MANAGEMENT.md) | 分支管理规范 |
-| [✅ 发布检查](./33_RELEASE_CHECKLIST.md) | 版本发布流程 |
+### 🛠️ Development Resources
+| Document | Description |
+|----------|-------------|
+| [📝 Cheat Sheet](./cheatsheet.md) | Quick reference for common operations |
+| [🔄 Migration Guide](./guides/migration_akshare_to_quantdb.md) | Migrating from AKShare to QuantDB |
 
-## 🎯 项目概览
+## 🎯 Project Overview
 
-QuantDB 是一个高性能的股票数据缓存服务，采用**分阶段发布策略**：
+QuantDB is a high-performance stock data caching service with a **phased release strategy**:
 
-### 🚀 里程碑1: 开源API服务
-- **极致性能**: 比AKShare快98.1%，响应时间~18ms
-- **A股+港股统一API**: 一套接口支持两大市场
-- **智能缓存**: 基于真实交易日历的缓存策略
-- **生产就绪**: 259个测试100%通过，完整错误处理
-- **🔥 即将发布**: 实时行情 + 股票列表API (v2.3.0)
+### 🚀 Milestone 1: Open Source API Service
+- **Extreme Performance**: 99.9% faster than AKShare, ~18ms response time
+- **Unified A-Share + HK Stock API**: One interface for two major markets
+- **Smart Caching**: Cache strategy based on real trading calendar
+- **Production Ready**: 50% test coverage with 100% passing tests, complete error handling
+- **🔥 Coming Soon**: Real-time quotes + stock list API (v2.3.0)
 
-### ☁️ 里程碑2: 云版本平台
-- **Web界面**: 基于Streamlit的专业前端
-- **数据可视化**: 交互式图表和技术指标
-- **云端部署**: Streamlit Cloud一键部署
-- **用户友好**: 零门槛使用，无需编程知识
+### ☁️ Milestone 2: Cloud Platform
+- **Web Interface**: Professional frontend based on Streamlit
+- **Data Visualization**: Interactive charts and technical indicators
+- **Cloud Deployment**: One-click deployment on Streamlit Cloud
+- **User Friendly**: Zero barrier to entry, no programming knowledge required
 
-## 🚀 快速开始
+## 🚀 Quick Start
 
-1. 查看 [开发指南](./30_DEVELOPMENT.md) 了解如何设置开发环境
-2. 参考 [API 文档](./20_API.md) 了解接口使用方法
-3. 运行 [测试指南](./31_TESTING.md) 中的测试确保环境正常
+1. Check the [Get Started Guide](./get-started.md) to learn how to install and use QuantDB
+2. Read the [API Reference](./api-reference.md) for complete API usage methods
+3. Refer to the [User Guide](./user-guide.md) for comprehensive documentation
 
-## 📋 敏捷开发原则
+## 📊 Current Status
 
-文档遵循敏捷开发原则：
-- **BACKLOG**: 专注于待做事宜，保持简洁
-- **CHANGELOG**: 记录已完成工作，展示项目进展
-- **KISS原则**: 保留关键文档，移除过程文件
+- **Version**: v2.3.0-dev (in development)
+- **Test Coverage**: 50% coverage with 100% passing tests
+- **Performance**: 99.9% faster than AKShare
+- **Features**: Stock data, real-time quotes, financial data, index data
+
+For more details, see the [Changelog](./changelog.md).
+
+## 🎨 Marketing Materials
+
+The [promo](./promo/) directory contains comprehensive marketing materials:
+- Performance comparison charts
+- GTM infographics and presentations
+- Social media content templates
+- Technical benchmarks and analysis
+
+## 🤖 AI Agent Support
+
+QuantDB provides excellent AI agent integration with:
+- Standardized Google Style docstrings
+- Machine-readable API schema
+- Comprehensive usage examples
+- Detailed error handling patterns
+
+See the [AI Agent Guide](./ai-agent-documentation-guide.md) for details.
+
+## 📋 Agile Development Principles
+
+Documentation follows agile development principles:
+- **BACKLOG**: Focus on to-do items, keep it simple
+- **CHANGELOG**: Record completed work, show project progress
+- **KISS Principle**: Keep key documents, remove process files
 
 ---
 
-*最后更新: 2025-07-14*
+*Last updated: 2025-08-11*

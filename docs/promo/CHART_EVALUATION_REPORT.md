@@ -68,7 +68,6 @@ These charts were generated using **realistic simulated data** based on typical 
 | **Use Case** | General marketing | Technical credibility |
 
 ### Recommendation: **Both Are Valuable**
-
 - **Performance-Benchmarks**: Use for technical audiences requiring verified data
 - **Main Directory**: Use for general marketing with realistic, conservative claims
 
@@ -77,7 +76,7 @@ These charts were generated using **realistic simulated data** based on typical 
 ### ✅ **RECOMMENDED USAGE**
 
 #### 1. `quantdb_vs_akshare_performance.png`
-**Best For**: 
+**Best For**:
 - General website content
 - Marketing presentations
 - Sales materials
@@ -115,29 +114,18 @@ These charts were generated using **realistic simulated data** based on typical 
 ## 🗂️ Recommended File Organization
 
 ### Option 1: Keep in Main Directory ✅ **RECOMMENDED**
+
 ```
 docs/promo/
-├── quantdb_vs_akshare_performance.png    # General marketing
-├── quantdb_speedup_factors.png           # Technical content
-├── quantdb_gtm_infographic.png          # Social media ⭐
-├── quantdb_roi_analysis.png             # Business presentations
-├── performance-benchmarks/               # Verified technical charts
-└── archive/                             # Deprecated materials
+├── quantdb_vs_akshare_performance.png  # General marketing
+├── quantdb_speedup_factors.png         # Technical content
+├── quantdb_gtm_infographic.png         # Social media ⭐
+├── quantdb_roi_analysis.png            # Business presentations
+├── performance-benchmarks/             # Verified technical charts
+└── archive/                            # Deprecated materials
 ```
 
 **Rationale**: These charts serve different audiences and use cases than the verified benchmarks.
-
-### Option 2: Create Marketing Subfolder
-```
-docs/promo/
-├── marketing-materials/
-│   ├── quantdb_vs_akshare_performance.png
-│   ├── quantdb_speedup_factors.png
-│   ├── quantdb_gtm_infographic.png
-│   └── quantdb_roi_analysis.png
-├── performance-benchmarks/               # Technical verification
-└── archive/                             # Deprecated materials
-```
 
 ## 🎨 Chart Strengths
 
@@ -175,6 +163,7 @@ These four charts are **high-quality, professional GTM materials** that should b
 4. **Featured prominently** in marketing campaigns
 
 ### 🌟 **Star Recommendation**: `quantdb_gtm_infographic.png`
+
 This comprehensive infographic is particularly valuable for:
 - Social media campaigns
 - Marketing brochures
