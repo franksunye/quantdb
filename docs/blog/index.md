@@ -7,6 +7,8 @@ Welcome to the QuantDB technical blog! Here we share in-depth content about high
 ### 🔧 Technical Deep Dive
 In-depth exploration of QuantDB's architecture design, performance optimization principles, and technical implementation details.
 
+- [**QuantDB Performance Benchmark Report: 99.9% Speed Improvement Verified**](quantdb-performance-benchmark-report.md) - Comprehensive testing methodology and verified results with detailed chart analysis
+- [**Visual Guide: Understanding QuantDB's Performance Advantages**](visual-guide-quantdb-performance-advantages.md) - Complete chart interpretation guide and usage recommendations for different audiences
 - [**QuantDB Architecture Deep Dive: How We Achieved 98% Performance Improvement**](architecture-deep-dive.md) - Detailed analysis of caching strategies, database design, and incremental update mechanisms
 - [**Performance Optimization Guide for Financial Data Processing**](performance-optimization-guide.md) - Smart caching and trading calendar-aware optimization methods
 
@@ -25,7 +27,8 @@ Trend analysis and forward-thinking perspectives on fintech, quantitative tradin
 
 ## 🎯 Why Choose QuantDB?
 
-- **🚀 98%+ Performance Improvement** - Response time drops from 1000ms to 18ms on cache hits
+- **🚀 99.9% Performance Improvement** - Response time drops from 2000ms to 3ms with verified benchmarks
+- **⚡ Up to 1,288× Speedup** - Extraordinary performance gains with intelligent caching
 - **🔄 100% API Compatibility** - Seamless AKShare replacement with zero learning curve
 - **🧠 Smart Caching Strategy** - Automatic data updates based on trading calendar
 - **📦 Easy Installation** - Simple pip install with zero configuration required
@@ -39,7 +42,7 @@ pip install quantdb
 
 ```python
 import qdb
-# Get stock data (auto-cached, 98% performance improvement)
+# Get stock data (auto-cached, 99.9% performance improvement)
 df = qdb.get_stock_data("000001", days=30)
 # Real-time quotes
 realtime = qdb.get_realtime_data("000001")
