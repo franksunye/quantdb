@@ -48,7 +48,7 @@ jobs:
 
     - name: Check formatting with black
       run: |
-        black --check --line-length=100 .
+        black --check --line-length=88 .
 
     - name: Check imports with isort
       run: |
