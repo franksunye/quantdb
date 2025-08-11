@@ -423,7 +423,6 @@ The future belongs to those who can process data faster, more accurately, and mo
 **Related Articles**:
 - [QuantDB Architecture Deep Dive](architecture-deep-dive.md)
 - [Quantitative Fund Case Study](quantitative-fund-case-study.md)
-- [Product Ecosystem Guide](product-ecosystem-guide.md)
 
 **Stay Connected**:
 - [GitHub Repository](https://github.com/franksunye/quantdb)
