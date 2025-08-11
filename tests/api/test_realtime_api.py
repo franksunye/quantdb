@@ -8,11 +8,12 @@ This module tests the realtime stock data API endpoints including:
 - Error handling and validation
 """
 
-import unittest
-from unittest.mock import patch, Mock
-from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
 import json
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import Mock, patch
+
+from fastapi.testclient import TestClient
 
 from api.main import app
 from core.models import RealtimeStockData
