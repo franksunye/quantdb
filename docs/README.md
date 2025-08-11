@@ -25,6 +25,7 @@ This directory contains the core documentation for the QuantDB project.
 | Document | Description |
 |----------|-------------|
 | [🔄 Migration Guide](./guides/migration_akshare_to_quantdb.md) | Migrating from AKShare to QuantDB |
+| [🇭🇰 Hong Kong Index Guide](./guides/hong-kong-index-guide.md) | Complete Hong Kong index support guide |
 
 ## 🎯 Project Overview
 
@@ -54,7 +55,7 @@ QuantDB is a high-performance stock data caching service with a **phased release
 - **Version**: v2.2.8 (current stable release)
 - **Test Coverage**: 50% coverage with 100% passing tests
 - **Performance**: 99.9% faster than AKShare
-- **Features**: Stock data, real-time quotes, financial data, index data
+- **Features**: Stock data, real-time quotes, financial data, index data (A-share + Hong Kong)
 
 For more details, see the [Changelog](./changelog.md).
 

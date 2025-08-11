@@ -26,10 +26,13 @@ The following functions are exported by qdb (see qdb/__init__.py). Parameters an
 ## Index
 - get_index_data(symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, period: str = "daily", force_refresh: bool = False) -> DataFrame
   - Historical index data for specified period ('daily'|'weekly'|'monthly').
+  - **Hong Kong Support**: HSI, HSCEI, HSTECH with aliases (^HSI, HK.HSI, HANG SENG, etc.)
 - get_index_realtime(symbol: str, force_refresh: bool = False) -> Dict[str, Any]
   - Realtime index quote.
+  - **Hong Kong Support**: Real-time quotes for HSI, HSCEI, HSTECH
 - get_index_list(category: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]
   - Daily-cached index list by category.
+  - **Categories**: "沪深重要指数", "上证系列指数", "深证系列指数", "中证系列指数", "香港指数"
 
 ## Stock List
 - get_stock_list(market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]

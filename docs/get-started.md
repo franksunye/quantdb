@@ -93,6 +93,31 @@ qdb.set_log_level("INFO")
 ```
 
 Note: TTL is managed internally; there are no `set_cache_expire` / `disable_cache` / `enable_cache` functions in this version.
+
+## 🇭🇰 Hong Kong Index Support
+
+QuantDB now supports Hong Kong stock indexes with international symbol conventions:
+
+```python
+# Hong Kong major indexes
+hsi_data = qdb.get_index_data('HSI', '20240101', '20240131', 'daily')        # Hang Seng Index
+hscei_data = qdb.get_index_data('HSCEI', '20240101', '20240131', 'daily')    # H-shares Index
+hstech_data = qdb.get_index_data('HSTECH', '20240101', '20240131', 'daily')  # Hang Seng TECH
+
+# Realtime quotes
+hsi_quote = qdb.get_index_realtime('HSI')
+print(f"HSI: {hsi_quote['price']} ({hsi_quote['pct_change']:+.2f}%)")
+
+# Symbol aliases also work
+hsi_data = qdb.get_index_data('^HSI', '20240101', '20240131', 'daily')       # Bloomberg style
+hsi_data = qdb.get_index_data('HANG SENG', '20240101', '20240131', 'daily')  # Full name
+
+# Get all Hong Kong indexes
+hk_indexes = qdb.get_index_list(category='香港指数')
+print(f"Found {len(hk_indexes)} Hong Kong indexes")
+```
+
+See [Hong Kong Index Guide](./guides/hong-kong-index-guide.md) for complete documentation.
 See API Reference for financial summaries/indicators and more.
 
 ## Run the examples
@@ -103,6 +128,7 @@ python examples/realtime.py
 python examples/stock_list.py
 python examples/finance.py
 python examples/cache_management.py
+python examples/hong_kong_indexes.py    # 🇭🇰 Hong Kong index demo
 ```
 
 ## 🚨 Troubleshooting
