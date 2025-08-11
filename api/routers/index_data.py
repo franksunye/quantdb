@@ -282,13 +282,18 @@ async def get_index_categories():
             },
             {
                 "code": "深证系列指数",
-                "name": "Shenzhen Stock Exchange Indexes", 
+                "name": "Shenzhen Stock Exchange Indexes",
                 "description": "Shenzhen Stock Exchange index series"
             },
             {
                 "code": "中证系列指数",
                 "name": "CSI Index Series",
                 "description": "China Securities Index series"
+            },
+            {
+                "code": "香港指数",
+                "name": "Hong Kong Stock Indexes",
+                "description": "Hang Seng family indexes including HSI, HSCEI, HSTECH"
             }
         ]
         

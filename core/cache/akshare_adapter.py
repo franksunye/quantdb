@@ -882,6 +882,43 @@ class AKShareAdapter:
             logger.error(f"Error getting stock list: {e}")
             raise
 
+
+    def _normalize_hk_index_symbol(self, symbol: str) -> Optional[Dict[str, str]]:
+        """Normalize various HK index symbol inputs to standard code and name.
+        Supported codes: HSI, HSCEI, HSTECH.
+        Returns dict with keys: code, name_cn. Returns None if not HK index.
+        """
+        if not symbol:
+            return None
+        s = str(symbol).strip().upper()
+        # remove common prefixes/suffixes like ^ and HK.
+        if s.startswith('^'):
+            s = s[1:]
+        if s.startswith('HK.'):
+            s = s[3:]
+        # common long names mapping
+        long_map = {
+            'HANGSENG': 'HSI',
+            'HANG SENG': 'HSI',
+            'HANG SENG INDEX': 'HSI',
+            'HANGSENG INDEX': 'HSI',
+            'HANGSENG TECH': 'HSTECH',
+            'HANG SENG TECH': 'HSTECH',
+            'HANG SENG CHINA ENTERPRISES': 'HSCEI',
+            'HS CHINA ENTERPRISES': 'HSCEI',
+            'H SHARES': 'HSCEI',
+        }
+        if s in long_map:
+            s = long_map[s]
+        code_map = {
+            'HSI': '恒生指数',
+            'HSCEI': '恒生中国企业指数',
+            'HSTECH': '恒生科技指数',
+        }
+        if s in code_map:
+            return {'code': s, 'name_cn': code_map[s]}
+        return None
+
     def get_index_data(
         self,
         symbol: str,
@@ -932,20 +969,55 @@ class AKShareAdapter:
             if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
                 clean_symbol = clean_symbol[2:]
 
-            logger.info(f"Getting index data using index_zh_a_hist for {clean_symbol} with period={period}")
-
-            # Use index_zh_a_hist for index data
-            df = self._safe_call(
-                ak.index_zh_a_hist,
-                symbol=clean_symbol,
-                period=period,
-                start_date=start_date,
-                end_date=end_date
-            )
+            # Detect if HK major index
+            hk_info = self._normalize_hk_index_symbol(symbol)
+            if hk_info:
+                logger.info(f"Detected HK index {hk_info['code']}, fetching via stock_hk_index_daily_sina")
+                # For HK indices, AKShare provides stock_hk_index_daily_sina(symbol)
+                # symbol choices include HSI, HSCEI, HSTECH etc; returns columns: date, open, high, low, close, volume
+                df = self._safe_call(
+                    ak.stock_hk_index_daily_sina,
+                    symbol=hk_info['code']
+                )
+                if df is None or df.empty:
+                    logger.warning(f"No HK index data available for {symbol}")
+                    return pd.DataFrame()
+                # Standardize column names to match A-share index schema
+                df = df.rename(columns={
+                    'date': 'date',
+                    'open': 'open',
+                    'high': 'high',
+                    'low': 'low',
+                    'close': 'close',
+                    'volume': 'volume'
+                })
+                # Add name if missing
+                if 'name' not in df.columns:
+                    df['name'] = hk_info['name_cn']
+            else:
+                logger.info(f"Getting index data using index_zh_a_hist for {clean_symbol} with period={period}")
+                # Use index_zh_a_hist for A-share index data
+                df = self._safe_call(
+                    ak.index_zh_a_hist,
+                    symbol=clean_symbol,
+                    period=period,
+                    start_date=start_date,
+                    end_date=end_date
+                )
 
             if df is None or df.empty:
                 logger.warning(f"No index data available for {symbol}")
                 return pd.DataFrame()
+
+            # After getting data, apply date range filter for HK indices if needed
+            if hk_info and 'date' in df.columns and start_date and end_date:
+                try:
+                    df['date'] = pd.to_datetime(df['date'])
+                    _sdt = pd.to_datetime(start_date, format='%Y%m%d')
+                    _edt = pd.to_datetime(end_date, format='%Y%m%d')
+                    df = df[(df['date'] >= _sdt) & (df['date'] <= _edt)]
+                except Exception as _:
+                    pass
 
             # Standardize column names
             df = df.copy()
@@ -1013,16 +1085,30 @@ class AKShareAdapter:
             if clean_symbol.lower().startswith("sh") or clean_symbol.lower().startswith("sz"):
                 clean_symbol = clean_symbol[2:]
 
-            # Use stock_zh_index_spot_em for realtime index data
-            # This returns all indexes, we need to filter for the specific symbol
-            df = self._safe_call(ak.stock_zh_index_spot_em, symbol="沪深重要指数")
+            # If HK index, use HK index realtime interface
+            hk_info = self._normalize_hk_index_symbol(symbol)
+            if hk_info:
+                df = self._safe_call(ak.stock_hk_index_spot_sina)
+                if df is None or df.empty:
+                    logger.warning("No realtime HK index data available")
+                    return pd.DataFrame()
+                # filter by code column '代码' matching HSI/HSCEI/HSTECH
+                symbol_df = df[df['代码'].str.upper() == hk_info['code']] if '代码' in df.columns else pd.DataFrame()
+                if symbol_df.empty:
+                    logger.warning(f"HK Index {hk_info['code']} not found in realtime data")
+                    return pd.DataFrame()
+            else:
+                # Use stock_zh_index_spot_em for A-share realtime index data
+                # This returns all indexes, we need to filter for the specific symbol
+                df = self._safe_call(ak.stock_zh_index_spot_em, symbol="沪深重要指数")
 
-            if df is None or df.empty:
-                logger.warning(f"No realtime index data available")
-                return pd.DataFrame()
+                if df is None or df.empty:
+                    logger.warning(f"No realtime index data available")
+                    return pd.DataFrame()
 
-            # Filter for the specific symbol
-            # Note: The API returns Chinese column names, we need to handle this
+                # Filter for the specific symbol
+                # Note: The API returns Chinese column names, we need to handle this
+            # Filter for the specific symbol (A-share index path)
             symbol_df = df[df['代码'] == clean_symbol] if '代码' in df.columns else pd.DataFrame()
 
             if symbol_df.empty:
@@ -1082,7 +1168,8 @@ class AKShareAdapter:
                 "沪深重要指数",
                 "上证系列指数",
                 "深证系列指数",
-                "中证系列指数"
+                "中证系列指数",
+                "香港指数"
             ]
 
             if category:
@@ -1092,14 +1179,19 @@ class AKShareAdapter:
 
             for cat in categories:
                 try:
-                    df = self._safe_call(ak.stock_zh_index_spot_em, symbol=cat)
-
-                    if df is not None and not df.empty:
-                        # Add category information
-                        df = df.copy()
-                        df['category'] = cat
-                        all_indexes.append(df)
-
+                    if cat == "香港指数":
+                        hk_df = self._safe_call(ak.stock_hk_index_spot_sina)
+                        if hk_df is not None and not hk_df.empty:
+                            hk_df = hk_df.copy()
+                            hk_df['category'] = cat
+                            all_indexes.append(hk_df)
+                    else:
+                        df = self._safe_call(ak.stock_zh_index_spot_em, symbol=cat)
+                        if df is not None and not df.empty:
+                            # Add category information
+                            df = df.copy()
+                            df['category'] = cat
+                            all_indexes.append(df)
                 except Exception as e:
                     logger.warning(f"Failed to get indexes for category {cat}: {e}")
                     continue

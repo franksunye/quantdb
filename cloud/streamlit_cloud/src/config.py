@@ -83,6 +83,10 @@ INDEX_CONFIG = {
     # "399006": "创业板指",
     # "000001": "上证指数",
     "399001": "深证成指",
+    # Hong Kong major indexes for demo
+    "HSI": "恒生指数",
+    "HSCEI": "恒生中国企业指数",
+    "HSTECH": "恒生科技指数",
 }
 
 # Function to convert index config to list of dictionaries
