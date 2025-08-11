@@ -24,6 +24,7 @@ This directory contains the core documentation for the QuantDB project.
 ### 🛠️ Development Resources
 | Document | Description |
 |----------|-------------|
+| [📚 Guides Overview](./guides/) | Complete guides collection |
 | [🔄 Migration Guide](./guides/migration_akshare_to_quantdb.md) | Migrating from AKShare to QuantDB |
 | [🇭🇰 Hong Kong Index Guide](./guides/hong-kong-index-guide.md) | Complete Hong Kong index support guide |
 
