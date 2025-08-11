@@ -147,4 +147,4 @@ If you didn’t find your answer:
 - [Project Home](https://github.com/franksunye/quantdb)
 - [PyPI](https://pypi.org/project/quantdb/)
 - [AKShare Docs](https://akshare.akfamily.xyz/)
-- [Community](community/)
+- [Community](https://github.com/franksunye/quantdb/discussions)
