@@ -126,10 +126,14 @@ def run_qdb_tests_with_coverage(threshold=70, test_categories=None):
         "--maxfail=3",  # Allow up to 3 failures
     ]
 
-    # Add parallel execution if multiple tests
+    # Add parallel execution if multiple tests and pytest-xdist is available
     if len(existing_tests) > 3:
-        cmd.extend(["-n", "auto"])  # Requires pytest-xdist
-        print("🚀 Using parallel test execution")
+        try:
+            import xdist
+            cmd.extend(["-n", "auto"])  # Requires pytest-xdist
+            print("🚀 Using parallel test execution")
+        except ImportError:
+            print("⚠️  pytest-xdist not available, running tests sequentially")
 
     # Add existing test files
     cmd.extend(existing_tests)
