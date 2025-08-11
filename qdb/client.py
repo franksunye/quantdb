@@ -49,18 +49,31 @@ class QDBClient:
             db_path = os.path.join(self.cache_dir, "qdb_cache.db")
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
 
-            # Import core components (avoid importing FastAPI related modules)
+            # Import core components
             from core.database.connection import get_db, Base, engine
             from core.cache.akshare_adapter import AKShareAdapter
+            from core.services.stock_data_service import StockDataService
+            from core.services.asset_info_service import AssetInfoService
+            from core.services.realtime_data_service import RealtimeDataService
+            from core.services.index_data_service import IndexDataService
+            from core.services.financial_data_service import FinancialDataService
 
             # Create database tables
             Base.metadata.create_all(bind=engine)
 
-            # Initialize components
+            # Initialize database session
             self._db_session = next(get_db())
-            self._akshare_adapter = AKShareAdapter()
 
-            # Simplified service (avoid importing complex service layer)
+            # Initialize AKShare adapter
+            self._akshare_adapter = AKShareAdapter(self._db_session)
+
+            # Initialize core services
+            self._stock_service = StockDataService(self._db_session, self._akshare_adapter)
+            self._asset_service = AssetInfoService(self._db_session)
+            self._realtime_service = RealtimeDataService(self._db_session, self._akshare_adapter)
+            self._index_service = IndexDataService(self._db_session, self._akshare_adapter)
+            self._financial_service = FinancialDataService(self._db_session, self._akshare_adapter)
+
             self._initialized = True
 
         except Exception as e:
@@ -148,8 +161,8 @@ class QDBClient:
                 end_date = datetime.now().strftime("%Y%m%d")
                 start_date = (datetime.now() - timedelta(days=days*2)).strftime("%Y%m%d")  # *2 to ensure enough trading days
 
-            # Use AKShare adapter directly to get data (simplified version)
-            return self._akshare_adapter.get_stock_data(
+            # Use core stock data service with intelligent caching
+            return self._stock_service.get_stock_data(
                 symbol=symbol,
                 start_date=start_date,
                 end_date=end_date,
@@ -198,13 +211,29 @@ class QDBClient:
         self._lazy_init()
 
         try:
-            # Simplified version: return basic information
-            return {
-                "symbol": symbol,
-                "name": f"Stock {symbol}",
-                "market": "A-Share" if symbol.startswith(('0', '3', '6')) else "Unknown",
-                "status": "Active"
-            }
+            # Use core asset service to get comprehensive asset information
+            asset, created = self._asset_service.get_or_create_asset(symbol)
+
+            if asset:
+                return {
+                    "symbol": asset.symbol,
+                    "name": asset.name,
+                    "isin": asset.isin,
+                    "asset_type": asset.asset_type,
+                    "exchange": asset.exchange,
+                    "currency": asset.currency,
+                    "data_source": asset.data_source,
+                    "status": "Active",
+                    "created": created
+                }
+            else:
+                # Fallback to basic information
+                return {
+                    "symbol": symbol,
+                    "name": f"Stock {symbol}",
+                    "market": "A-Share" if symbol.startswith(('0', '3', '6')) else "Unknown",
+                    "status": "Active"
+                }
         except Exception as e:
             raise DataError(f"Failed to get asset info for {symbol}: {str(e)}")
     
@@ -271,6 +300,14 @@ class QDBClient:
             - Performance gain estimates are based on typical AKShare response times
         """
         try:
+            self._lazy_init()
+
+            # Get comprehensive cache statistics from core database cache
+            if self._stock_service:
+                db_stats = self._stock_service.db_cache.get_stats()
+            else:
+                db_stats = {}
+
             # Calculate cache directory size
             cache_size = 0
             if Path(self.cache_dir).exists():
@@ -278,12 +315,24 @@ class QDBClient:
                     f.stat().st_size for f in Path(self.cache_dir).rglob('*') if f.is_file()
                 ) / (1024 * 1024)  # MB
 
-            return {
+            # Combine directory stats with database stats
+            stats = {
                 "cache_dir": self.cache_dir,
                 "cache_size_mb": round(cache_size, 2),
                 "initialized": self._initialized,
                 "status": "Running" if self._initialized else "Not initialized"
             }
+
+            # Add database statistics if available
+            if db_stats and not db_stats.get('error'):
+                stats.update({
+                    "total_assets": db_stats.get("total_assets", 0),
+                    "total_data_points": db_stats.get("total_data_points", 0),
+                    "date_range": db_stats.get("date_range", {}),
+                    "top_assets": db_stats.get("top_assets", [])
+                })
+
+            return stats
 
         except Exception as e:
             raise CacheError(f"Failed to get cache statistics: {str(e)}")
@@ -393,54 +442,19 @@ class QDBClient:
         try:
             print(f"📊 Getting financial summary for {symbol}...")
 
-            # Use AKShare adapter to get financial summary
-            df = self._akshare_adapter.get_financial_summary(symbol)
+            # Use core financial data service
+            result = self._financial_service.get_financial_summary(symbol)
 
-            if df.empty:
+            if result:
+                print(f"✅ Retrieved financial summary for {symbol}")
+                return result
+            else:
                 print(f"⚠️ No financial summary data available for {symbol}")
                 return {
                     'symbol': symbol,
                     'error': 'No financial summary data available',
                     'timestamp': datetime.now().isoformat()
                 }
-
-            # Process the data into a simplified format
-            quarters = []
-            date_columns = [col for col in df.columns if col not in ['选项', '指标']]
-
-            # Get latest 4 quarters
-            for date_col in date_columns[:4]:
-                quarter_data = {'period': date_col}
-
-                for _, row in df.iterrows():
-                    indicator = row['指标']
-                    value = row.get(date_col)
-
-                    if value is not None and not pd.isna(value):
-                        # Map key indicators
-                        if indicator == '归母净利润':
-                            quarter_data['net_profit'] = float(value)
-                        elif indicator == '营业总收入':
-                            quarter_data['total_revenue'] = float(value)
-                        elif indicator == '营业成本':
-                            quarter_data['operating_cost'] = float(value)
-                        elif indicator == '净资产收益率':
-                            quarter_data['roe'] = float(value)
-                        elif indicator == '总资产收益率':
-                            quarter_data['roa'] = float(value)
-
-                quarters.append(quarter_data)
-
-            result = {
-                'symbol': symbol,
-                'data_type': 'financial_summary',
-                'quarters': quarters,
-                'count': len(quarters),
-                'timestamp': datetime.now().isoformat()
-            }
-
-            print(f"✅ Retrieved financial summary for {symbol} ({len(quarters)} quarters)")
-            return result
 
         except Exception as e:
             print(f"⚠️ Error getting financial summary for {symbol}: {e}")
@@ -533,29 +547,19 @@ class QDBClient:
         try:
             print(f"📈 Getting financial indicators for {symbol}...")
 
-            # Use AKShare adapter to get financial indicators
-            df = self._akshare_adapter.get_financial_indicators(symbol)
+            # Use core financial data service
+            result = self._financial_service.get_financial_indicators(symbol)
 
-            if df.empty:
+            if result:
+                print(f"✅ Retrieved financial indicators for {symbol}")
+                return result
+            else:
                 print(f"⚠️ No financial indicators data available for {symbol}")
                 return {
                     'symbol': symbol,
                     'error': 'No financial indicators data available',
                     'timestamp': datetime.now().isoformat()
                 }
-
-            # Process the indicators data
-            result = {
-                'symbol': symbol,
-                'data_type': 'financial_indicators',
-                'data_shape': f"{df.shape[0]}x{df.shape[1]}",
-                'columns': list(df.columns)[:10],  # First 10 columns as sample
-                'sample_data': df.head(3).to_dict('records') if len(df) > 0 else [],
-                'timestamp': datetime.now().isoformat()
-            }
-
-            print(f"✅ Retrieved financial indicators for {symbol} (shape: {df.shape})")
-            return result
 
         except Exception as e:
             print(f"⚠️ Error getting financial indicators for {symbol}: {e}")
@@ -565,6 +569,79 @@ class QDBClient:
                 'timestamp': datetime.now().isoformat()
             }
 
+    def get_realtime_data(self, symbol: str, force_refresh: bool = False) -> Dict[str, Any]:
+        """Get real-time stock data"""
+        self._lazy_init()
+
+        try:
+            return self._realtime_service.get_realtime_data(symbol)
+        except Exception as e:
+            raise DataError(f"Failed to get realtime data for {symbol}: {str(e)}")
+
+    def get_realtime_data_batch(self, symbols: List[str], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+        """Get realtime data for multiple stocks"""
+        self._lazy_init()
+
+        try:
+            return self._realtime_service.get_realtime_data_batch(symbols)
+        except Exception as e:
+            raise DataError(f"Failed to get batch realtime data: {str(e)}")
+
+    def get_stock_list(self, market: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """Get stock list"""
+        self._lazy_init()
+
+        try:
+            # Use AKShare adapter to get stock list
+            df = self._akshare_adapter.get_stock_list(market)
+            if not df.empty:
+                return df.to_dict('records')
+            else:
+                return []
+        except Exception as e:
+            raise DataError(f"Failed to get stock list: {str(e)}")
+
+    def get_index_data(self, symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> pd.DataFrame:
+        """Get index historical data"""
+        self._lazy_init()
+
+        try:
+            return self._index_service.get_index_data(symbol, start_date, end_date)
+        except Exception as e:
+            raise DataError(f"Failed to get index data for {symbol}: {str(e)}")
+
+    def get_index_realtime(self, symbol: str) -> Dict[str, Any]:
+        """Get index realtime data"""
+        self._lazy_init()
+
+        try:
+            return self._index_service.get_index_realtime_data(symbol)
+        except Exception as e:
+            raise DataError(f"Failed to get index realtime data for {symbol}: {str(e)}")
+
+    def get_index_list(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get index list"""
+        self._lazy_init()
+
+        try:
+            df = self._index_service.get_index_list(category)
+            if not df.empty:
+                return df.to_dict('records')
+            else:
+                return []
+        except Exception as e:
+            raise DataError(f"Failed to get index list: {str(e)}")
+
+    def clear_cache(self, symbol: Optional[str] = None):
+        """Clear cache"""
+        # For now, just print a message
+        print(f"🗑️ Cache clear requested for {symbol or 'all symbols'}")
+        print("💡 Cache clearing will be implemented in future versions")
+
+    def stock_zh_a_hist(self, symbol: str, **kwargs) -> pd.DataFrame:
+        """AKShare compatible interface"""
+        return self.get_stock_data(symbol, **kwargs)
+
 # Global client instance
 _global_client: Optional[QDBClient] = None
 
@@ -572,12 +649,9 @@ def _get_client():
     """Get global client instance"""
     global _global_client
     if _global_client is None:
-        # Use simplified version directly to avoid dependency issues
-        _global_client = SimpleQDBClient()
+        # Use the new core-integrated QDBClient
+        _global_client = QDBClient()
     return _global_client
-
-# Import simplified client as fallback
-from .simple_client import SimpleQDBClient
 
 # Public API functions
 def init(cache_dir: Optional[str] = None):
@@ -588,9 +662,8 @@ def init(cache_dir: Optional[str] = None):
         cache_dir: Cache directory path
     """
     global _global_client
-    # Use simplified client directly to avoid dependency issues
-    print("🚀 Using QDB simplified mode (standalone version)")
-    _global_client = SimpleQDBClient(cache_dir)
+    print("🚀 Initializing QDB with core services")
+    _global_client = QDBClient(cache_dir)
     print(f"✅ QDB initialized, cache directory: {_global_client.cache_dir}")
 
 def get_stock_data(symbol: str, start_date: Optional[str] = None, end_date: Optional[str] = None, **kwargs) -> pd.DataFrame:
