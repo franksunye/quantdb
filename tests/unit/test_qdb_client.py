@@ -259,14 +259,22 @@ class TestQDBClient(unittest.TestCase):
         """测试cache_stats函数"""
         with patch('qdb.client._get_client') as mock_get_client:
             mock_client = MagicMock()
-            mock_stats = {"total_records": 1000, "cache_size_mb": 10.5}
+            # Ensure the mock returns the expected structure with total_records
+            mock_stats = {
+                "cache_dir": "/test/cache",
+                "cache_size_mb": 10.5,
+                "total_records": 1000,
+                "initialized": True,
+                "status": "Running"
+            }
             mock_client.cache_stats.return_value = mock_stats
             mock_get_client.return_value = mock_client
-            
+
             result = qdb.cache_stats()
-            
+
             self.assertIsInstance(result, dict)
             self.assertEqual(result["total_records"], 1000)
+            self.assertEqual(result["cache_size_mb"], 10.5)
             mock_client.cache_stats.assert_called_once()
 
     def test_clear_cache(self):
@@ -274,10 +282,11 @@ class TestQDBClient(unittest.TestCase):
         with patch('qdb.client._get_client') as mock_get_client:
             mock_client = MagicMock()
             mock_get_client.return_value = mock_client
-            
+
             qdb.clear_cache()
-            
-            mock_client.clear_cache.assert_called_once()
+
+            # Verify the clear_cache method was called with None (default parameter)
+            mock_client.clear_cache.assert_called_once_with(None)
 
     def test_stock_zh_a_hist_compatibility(self):
         """测试AKShare兼容性接口"""
@@ -341,12 +350,18 @@ class TestQDBClient(unittest.TestCase):
         """测试API调用错误处理"""
         with patch('qdb.client._get_client') as mock_get_client:
             mock_client = MagicMock()
+            # Set up the mock to raise an exception
             mock_client.get_stock_data.side_effect = Exception("API error")
             mock_get_client.return_value = mock_client
 
             # API调用失败时，应该抛出异常
-            with self.assertRaises(Exception):
+            with self.assertRaises(Exception) as context:
                 qdb.get_stock_data("000001")
+
+            # Verify the exception message
+            self.assertIn("API error", str(context.exception))
+            # Verify the mock was called
+            mock_client.get_stock_data.assert_called_once()
 
     def test_multiple_client_instances(self):
         """测试多个客户端实例"""
