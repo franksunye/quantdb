@@ -4,20 +4,21 @@ E2E测试基类
 提供E2E测试的基础设施，包括服务器管理、数据库清理等
 """
 
-import unittest
-import requests
-import time
-import sys
 import os
+import sys
+import time
+import unittest
 from pathlib import Path
+
+import requests
 
 # 添加项目根目录到路径
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from core.utils.logger import get_logger
 from tests.e2e.config import e2e_config
 from tests.e2e.server_manager import server_manager
-from core.utils.logger import get_logger
 
 logger = get_logger("e2e_base_test")
 

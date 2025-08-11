@@ -5,13 +5,14 @@ Provides stock data export functionality, supports CSV and Excel formats,
 with customizable export range and format options.
 """
 
-import streamlit as st
-import pandas as pd
 import io
-from datetime import datetime, date, timedelta
-import sys
 import json
+import sys
+from datetime import date, datetime, timedelta
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent
@@ -52,9 +53,9 @@ def init_services():
     try:
         if not CLOUD_MODE:
             # 完整模式：使用core模块
-            from core.services import StockDataService, AssetInfoService
             from core.cache import AKShareAdapter
             from core.database import get_db
+            from core.services import AssetInfoService, StockDataService
 
             db_session = next(get_db())
             akshare_adapter = AKShareAdapter()

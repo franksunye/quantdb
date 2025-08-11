@@ -2,7 +2,7 @@
 Stock data models for QuantDB core
 """
 
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, Boolean, DateTime
+from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from ..database.connection import Base

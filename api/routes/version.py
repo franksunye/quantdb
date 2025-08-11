@@ -4,11 +4,12 @@ API version routes.
 This module provides routes for retrieving API version information.
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Path
-from pydantic import BaseModel
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict
+
+from fastapi import APIRouter, HTTPException, Path
+from pydantic import BaseModel
 
 from core.utils.logger import get_logger
 

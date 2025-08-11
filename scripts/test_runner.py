@@ -6,16 +6,18 @@ This script consolidates all test running functionality into a single tool,
 replacing the multiple test scripts with a unified interface.
 """
 
+import argparse
 import os
+import subprocess
 import sys
 import time
-import subprocess
-import requests
-import argparse
 import webbrowser
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
+
+import requests
+
 
 class TestRunnerClass:
     """Unified test runner for the QuantDB project."""

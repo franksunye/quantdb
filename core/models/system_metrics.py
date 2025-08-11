@@ -2,7 +2,7 @@
 System monitoring and metrics models for QuantDB core
 """
 
-from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.sql import func
 
 from ..database.connection import Base

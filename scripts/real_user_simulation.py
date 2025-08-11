@@ -4,10 +4,10 @@ QuantDB Package 真实用户使用模拟
 从用户发现到实际使用的完整流程
 """
 
+import os
 import subprocess
 import sys
 import time
-import os
 from datetime import datetime
 
 
@@ -155,8 +155,9 @@ def simulate_first_usage():
     print_user_action("qdb.get_stock_data('000001', days=30)")
 
     try:
-        import qdb
         import time
+
+        import qdb
 
         start_time = time.time()
         print("⏳ 首次获取数据中（可能需要从网络下载）...")
@@ -198,8 +199,9 @@ def simulate_performance_test():
     print_user_action("qdb.get_stock_data('000001', days=30)")
 
     try:
-        import qdb
         import time
+
+        import qdb
 
         start_time = time.time()
         print("⚡ 从缓存获取数据...")

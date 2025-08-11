@@ -3,22 +3,23 @@ Integration tests for error handling.
 
 This module tests the integration of the error handling system with the API.
 """
-import unittest
 import json
-from fastapi.testclient import TestClient
-from fastapi import HTTPException, status
+import unittest
 
-from api.main import app
-from core.utils.config import API_PREFIX
+from fastapi import HTTPException, status
+from fastapi.testclient import TestClient
+
 from api.errors import (
-    ErrorCode,
-    QuantDBException,
-    DataNotFoundException,
-    DataFetchException,
     AKShareException,
     DatabaseException,
-    MCPProcessingException
+    DataFetchException,
+    DataNotFoundException,
+    ErrorCode,
+    MCPProcessingException,
+    QuantDBException,
 )
+from api.main import app
+from core.utils.config import API_PREFIX
 
 # Create test client
 client = TestClient(app)

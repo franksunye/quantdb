@@ -4,20 +4,22 @@ Pytest configuration file with shared fixtures
 
 import sys
 from pathlib import Path
+
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
 
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from api.main import app  # , mcp_interpreter  # MCP功能已归档
-from core.database import get_db, Base
-from core.models import Asset, DailyStockData
-from core.cache.akshare_adapter import AKShareAdapter
 from datetime import date, timedelta
+
+from api.main import app  # , mcp_interpreter  # MCP功能已归档
+from core.cache.akshare_adapter import AKShareAdapter
+from core.database import Base, get_db
+from core.models import Asset, DailyStockData
 
 # Use a file-based SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./database/test_db.db"

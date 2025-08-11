@@ -4,13 +4,14 @@ Watchlist Management Page - Cloud Version
 Users can add, remove, manage watchlist stocks, and perform batch queries and analysis.
 """
 
-import streamlit as st
-import pandas as pd
 import json
 import os
-from datetime import datetime, date, timedelta
 import sys
+from datetime import date, datetime, timedelta
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # Add project root directory to Python path to access core modules
 current_dir = Path(__file__).parent.parent
@@ -19,9 +20,9 @@ sys.path.insert(0, str(project_root))
 
 # Import utility components
 try:
-    from utils.charts import create_price_chart, calculate_basic_metrics
+    from utils.charts import calculate_basic_metrics, create_price_chart
     from utils.config import config
-    from utils.stock_validator import validate_stock_code, get_stock_recommendations
+    from utils.stock_validator import get_stock_recommendations, validate_stock_code
 
     ADVANCED_FEATURES = True
 except ImportError:
@@ -74,9 +75,9 @@ def save_watchlist(watchlist):
 def init_services():
     """Initialize service instances"""
     try:
-        from core.services import StockDataService, AssetInfoService
         from core.cache import AKShareAdapter
         from core.database import get_db
+        from core.services import AssetInfoService, StockDataService
 
         db_session = next(get_db())
         akshare_adapter = AKShareAdapter()
@@ -415,7 +416,7 @@ def display_batch_query_results(services):
     try:
         # 尝试使用高性能批量客户端
         try:
-            from utils.batch_client import get_batch_client, create_st_batch_progress
+            from utils.batch_client import create_st_batch_progress, get_batch_client
 
             batch_client = get_batch_client()
             symbols = list(st.session_state.watchlist.keys())

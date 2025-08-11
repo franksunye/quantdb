@@ -1,14 +1,16 @@
 """
 Tests for historical stock data API endpoints
 """
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
+import pytest
+
+from core.cache.akshare_adapter import AKShareAdapter
+from core.models import Asset, DailyStockData
 
 # Import from conftest.py
 from tests.conftest import client, test_db
-from core.cache.akshare_adapter import AKShareAdapter
-from core.models import DailyStockData, Asset
 
 # Sample test data - using correct date format YYYYMMDD
 SAMPLE_STOCK_DATA = pd.DataFrame({

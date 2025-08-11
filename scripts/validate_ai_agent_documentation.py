@@ -10,9 +10,9 @@ and example code validity.
 import ast
 import inspect
 import re
-from typing import List, Dict, Any, Optional
 import sys
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path
 project_root = Path(__file__).parent.parent

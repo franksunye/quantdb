@@ -9,9 +9,11 @@ These examples show proper error handling, data analysis patterns, and
 typical workflows for financial research and quantitative analysis.
 """
 
-import qdb
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import pandas as pd
+
+import qdb
 
 
 def example_financial_summary_analysis():

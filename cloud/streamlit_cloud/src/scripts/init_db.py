@@ -9,13 +9,14 @@ from pathlib import Path
 # Add the parent directory to the path for imports
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
-from sqlalchemy import create_engine, text
-from sqlalchemy.exc import SQLAlchemyError
 import logging
 
-from core.utils.config import DATABASE_URL, DATABASE_PATH
-from core.models import Base
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import SQLAlchemyError
+
 from core.database import engine
+from core.models import Base
+from core.utils.config import DATABASE_PATH, DATABASE_URL
 from core.utils.logger import get_logger
 
 # Setup logger

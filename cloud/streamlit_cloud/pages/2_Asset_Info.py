@@ -6,12 +6,13 @@ Provides stock asset information query functionality,
 supports manual input and browsing existing assets.
 """
 
-import streamlit as st
-import time
-import sys
 import os
+import sys
+import time
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
+import streamlit as st
 
 # Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -22,8 +23,8 @@ if project_root not in sys.path:
 
 # Import existing backend services (direct call, not through HTTP API)
 try:
-    from core.services import AssetInfoService, QueryService
     from core.database import get_db
+    from core.services import AssetInfoService, QueryService
 
     BACKEND_SERVICES_AVAILABLE = True
 except ImportError as e:
@@ -809,10 +810,12 @@ def display_data_coverage(symbol: str):
 
     try:
         # Use backend service to directly query database
-        from core.database import get_db
-        from core.models import DailyStockData, Asset
         from datetime import date, timedelta
+
         from sqlalchemy import func
+
+        from core.database import get_db
+        from core.models import Asset, DailyStockData
 
         # Get database session
         db_session = next(get_db())

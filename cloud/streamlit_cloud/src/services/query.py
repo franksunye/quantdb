@@ -2,9 +2,10 @@
 Data query service for QuantDB
 """
 
-from typing import Dict, Any, List, Optional, Union, Tuple
 from datetime import date, datetime, timedelta
-from sqlalchemy import func, and_, or_, desc, asc
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+from sqlalchemy import and_, asc, desc, func, or_
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.expression import BinaryExpression
 

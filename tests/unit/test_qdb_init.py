@@ -8,9 +8,9 @@
 - __all__ 列表完整性
 """
 
-import unittest
 import types
-from unittest.mock import patch, MagicMock
+import unittest
+from unittest.mock import MagicMock, patch
 
 
 class TestQDBInit(unittest.TestCase):
@@ -19,7 +19,7 @@ class TestQDBInit(unittest.TestCase):
     def test_version_info(self):
         """测试版本信息"""
         import qdb
-        
+
         # 测试版本信息存在
         self.assertTrue(hasattr(qdb, '__version__'))
         self.assertTrue(hasattr(qdb, '__author__'))
@@ -38,7 +38,7 @@ class TestQDBInit(unittest.TestCase):
     def test_core_api_imports(self):
         """测试核心API函数导入"""
         import qdb
-        
+
         # 核心功能
         core_functions = [
             'init', 'get_stock_data', 'get_multiple_stocks', 'get_asset_info'
@@ -148,7 +148,7 @@ class TestQDBInit(unittest.TestCase):
     def test_all_list_completeness(self):
         """测试__all__列表的完整性"""
         import qdb
-        
+
         # 检查__all__存在
         self.assertTrue(hasattr(qdb, '__all__'))
         self.assertIsInstance(qdb.__all__, list)
@@ -180,6 +180,7 @@ class TestQDBInit(unittest.TestCase):
         """测试导入过程无错误"""
         try:
             import qdb
+
             # 测试基本属性访问不会引发错误
             _ = qdb.__version__
             _ = qdb.get_stock_data
@@ -192,7 +193,7 @@ class TestQDBInit(unittest.TestCase):
         # 重新导入以测试延迟加载
         import importlib
         import sys
-        
+
         # 清除模块缓存
         modules_to_clear = [name for name in sys.modules.keys() if name.startswith('qdb')]
         for module_name in modules_to_clear:
@@ -201,7 +202,7 @@ class TestQDBInit(unittest.TestCase):
         
         # 重新导入
         import qdb
-        
+
         # 验证基本功能可用
         self.assertTrue(hasattr(qdb, 'get_stock_data'))
         self.assertTrue(callable(qdb.get_stock_data))

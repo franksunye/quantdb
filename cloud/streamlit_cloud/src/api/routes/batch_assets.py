@@ -6,10 +6,11 @@ This module provides batch processing capabilities for asset information
 to improve performance when dealing with multiple stocks.
 """
 
-from typing import List, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
-from sqlalchemy.orm import Session
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from core.database import get_db
 from core.services.asset_info_service import AssetInfoService

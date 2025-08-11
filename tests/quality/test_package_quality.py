@@ -10,21 +10,22 @@ the Package version meets production standards including:
 - Security checks
 """
 
-import unittest
-import time
 import json
 import os
 import subprocess
 import sys
-from pathlib import Path
+import time
+import unittest
 from datetime import datetime, timedelta
-from unittest.mock import patch, Mock
+from pathlib import Path
+from unittest.mock import Mock, patch
+
 from fastapi.testclient import TestClient
 
 from api.main import app
-from core.models import Asset, DailyStockData
-from core.services import StockDataService, AssetInfoService
 from core.cache import AKShareAdapter
+from core.models import Asset, DailyStockData
+from core.services import AssetInfoService, StockDataService
 
 
 class TestPackageQuality(unittest.TestCase):
@@ -153,8 +154,8 @@ class TestPerformanceBenchmarks(unittest.TestCase):
     
     def test_concurrent_request_handling(self):
         """Test concurrent request handling capability."""
-        import threading
         import queue
+        import threading
         
         results = queue.Queue()
         
@@ -199,8 +200,9 @@ class TestDataIntegrity(unittest.TestCase):
         """Test data model constraints and validation."""
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
-        from core.models import Base, Asset, DailyStockData
-        
+
+        from core.models import Asset, Base, DailyStockData
+
         # Create in-memory test database
         engine = create_engine("sqlite:///:memory:")
         Base.metadata.create_all(engine)
@@ -248,8 +250,8 @@ class TestDataIntegrity(unittest.TestCase):
     
     def test_data_validation_rules(self):
         """Test data validation rules."""
-        from core.utils.validators import validate_stock_symbol, validate_date_format
-        
+        from core.utils.validators import validate_date_format, validate_stock_symbol
+
         # Test symbol validation
         valid_symbols = ["000001", "600000", "300001"]
         invalid_symbols = ["", "INVALID", "00001", "0000001"]
@@ -343,10 +345,10 @@ class TestCodeQualityMetrics(unittest.TestCase):
         """Test import structure and dependencies."""
         # Test that core modules can be imported
         try:
-            from core.models import Asset, DailyStockData
-            from core.services import StockDataService, AssetInfoService
-            from core.cache import AKShareAdapter
             from api.main import app
+            from core.cache import AKShareAdapter
+            from core.models import Asset, DailyStockData
+            from core.services import AssetInfoService, StockDataService
         except ImportError as e:
             self.fail(f"Failed to import core modules: {e}")
     

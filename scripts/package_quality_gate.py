@@ -13,14 +13,14 @@ Quality Gates:
 - Documentation Complete
 """
 
-import os
-import sys
 import json
+import os
 import subprocess
+import sys
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class PackageQualityGate:
@@ -298,6 +298,7 @@ class PackageQualityGate:
         try:
             # Test API endpoints
             from fastapi.testclient import TestClient
+
             from api.main import app
 
             client = TestClient(app)

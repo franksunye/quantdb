@@ -1,7 +1,8 @@
-import qdb
+import json
 import time
 from datetime import datetime
-import json
+
+import qdb
 
 
 def format_price_change(data):

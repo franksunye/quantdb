@@ -74,8 +74,9 @@ def diagnose_environment():
     # 5. Test database connection
     print("\n5. Database Connection Test:")
     try:
-        from core.database import engine
         from sqlalchemy import text
+
+        from core.database import engine
 
         with engine.connect() as conn:
             result = conn.execute(text("SELECT 1"))

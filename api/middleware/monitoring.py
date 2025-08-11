@@ -6,9 +6,10 @@ This middleware tracks API requests and performance metrics.
 
 import time
 from typing import Callable
+
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.orm import Session
+from starlette.middleware.base import BaseHTTPMiddleware
 
 # Import core modules
 from core.database.connection import SessionLocal

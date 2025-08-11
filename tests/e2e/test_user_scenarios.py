@@ -6,7 +6,9 @@
 
 import time
 import unittest
+
 from tests.e2e.base_e2e_test import BaseE2ETest, logger
+
 
 class TestUserScenarios(BaseE2ETest):
     """用户场景E2E测试"""

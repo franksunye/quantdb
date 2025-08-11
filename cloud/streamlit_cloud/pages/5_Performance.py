@@ -4,12 +4,13 @@ Performance Monitoring Page - Cloud Version
 Display system performance metrics, cache hit rates and response time monitoring.
 """
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta
-import time
 import sys
+import time
+from datetime import datetime, timedelta
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # 添加项目根目录到Python路径以访问core模块
 current_dir = Path(__file__).parent
@@ -18,8 +19,8 @@ sys.path.insert(0, str(project_root))
 
 # 导入工具组件
 try:
-    import plotly.graph_objects as go
     import plotly.express as px
+    import plotly.graph_objects as go
 
     ADVANCED_FEATURES = True
 except ImportError:
@@ -51,9 +52,9 @@ def init_services():
     try:
         if not CLOUD_MODE:
             # Full mode: use core modules
-            from core.services import StockDataService, DatabaseCache
             from core.cache import AKShareAdapter
             from core.database import get_db
+            from core.services import DatabaseCache, StockDataService
 
             db_session = next(get_db())
             akshare_adapter = AKShareAdapter()

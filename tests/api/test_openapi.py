@@ -5,10 +5,11 @@
 这个测试模块验证OpenAPI文档是否正确加载和提供。
 """
 
+import json
 import os
 import sys
-import json
 import unittest
+
 from fastapi.testclient import TestClient
 
 # 添加项目根目录到路径

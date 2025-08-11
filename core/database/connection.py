@@ -5,14 +5,11 @@ This module provides database connection management and session handling
 for the QuantDB core layer.
 """
 
-from typing import Union, Generator
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import Session
-
 # Import type hints for adapters (removed deprecated src/ imports)
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Generator, Union
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 # Configuration will be imported from core.utils.config
 from ..utils.config import DATABASE_URL, DB_TYPE

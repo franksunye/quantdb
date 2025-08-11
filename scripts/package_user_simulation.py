@@ -4,10 +4,10 @@ QuantDB Package 用户使用模拟
 模拟真实用户从安装到使用的完整流程
 """
 
+import os
 import subprocess
 import sys
 import time
-import os
 from datetime import datetime, timedelta
 
 
@@ -78,8 +78,9 @@ def simulate_first_use():
         import sys
 
         sys.path.insert(0, "/mnt/persist/workspace")
-        import qdb
         import time
+
+        import qdb
 
         print("🔍 用户尝试: qdb.get_stock_data('000001', days=30)")
 

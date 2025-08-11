@@ -4,12 +4,13 @@ Provides stock historical data query and chart display functionality,
 adapted for Streamlit Cloud monolithic architecture
 """
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, date, timedelta
-import sys
 import os
+import sys
 import time
+from datetime import date, datetime, timedelta
+
+import pandas as pd
+import streamlit as st
 
 # Add project root directory to path to access core modules
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,9 +21,9 @@ if project_root not in sys.path:
 
 # Import existing backend services (direct call, not through HTTP API)
 try:
-    from core.services import StockDataService, AssetInfoService
     from core.cache import AKShareAdapter
     from core.database import get_db
+    from core.services import AssetInfoService, StockDataService
 
     BACKEND_SERVICES_AVAILABLE = True
 except ImportError as e:
@@ -31,13 +32,13 @@ except ImportError as e:
 # Import chart tools (try to import from original version)
 try:
     from utils.charts import (
-        create_price_chart,
-        create_volume_chart,
-        create_metrics_dashboard,
         calculate_basic_metrics,
         create_candlestick_chart,
-        create_returns_distribution,
+        create_metrics_dashboard,
         create_performance_comparison_chart,
+        create_price_chart,
+        create_returns_distribution,
+        create_volume_chart,
     )
 
     CHARTS_AVAILABLE = True

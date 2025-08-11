@@ -13,8 +13,8 @@ Features demonstrated:
 - Data structure and formatting
 """
 
-import sys
 import os
+import sys
 from datetime import datetime, timedelta
 
 # Add project root to path for development

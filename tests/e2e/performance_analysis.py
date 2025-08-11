@@ -5,20 +5,21 @@ E2E性能分析脚本
 专门用于分析E2E测试的性能表现，提供详细的性能指标
 """
 
-import time
+import os
 import statistics
 import sys
-import os
-import requests
+import time
 from pathlib import Path
+
+import requests
 
 # 添加项目根目录到路径
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from core.utils.logger import get_logger
 from tests.e2e.config import e2e_config
 from tests.e2e.server_manager import server_manager
-from core.utils.logger import get_logger
 
 logger = get_logger("e2e_performance_analysis")
 

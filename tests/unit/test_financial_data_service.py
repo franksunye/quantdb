@@ -3,19 +3,20 @@
 Unit tests for the FinancialDataService class.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
-import pandas as pd
-import sys
 import os
+import sys
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.financial_data_service import FinancialDataService
-from core.models.financial_data import FinancialSummary, FinancialIndicators, FinancialDataCache
 from core.models.asset import Asset
+from core.models.financial_data import FinancialDataCache, FinancialIndicators, FinancialSummary
+from core.services.financial_data_service import FinancialDataService
 
 
 class TestFinancialDataService(unittest.TestCase):

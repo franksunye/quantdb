@@ -4,14 +4,15 @@ QuantDB Performance Benchmark for GTM Materials
 Generate performance comparison charts for marketing materials
 """
 
-import time
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from datetime import datetime
-import sys
 import os
+import sys
+import time
+from datetime import datetime
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 # Set style for professional charts
 try:

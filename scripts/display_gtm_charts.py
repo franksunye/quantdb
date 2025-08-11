@@ -4,10 +4,11 @@ Display GTM Charts for Review
 Simple script to view the generated performance charts
 """
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
 import os
 from pathlib import Path
+
+import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 
 
 def display_chart(chart_path, title):

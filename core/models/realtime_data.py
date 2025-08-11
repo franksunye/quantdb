@@ -5,10 +5,11 @@ This module defines the database models for storing realtime stock data
 with appropriate caching and indexing strategies.
 """
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Index, ForeignKey
-from sqlalchemy.orm import relationship
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String
+from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
 

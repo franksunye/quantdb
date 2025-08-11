@@ -4,15 +4,16 @@ QuantDB API Service
 FastAPI application using core business logic services.
 """
 
-from fastapi import FastAPI, Depends
-from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
+
+from api.error_handlers import register_exception_handlers
+from core.database import get_db
 from core.utils.config import API_PREFIX, DEBUG, ENVIRONMENT
 from core.utils.logger import get_logger
-from core.database import get_db
-from api.error_handlers import register_exception_handlers
-from fastapi.responses import HTMLResponse
 
 # Setup logger
 logger = get_logger(__name__)
@@ -104,9 +105,10 @@ async def get_swagger_ui_v2():
     )
 
 
+from api.routers import financial, index_data, realtime
+
 # Import and include routers
-from api.routes import assets, stocks, cache, batch, version, asset_management
-from api.routers import realtime, index_data, financial
+from api.routes import asset_management, assets, batch, cache, stocks, version
 
 app.include_router(assets.router, prefix=f"{API_PREFIX}/assets", tags=["assets"])
 
@@ -141,8 +143,9 @@ app.include_router(financial.router, tags=["financial"])
 
 def run_server():
     """Run the API server with production settings"""
-    import uvicorn
     import os
+
+    import uvicorn
 
     # Get configuration from environment
     host = os.getenv("HOST", "0.0.0.0")

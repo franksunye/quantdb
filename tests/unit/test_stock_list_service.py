@@ -3,18 +3,19 @@
 Unit tests for the StockListService class.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import date, timedelta
-import pandas as pd
-import sys
 import os
+import sys
+import unittest
+from datetime import date, timedelta
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.stock_list_service import StockListService
 from core.models.stock_list import StockListCache, StockListCacheManager
+from core.services.stock_list_service import StockListService
 
 
 class TestStockListService(unittest.TestCase):

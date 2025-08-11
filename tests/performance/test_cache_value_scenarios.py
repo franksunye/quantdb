@@ -3,12 +3,13 @@
 缓存价值场景测试 - 专注于 QuantDB 真正优势的场景
 """
 
-import pytest
-import time
 import json
 import os
 import sys
+import time
 from statistics import mean
+
+import pytest
 from fastapi.testclient import TestClient
 
 # Add project root to path

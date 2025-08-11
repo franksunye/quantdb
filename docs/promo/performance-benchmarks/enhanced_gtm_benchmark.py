@@ -4,14 +4,15 @@ Enhanced GTM Benchmark with Real Data Analysis
 Create professional GTM materials with verified performance data
 """
 
-import time
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import numpy as np
-from datetime import datetime
-import sys
 import os
+import sys
+import time
+from datetime import datetime
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 
 def setup_professional_style():

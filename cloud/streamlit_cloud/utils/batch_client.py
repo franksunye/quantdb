@@ -7,12 +7,13 @@
 
 import logging
 import time
-from typing import Dict, List, Optional, Any
-import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import Any, Dict, List, Optional
+
+import requests
 import streamlit as st
 
-from .api_client import QuantDBClient, QuantDBAPIError
+from .api_client import QuantDBAPIError, QuantDBClient
 from .config import config
 
 logger = logging.getLogger(__name__)

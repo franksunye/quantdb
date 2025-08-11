@@ -3,11 +3,12 @@ QDB专用测试配置文件
 避免与主conftest.py的依赖冲突
 """
 
-import pytest
-import tempfile
-import shutil
 import os
+import shutil
 import sys
+import tempfile
+
+import pytest
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))

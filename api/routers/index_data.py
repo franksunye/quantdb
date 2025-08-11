@@ -5,14 +5,16 @@ This module provides API endpoints for retrieving index data
 with intelligent caching strategies.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from core.cache.akshare_adapter import AKShareAdapter
 
 # Import core modules
 from core.database.connection import get_db
-from core.cache.akshare_adapter import AKShareAdapter
 from core.services.index_data_service import IndexDataService
 from core.utils.logger import logger
 

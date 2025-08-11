@@ -5,14 +5,15 @@ This module defines custom exception classes and error handling utilities
 to ensure consistent error responses across the API.
 """
 
-from typing import Dict, Any, Optional, List, Type, Union
-from fastapi import HTTPException, Request, status
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
-import traceback
 import logging
+import traceback
 from datetime import datetime
+from typing import Any, Dict, List, Optional, Type, Union
+
+from fastapi import HTTPException, Request, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
 
 from core.utils.logger import get_logger
 

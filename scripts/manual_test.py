@@ -7,13 +7,14 @@ to verify functionality in the local development environment.
 """
 
 import os
+import signal
+import subprocess
 import sys
 import time
-import requests
-import subprocess
-import signal
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import requests
 
 
 class ManualTester:
@@ -75,8 +76,9 @@ class ManualTester:
         self.print_header("Database Connection Tests")
 
         try:
-            from core.database import engine
             from sqlalchemy import text
+
+            from core.database import engine
 
             # Test connection
             with engine.connect() as conn:
@@ -84,8 +86,8 @@ class ManualTester:
                 self.print_test("Database connection", True, f"Result: {result.fetchone()}")
 
             # Test table existence
-            from core.models import Asset, DailyStockData
             from core.database import SessionLocal
+            from core.models import Asset, DailyStockData
 
             session = SessionLocal()
             try:
@@ -209,9 +211,9 @@ class ManualTester:
         self.print_header("Cache Performance Tests")
 
         try:
-            from core.services.stock_data_service import StockDataService
-            from core.database import SessionLocal
             from core.cache.akshare_adapter import AKShareAdapter
+            from core.database import SessionLocal
+            from core.services.stock_data_service import StockDataService
 
             # Create dependencies
             db = SessionLocal()
@@ -249,8 +251,8 @@ class ManualTester:
         self.print_header("Monitoring System Tests")
 
         try:
-            from core.services.monitoring_service import MonitoringService
             from core.database import SessionLocal
+            from core.services.monitoring_service import MonitoringService
 
             # Create dependencies
             db = SessionLocal()

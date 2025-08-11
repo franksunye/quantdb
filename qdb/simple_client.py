@@ -9,7 +9,7 @@ import os
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -17,7 +17,7 @@ import pandas as pd
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from .exceptions import QDBError, DataError, NetworkError
+from .exceptions import DataError, NetworkError, QDBError
 
 
 class SimpleQDBClient:
@@ -51,8 +51,8 @@ class SimpleQDBClient:
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
 
             # Import core components
-            from core.database.connection import get_db, Base, engine
             from core.cache.akshare_adapter import AKShareAdapter
+            from core.database.connection import Base, engine, get_db
             from core.services.stock_data_service import StockDataService
 
             # Create database tables

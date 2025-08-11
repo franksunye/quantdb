@@ -3,12 +3,13 @@
 真实缓存性能测试 - 使用真实 AKShare 数据验证核心价值
 """
 
-import pytest
-import time
 import json
 import os
 import sys
+import time
 from statistics import mean, median
+
+import pytest
 from fastapi.testclient import TestClient
 
 # Add project root to path

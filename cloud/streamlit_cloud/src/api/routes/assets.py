@@ -3,13 +3,15 @@ Asset API routes
 """
 
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError
 
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
+
+from api.schemas import Asset as AssetSchema
+from api.schemas import AssetWithMetadata
 from core.database import get_db
 from core.models import Asset
-from api.schemas import Asset as AssetSchema, AssetWithMetadata
 from core.services.asset_info_service import AssetInfoService
 from core.utils.logger import get_logger
 

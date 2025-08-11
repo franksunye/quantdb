@@ -9,9 +9,11 @@ These examples show proper error handling, parameter validation, and
 typical usage patterns that AI agents should follow.
 """
 
-import qdb
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 import pandas as pd
+
+import qdb
 
 
 def example_basic_stock_data():

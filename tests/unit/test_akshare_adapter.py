@@ -3,17 +3,19 @@
 Unit tests for the AKShare adapter.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
-import pandas as pd
-import sys
 import os
+import sys
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
+
+import pandas as pd
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
 from core.cache.akshare_adapter import AKShareAdapter
+
 
 class TestAKShareAdapter(unittest.TestCase):
     """Test cases for AKShareAdapter."""

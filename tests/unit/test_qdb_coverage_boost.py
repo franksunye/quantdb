@@ -4,20 +4,21 @@
 重点测试未覆盖的代码路径和边界条件
 """
 
-import unittest
-import tempfile
-import shutil
 import os
+import shutil
 import sys
-from unittest.mock import patch, MagicMock
+import tempfile
+import unittest
+from unittest.mock import MagicMock, patch
+
 import pandas as pd
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import qdb
+from qdb.exceptions import CacheError, DataError, QDBError
 from qdb.simple_client import SimpleQDBClient
-from qdb.exceptions import QDBError, CacheError, DataError
 
 
 class TestQDBCoverageBoost(unittest.TestCase):

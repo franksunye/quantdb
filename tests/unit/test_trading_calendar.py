@@ -3,16 +3,22 @@
 交易日历服务测试
 """
 
-import pytest
 import os
 import sys
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.trading_calendar import TradingCalendar, get_trading_calendar, is_trading_day, get_trading_days
+from core.services.trading_calendar import (
+    TradingCalendar,
+    get_trading_calendar,
+    get_trading_days,
+    is_trading_day,
+)
 
 
 class TestTradingCalendar:

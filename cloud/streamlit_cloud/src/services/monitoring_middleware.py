@@ -6,7 +6,8 @@
 
 import time
 from functools import wraps
-from typing import Callable, Any
+from typing import Any, Callable
+
 from fastapi import Request
 from sqlalchemy.orm import Session
 

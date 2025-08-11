@@ -3,22 +3,20 @@ Integration tests for logging system.
 
 This module tests the integration of the enhanced logging system with the API.
 """
-import unittest
+import json
 import os
 import tempfile
-import json
 import time
-from unittest.mock import patch, MagicMock
+import unittest
+from unittest.mock import MagicMock, patch
+
 from fastapi.testclient import TestClient
 
 from api.main import app
 from core.utils.config import API_PREFIX
+
 # Migrated to core
-from core.utils.logger import (
-    EnhancedLogger,
-    setup_enhanced_logger,
-    log_function
-)
+from core.utils.logger import EnhancedLogger, log_function, setup_enhanced_logger
 
 # Create test client
 client = TestClient(app)

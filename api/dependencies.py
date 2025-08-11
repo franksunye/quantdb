@@ -7,9 +7,9 @@ Dependency injection for API services.
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from core.database import get_db
 from core.cache import AKShareAdapter
-from core.services import StockDataService, AssetInfoService, DatabaseCache
+from core.database import get_db
+from core.services import AssetInfoService, DatabaseCache, StockDataService
 
 
 def get_akshare_adapter() -> AKShareAdapter:

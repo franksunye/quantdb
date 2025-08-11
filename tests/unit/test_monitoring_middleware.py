@@ -3,11 +3,12 @@
 Unit tests for the MonitoringMiddleware classes and decorators.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch, AsyncMock
 import asyncio
-import sys
 import os
+import sys
+import unittest
+from unittest.mock import AsyncMock, MagicMock, patch
+
 from fastapi import Request
 
 # Add the project root to the path

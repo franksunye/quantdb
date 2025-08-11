@@ -7,10 +7,11 @@
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, Integer
 
-from core.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
+from sqlalchemy import Integer, desc, func
+from sqlalchemy.orm import Session
+
+from core.models import Asset, DailyStockData, DataCoverage, RequestLog, SystemMetrics
 from core.utils.logger import get_logger
 
 logger = get_logger("monitoring_service")

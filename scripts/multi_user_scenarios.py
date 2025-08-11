@@ -4,10 +4,10 @@ QuantDB Package 多用户场景模拟
 展示不同类型用户的真实使用场景
 """
 
+import os
 import subprocess
 import sys
 import time
-import os
 from datetime import datetime
 
 

@@ -3,18 +3,18 @@
 Unit tests for the QueryService class.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import date, timedelta
-import sys
 import os
+import sys
+import unittest
+from datetime import date, timedelta
+from unittest.mock import MagicMock, patch
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
-from core.services.query_service import QueryService
 from core.models.asset import Asset
 from core.models.stock_data import DailyStockData
+from core.services.query_service import QueryService
 
 
 class TestQueryService(unittest.TestCase):

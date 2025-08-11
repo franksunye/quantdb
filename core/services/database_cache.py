@@ -8,11 +8,11 @@ optimized for stock historical data.
 
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Any, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
+from sqlalchemy import and_, func, or_
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, or_, func
 
 from ..models.asset import Asset
 from ..models.stock_data import DailyStockData

@@ -6,21 +6,22 @@ This module provides API endpoints for retrieving historical stock data,
 using the simplified cache architecture with database as persistent cache.
 """
 
+from datetime import date, datetime
 from typing import List, Optional
+
+import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
-from datetime import date, datetime
-import pandas as pd
 
+from api.schemas import HistoricalDataPoint, HistoricalDataResponse
+from core.cache.akshare_adapter import AKShareAdapter
 from core.database import get_db
 from core.models import Asset
-from api.schemas import HistoricalDataResponse, HistoricalDataPoint
-from core.cache.akshare_adapter import AKShareAdapter
-from core.services.stock_data_service import StockDataService
-from core.services.database_cache import DatabaseCache
 from core.services.asset_info_service import AssetInfoService
-from core.services.stock_list_service import StockListService
+from core.services.database_cache import DatabaseCache
 from core.services.monitoring_middleware import monitor_stock_request
+from core.services.stock_data_service import StockDataService
+from core.services.stock_list_service import StockListService
 from core.utils.logger import get_logger
 
 
@@ -266,6 +267,7 @@ def _analyze_empty_data_reason(symbol: str, start_date: str, end_date: str) -> d
 
     try:
         from datetime import datetime, timedelta
+
         from core.services.trading_calendar import get_trading_calendar
 
         # 分析日期范围

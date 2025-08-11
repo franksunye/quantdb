@@ -5,12 +5,13 @@ This module contains models for storing financial summary and indicator data
 with intelligent caching strategies.
 """
 
-from sqlalchemy import Column, Integer, String, Float, Date, ForeignKey, DateTime, Text, JSON
-from sqlalchemy.orm import relationship
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
 import json
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
+from sqlalchemy import JSON, Column, Date, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 from ..database.connection import Base
 

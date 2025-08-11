@@ -3,13 +3,14 @@ System Status Page
 Display system health status, database information and performance metrics
 """
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime
-import sys
 import os
-from pathlib import Path
+import sys
 import time
+from datetime import datetime
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # Add project root directory to Python path to access core modules
 current_dir = Path(__file__).parent.parent
@@ -25,8 +26,8 @@ st.set_page_config(page_title="System Status - QuantDB", page_icon="📊", layou
 def init_services():
     """Initialize service instances"""
     try:
-        from core.services import DatabaseCache
         from core.database import get_db
+        from core.services import DatabaseCache
 
         db_session = next(get_db())
         return DatabaseCache(db_session)
@@ -89,7 +90,7 @@ def test_system_performance():
     """Test system performance"""
     try:
         # Ensure database tables exist
-        from core.database import engine, Base, get_db
+        from core.database import Base, engine, get_db
         from core.models import Asset
 
         Base.metadata.create_all(bind=engine)

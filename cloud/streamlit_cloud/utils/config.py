@@ -5,7 +5,7 @@ Manages configuration parameters and constants for the frontend application.
 """
 
 import os
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class Config:

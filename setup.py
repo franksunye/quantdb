@@ -3,8 +3,9 @@ QDB - Intelligent caching stock database
 Setup configuration for PyPI distribution
 """
 
-from setuptools import setup, find_packages
 from pathlib import Path
+
+from setuptools import find_packages, setup
 
 # Read PyPI-specific README file
 this_directory = Path(__file__).parent

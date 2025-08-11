@@ -8,17 +8,25 @@
 - 用户友好的错误格式化
 """
 
-import unittest
-from unittest.mock import patch, MagicMock
-import sys
 import os
+import sys
+import unittest
+from unittest.mock import MagicMock, patch
 
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from qdb.exceptions import (
-    QDBError, CacheError, DataError, NetworkError, ConfigError, ValidationError,
-    handle_qdb_errors, get_error_message, format_user_error, ERROR_CODES
+    ERROR_CODES,
+    CacheError,
+    ConfigError,
+    DataError,
+    NetworkError,
+    QDBError,
+    ValidationError,
+    format_user_error,
+    get_error_message,
+    handle_qdb_errors,
 )
 
 

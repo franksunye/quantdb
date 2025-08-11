@@ -3,17 +3,17 @@
 Unit tests for the MonitoringService class.
 """
 
-import unittest
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
-import sys
 import os
+import sys
+import unittest
+from datetime import datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 # Add the project root to the path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 
+from core.models import Asset, DailyStockData, DataCoverage, RequestLog, SystemMetrics
 from core.services.monitoring_service import MonitoringService
-from core.models import RequestLog, DataCoverage, SystemMetrics, DailyStockData, Asset
 
 
 class TestMonitoringService(unittest.TestCase):

@@ -6,11 +6,11 @@
 这个脚本可以独立运行，验证PyPI发布版本的质量。
 """
 
+import os
 import subprocess
 import sys
-import os
-import time
 import tempfile
+import time
 from pathlib import Path
 
 

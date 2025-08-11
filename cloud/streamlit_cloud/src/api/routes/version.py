@@ -5,15 +5,16 @@ API version routes.
 This module provides routes for retrieving API version information.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
+
 from fastapi import APIRouter, HTTPException, Path, Query
 from pydantic import BaseModel
 
 from api.version import (
     APIVersion,
-    get_version_info,
     get_all_versions,
     get_latest_version_info,
+    get_version_info,
     is_version_deprecated,
 )
 from core.utils.logger import get_logger

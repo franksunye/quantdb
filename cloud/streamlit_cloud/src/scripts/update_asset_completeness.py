@@ -15,9 +15,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from core.utils.config import DATABASE_URL
 from core.models import Asset
 from core.services.asset_info_service import AssetInfoService
+from core.utils.config import DATABASE_URL
 from core.utils.logger import get_logger
 
 # Setup logger

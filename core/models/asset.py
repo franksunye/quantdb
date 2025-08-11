@@ -3,19 +3,20 @@ Asset data model for QuantDB core
 """
 
 import enum
+
 from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    Float,
-    Date,
-    ForeignKey,
-    Text,
-    Boolean,
-    DateTime,
-    Enum,
     JSON,
     BigInteger,
+    Boolean,
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

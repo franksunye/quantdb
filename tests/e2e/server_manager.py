@@ -5,22 +5,24 @@ E2E测试服务器管理器
 """
 
 import os
-import sys
-import time
 import signal
 import subprocess
-import requests
+import sys
 import threading
+import time
 from pathlib import Path
+
+import requests
 
 # 添加项目根目录到路径
 project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from tests.e2e.config import e2e_config
-from core.utils.logger import get_logger
-from core.models import Base
 from sqlalchemy import create_engine
+
+from core.models import Base
+from core.utils.logger import get_logger
+from tests.e2e.config import e2e_config
 
 logger = get_logger("e2e_server_manager")
 

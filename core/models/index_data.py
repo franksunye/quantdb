@@ -5,10 +5,11 @@ This module defines the database models for storing index data
 with appropriate caching and indexing strategies.
 """
 
-from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean, Index, ForeignKey, Date
+from datetime import date, datetime, timedelta
+from typing import Any, Dict
+
+from sqlalchemy import Boolean, Column, Date, DateTime, Float, ForeignKey, Index, Integer, String
 from sqlalchemy.orm import relationship
-from datetime import datetime, date, timedelta
-from typing import Dict, Any
 
 from ..database.connection import Base
 

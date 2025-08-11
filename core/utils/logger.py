@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from .config import LOG_LEVEL, LOG_FILE
+from .config import LOG_FILE, LOG_LEVEL
 
 
 class QuantDBLogger:
@@ -119,8 +119,8 @@ class EnhancedLogger(QuantDBLogger):
 
     def start_context(self, metadata: Optional[dict] = None) -> str:
         """Start a logging context (compatibility method)."""
-        import uuid
         import time
+        import uuid
 
         self.context_id = str(uuid.uuid4())
         self.start_time = time.time()

@@ -2,36 +2,37 @@
 QuantDB API main application
 """
 
-from fastapi import FastAPI, Depends, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
-from pydantic import ValidationError
 import logging
-from sqlalchemy.orm import Session
 from datetime import datetime
 
-from core.utils.config import API_PREFIX, DEBUG, ENVIRONMENT
-from core.utils.logger import get_logger
-from core.database import get_db
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from pydantic import ValidationError
+from sqlalchemy.orm import Session
+
+from api.errors import (
+    DataFetchException,
+    DataNotFoundException,
+    QuantDBException,
+    register_exception_handlers,
+)
 
 # MCP functionality archived
 from api.openapi.openapi_utils import setup_openapi, setup_swagger_ui
-from api.version import APIVersion, get_version_prefix, get_latest_version_info
-from api.errors import (
-    register_exception_handlers,
-    QuantDBException,
-    DataNotFoundException,
-    DataFetchException,
-)
+from api.version import APIVersion, get_latest_version_info, get_version_prefix
+from core.database import get_db
+from core.utils.config import API_PREFIX, DEBUG, ENVIRONMENT
+from core.utils.logger import get_logger
 
 # Setup enhanced logger
 logger = get_logger(__name__)
 
 # Import simplified components
 from core.cache.akshare_adapter import AKShareAdapter
-from core.services.stock_data_service import StockDataService
 from core.services.database_cache import DatabaseCache
+from core.services.stock_data_service import StockDataService
 
 # Create simplified components
 akshare_adapter = AKShareAdapter()
@@ -118,10 +119,11 @@ async def health_check_v2():
     }
 
 
-# Import and include routers
-from api.routes import assets, cache, historical_data, batch_assets
-from api.routes.version import router as version_router
 from api.cache_api import router as cache_api_router
+
+# Import and include routers
+from api.routes import assets, batch_assets, cache, historical_data
+from api.routes.version import router as version_router
 
 # from api.endpoints.monitoring import router as monitoring_router  # 暂时注释
 # MCP schemas archived

@@ -7,13 +7,14 @@ This service provides stock list data with intelligent daily caching strategy:
 - Efficient data management and cleanup
 """
 
-from typing import Dict, List, Optional, Any
 from datetime import date
-from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc
+from typing import Any, Dict, List, Optional
 
-from ..models.stock_list import StockListCache, StockListCacheManager
+from sqlalchemy import and_, desc
+from sqlalchemy.orm import Session
+
 from ..cache.akshare_adapter import AKShareAdapter
+from ..models.stock_list import StockListCache, StockListCacheManager
 from ..utils.logger import logger
 
 

@@ -3,10 +3,12 @@ Cache API routes for monitoring and managing the simplified cache system.
 In the simplified architecture, we use SQLite database as the primary cache.
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, Query
-from sqlalchemy.orm import Session
+from typing import Any, Dict
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import text
+from sqlalchemy.orm import Session
+
 from core.database import get_db
 from core.utils.logger import get_logger
 

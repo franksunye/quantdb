@@ -5,9 +5,10 @@ API version management utilities.
 This module provides utilities for managing API versions and ensuring backward compatibility.
 """
 
+from datetime import datetime
 from enum import Enum
 from typing import Dict, List, Optional, Union
-from datetime import datetime
+
 from pydantic import BaseModel
 
 from core.utils.logger import get_logger

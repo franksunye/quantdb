@@ -4,17 +4,18 @@ System API routes for QuantDB API service.
 This module provides API endpoints for system information and health checks.
 """
 
+import os
+import time
+
+import psutil
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-import time
-import os
-import psutil
 
 # Import core modules
-from core.database.connection import get_db, engine
+from core.database.connection import engine, get_db
+from core.services.trading_calendar import get_trading_calendar
 from core.utils.config import is_development, is_production
 from core.utils.logger import logger
-from core.services.trading_calendar import get_trading_calendar
 
 # Import API schemas
 from ..schemas import HealthResponse
@@ -136,13 +137,13 @@ async def get_config():
 
     try:
         from core.utils.config import (
-            DATABASE_URL,
-            DB_TYPE,
             API_HOST,
             API_PORT,
-            LOG_LEVEL,
             CACHE_TTL,
+            DATABASE_URL,
+            DB_TYPE,
             ENABLE_CACHE,
+            LOG_LEVEL,
         )
 
         return {

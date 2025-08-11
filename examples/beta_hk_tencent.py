@@ -15,6 +15,7 @@ Usage: python examples/beta_hk_tencent.py
 
 import numpy as np
 import pandas as pd
+
 import qdb
 
 # Configuration

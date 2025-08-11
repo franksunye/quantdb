@@ -4,13 +4,14 @@ Monolithic application architecture adapted for Streamlit Cloud deployment,
 retaining SQLite database and complete functionality
 """
 
-import streamlit as st
-import pandas as pd
-from datetime import datetime, timedelta
-import sys
 import os
-from pathlib import Path
+import sys
 import time
+from datetime import datetime, timedelta
+from pathlib import Path
+
+import pandas as pd
+import streamlit as st
 
 # Try to add project root directory to Python path to access core modules
 PATH_ERROR = None
@@ -38,9 +39,9 @@ try:
         ENVIRONMENT_INFO = "Streamlit Cloud environment detected, using cloud mode"
     else:
         # Test if core modules can be fully imported and initialized
-        from core.services import StockDataService, AssetInfoService, DatabaseCache
         from core.cache import AKShareAdapter
         from core.database import get_db
+        from core.services import AssetInfoService, DatabaseCache, StockDataService
 
         # Test if database session can be created
         db_session = next(get_db())
@@ -183,9 +184,9 @@ def init_services():
         if not CLOUD_MODE and not is_streamlit_cloud:
             # Full mode: try to use core modules (only in non-cloud environment)
             try:
-                from core.services import StockDataService, AssetInfoService, DatabaseCache
                 from core.cache import AKShareAdapter
                 from core.database import get_db
+                from core.services import AssetInfoService, DatabaseCache, StockDataService
 
                 # Create database session
                 db_session = next(get_db())

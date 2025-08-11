@@ -13,13 +13,13 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from core.utils.validators import (
-    validate_stock_symbol,
+    detect_market_type,
+    normalize_symbol,
+    validate_adjust_parameter,
     validate_date_format,
     validate_date_range,
-    normalize_symbol,
-    detect_market_type,
-    validate_adjust_parameter,
-    validate_period_parameter
+    validate_period_parameter,
+    validate_stock_symbol,
 )
 
 

@@ -8,7 +8,7 @@ with intelligent data fetching strategy and database caching.
 
 import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union, Any
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import pandas as pd
 from sqlalchemy.orm import Session
