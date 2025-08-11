@@ -26,17 +26,14 @@ Trend analysis and forward-thinking perspectives on fintech, quantitative tradin
 
 - [**The Future of Python Financial Data Processing: Smart Caching and AI-Driven Solutions**](future-of-financial-data.md) - Industry trend analysis and AI Agent functionality introduction
 
-### 🚀 Product Updates
-Latest developments in the QuantDB product ecosystem, feature updates, and roadmap sharing.
 
-- [**QuantDB Product Ecosystem: Complete Solutions from Python Package to Cloud Platform**](product-ecosystem-guide.md) - Detailed introduction to three product forms and selection guide
 
 ## 🎯 Why Choose QuantDB?
 
 - **🚀 98%+ Performance Improvement** - Response time drops from 1000ms to 18ms on cache hits
 - **🔄 100% API Compatibility** - Seamless AKShare replacement with zero learning curve
 - **🧠 Smart Caching Strategy** - Automatic data updates based on trading calendar
-- **🌐 Multi-Product Ecosystem** - Python package, API service, and cloud platform
+- **📦 Easy Installation** - Simple pip install with zero configuration required
 - **🤖 AI-Driven** - Integrated AI Agent for intelligent data analysis
 
 ## 📈 Quick Start
