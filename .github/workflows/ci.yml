@@ -60,7 +60,7 @@ jobs:
 
     - name: Test with pytest and coverage
       run: |
-        python scripts/test_coverage_ci.py --threshold 10
+        python scripts/test_coverage_ci.py --categories all --threshold 20
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
