@@ -30,20 +30,32 @@ This directory contains the core documentation for the QuantDB project.
 
 ## 🎯 Project Overview
 
-QuantDB is a high-performance stock data caching service with a **phased release strategy**:
+QuantDB is a high-performance stock data caching service with a **phased release strategy** focused on individual developers and researchers:
 
-### 🚀 Milestone 1: Open Source API Service
-- **Extreme Performance**: 99.9% faster than AKShare, ~18ms response time
-- **Unified A-Share + HK Stock API**: One interface for two major markets
-- **Smart Caching**: Cache strategy based on real trading calendar
-- **Production Ready**: 50% test coverage with 100% passing tests, complete error handling
-- **🔥 Coming Soon**: Real-time quotes + stock list API (v2.3.0)
+### 🚀 Milestone 1: Python Package Product
+- **Smart AKShare Wrapper**: Intelligent caching layer for local high-performance stock database
+- **One-Line Installation**: `pip install quantdb` for instant caching acceleration
+- **Local SQLite Caching**: Automatic local database management, offline availability
+- **Smart Incremental Updates**: Only fetch missing data, avoid duplicate requests
+- **Full AKShare Compatibility**: Same API interface, seamless replacement
+- **Zero Configuration**: Auto-initialization, ready to use out of the box
 
-### ☁️ Milestone 2: Cloud Platform
-- **Web Interface**: Professional frontend based on Streamlit
-- **Data Visualization**: Interactive charts and technical indicators
-- **Cloud Deployment**: One-click deployment on Streamlit Cloud
-- **User Friendly**: Zero barrier to entry, no programming knowledge required
+### 💰 Milestone 2: Paid Enhancement Plugin Package
+- **Phase 1 - MVP Validation**: Premium data sources (HK/US stocks), historical data expansion, auto-updates
+- **Phase 2 - Experience Upgrade**: Visualization enhancements, technical indicators, multi-threading acceleration, cloud sync
+- **Phase 3 - Competitive Differentiation**: Strategy backtesting, advanced storage options, cloud service version
+- **Tiered Pricing**: Basic ($9.99/month) + Advanced ($19.99/month) plans
+
+### ☁️ Milestone 3: Cloud Platform Product
+- **No-Code Interface**: Streamlit-based user-friendly web interface
+- **Data Visualization**: Interactive stock charts, technical indicators, trend analysis
+- **Cloud Deployment**: One-click access via Streamlit Cloud
+- **Zero Programming Required**: Point-and-click operations, lower barrier to entry
+
+### 🏢 Milestone 4: API Service (Optional)
+- **Enterprise-Grade**: High-performance API service for businesses and teams
+- **Unified Interface**: A-Share + HK + US stock data through single API
+- **Enterprise Features**: Authentication, monitoring, rate limiting mechanisms
 
 ## 🚀 Quick Start
 
