@@ -46,7 +46,7 @@ print(f"缓存大小: {stats.get('cache_size_mb', 0):.2f} MB")
 - ✅ `examples/realtime.py` (已优化)
 - ✅ `examples/realtime_optimized.py` (高级优化)
 - ✅ `examples/realtime_test.py` (性能测试)
-- ✅ `docs/realtime_optimization_guide.md` (优化指南)
+- ✅ `dev-docs/50_realtime_optimization_guide.md` (优化指南)
 
 ### 阶段2: 补丁版本发布 (v2.2.9) 🔧
 
@@ -106,7 +106,7 @@ data = qdb.get_realtime_data_batch(["000001", "000002"])  # 自动更快
 1. **发布优化指南**
    ```bash
    # 用户可以立即参考
-   https://github.com/franksunye/quantdb/blob/main/docs/realtime_optimization_guide.md
+   https://github.com/franksunye/quantdb/blob/main/dev-docs/50_realtime_optimization_guide.md
    ```
 
 2. **更新文档**
