@@ -40,9 +40,12 @@ extra:
 
 nav:
   - Home: index.md
-  - Get Started: get-started.md
-  - User Guide: user-guide.md
-  - API Reference: api-reference.md
+  - Getting Started:
+    - Get Started: get-started.md
+    - User Guide: user-guide.md
+  - API Reference:
+    - Overview: api-reference.md
+    - Detailed Reference: api-reference-detailed.md
   - AI Agent:
     - Overview: ai-agent/index.md
     - Developer Guide: ai-agent/developer-guide.md
