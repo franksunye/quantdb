@@ -539,7 +539,6 @@ For most quantitative finance applications involving repeated data access, Quant
 **Related Articles**:
 - [Migration Guide for Quantitative Traders](migration-guide-practical.md)
 - [QuantDB Architecture Deep Dive](architecture-deep-dive.md)
-- [Quantitative Fund Case Study](quantitative-fund-case-study.md)
 
 **Get Started**:
 - [Installation Guide](../get-started.md)

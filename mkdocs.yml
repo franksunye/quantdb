@@ -58,8 +58,6 @@ nav:
     - User Guides:
       - Migration Guide: blog/migration-guide-practical.md
       - Performance Comparison: blog/performance-comparison-study.md
-    - Case Studies:
-      - Quantitative Fund Case: blog/quantitative-fund-case-study.md
     - Industry Insights:
       - Future of Financial Data: blog/future-of-financial-data.md
   - FAQ: faq.md

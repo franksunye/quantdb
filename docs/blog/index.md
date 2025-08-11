@@ -16,11 +16,6 @@ Practical tutorials and best practices to help users get started quickly and use
 - [**From AKShare to QuantDB: Complete Migration Guide for Quantitative Traders**](migration-guide-practical.md) - Detailed migration steps and practical experience
 - [**AKShare vs QuantDB: Performance and Developer Experience Comparison**](performance-comparison-study.md) - Comprehensive performance testing and user experience analysis
 
-### 📊 Case Studies
-Real-world application scenarios and success stories showcasing QuantDB's value in actual projects.
-
-- [**QuantDB in Large Quantitative Funds: A Case Study Analysis**](quantitative-fund-case-study.md) - Real application scenarios, performance data, and ROI analysis
-
 ### 🔮 Industry Insights
 Trend analysis and forward-thinking perspectives on fintech, quantitative trading, and data processing technologies.
 
