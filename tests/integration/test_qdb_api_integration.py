@@ -59,9 +59,9 @@ class TestQDBAPIIntegration(unittest.TestCase):
             'volume': [1000000, 1200000]
         })
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
-            
+
             # 第一次获取数据（应该调用AKShare）
             result1 = qdb.get_stock_data("000001", start_date="20240101", end_date="20240102")
             
@@ -93,7 +93,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试多个API调用的集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             # 模拟不同API的返回数据
             mock_ak.stock_zh_a_hist.return_value = pd.DataFrame({'close': [10.0]})
             mock_ak.stock_zh_a_spot_em.return_value = [['000001', '平安银行', 10.50]]
@@ -113,7 +113,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试错误处理集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             # 模拟AKShare错误
             mock_ak.stock_zh_a_hist.side_effect = Exception("Network error")
             
@@ -127,9 +127,9 @@ class TestQDBAPIIntegration(unittest.TestCase):
         
         mock_data = pd.DataFrame({'close': [10.0, 11.0]})
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
-            
+
             # 测试位置参数调用
             result1 = qdb.get_stock_data("000001", "20240101", "20240201")
             self.assertIsInstance(result1, pd.DataFrame)
@@ -156,7 +156,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         
         mock_data = pd.DataFrame({'close': [10.0, 11.0]})
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
             
             # 测试AKShare兼容接口
@@ -179,9 +179,9 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试批量操作集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = pd.DataFrame({'close': [10.0]})
-            
+
             # 测试批量获取多只股票
             symbols = ["000001", "000002", "600000"]
             results = qdb.get_multiple_stocks(symbols, days=30)
@@ -193,7 +193,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试实时数据集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             # 模拟实时数据
             mock_ak.stock_zh_a_spot_em.return_value = [
                 ['000001', '平安银行', 10.50, 0.10, 0.96, 10.40, 10.60, 10.30, 10.45, 1000000]
@@ -211,7 +211,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试指数数据集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_index_daily.return_value = pd.DataFrame({'close': [3000.0]})
             mock_ak.stock_zh_index_spot.return_value = [['000001', '上证指数', 3000.0]]
             
@@ -227,7 +227,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试财务数据集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             # 模拟财务数据
             mock_ak.stock_financial_abstract.return_value = pd.DataFrame({
                 'period': ['2024Q1'], 'revenue': [1000]
@@ -248,7 +248,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试资产信息集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_info_a_code_name.return_value = pd.DataFrame({
                 'code': ['000001'], 'name': ['平安银行']
             })
@@ -263,9 +263,9 @@ class TestQDBAPIIntegration(unittest.TestCase):
         
         mock_data = pd.DataFrame({'close': [10.0, 11.0]})
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
-            
+
             # 第一次调用（应该较慢，需要网络请求）
             start_time = time.time()
             result1 = qdb.get_stock_data("000001", start_date="20240101", end_date="20240102")
@@ -286,7 +286,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         """测试错误恢复集成"""
         qdb.init(self.cache_dir)
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             # 第一次调用失败
             mock_ak.stock_zh_a_hist.side_effect = Exception("Network error")
             
@@ -310,7 +310,7 @@ class TestQDBAPIIntegration(unittest.TestCase):
         
         def worker():
             try:
-                with patch('qdb.simple_client.ak') as mock_ak:
+                with patch('core.cache.akshare_adapter.ak') as mock_ak:
                     mock_ak.stock_zh_a_hist.return_value = pd.DataFrame({'close': [10.0]})
                     result = qdb.get_stock_data("000001", days=30)
                     results.append(result)
@@ -341,9 +341,9 @@ class TestQDBAPIIntegration(unittest.TestCase):
             'close': [10.0, 11.0]
         })
         
-        with patch('qdb.simple_client.ak') as mock_ak:
+        with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
-            
+
             # 多次调用相同参数
             result1 = qdb.get_stock_data("000001", start_date="20240101", end_date="20240102")
             result2 = qdb.get_stock_data("000001", start_date="20240101", end_date="20240102")

@@ -73,15 +73,8 @@ class SimpleQDBClient:
 
     def _init_fallback(self):
         """Initialize fallback implementation"""
-        # Import the original implementation as fallback
-        try:
-            from .simple_client_legacy import LegacySimpleQDBClient
-            self._legacy_client = LegacySimpleQDBClient(self.cache_dir)
-            self._use_legacy = True
-            self._initialized = True
-            print("🔄 Using legacy simple client implementation")
-        except Exception as e:
-            raise QDBError(f"Failed to initialize both core and legacy clients: {e}")
+        # Legacy client has been removed, raise error if core services fail
+        raise QDBError("Core services initialization failed and legacy client is no longer available")
 
     def get_stock_data(
         self,
