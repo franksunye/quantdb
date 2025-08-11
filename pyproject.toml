@@ -131,9 +131,14 @@ omit = [
     "*/tests/*",
     "*/test_*",
     "setup.py",
+    "run_*.py",
+    "scripts/*",
 ]
 
 [tool.coverage.report]
+fail_under = 70
+show_missing = true
+skip_covered = false
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -146,3 +151,10 @@ exclude_lines = [
     "class .*\\bProtocol\\):",
     "@(abc\\.)?abstractmethod",
 ]
+
+[tool.coverage.html]
+directory = "coverage_reports/html"
+title = "QuantDB Coverage Report"
+
+[tool.coverage.xml]
+output = "coverage_reports/coverage.xml"

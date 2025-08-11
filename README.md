@@ -7,6 +7,7 @@
 ![Version](https://img.shields.io/badge/version-2.2.8-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
+[![codecov](https://codecov.io/gh/franksunye/quantdb/branch/main/graph/badge.svg)](https://codecov.io/gh/franksunye/quantdb)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 ![Database](https://img.shields.io/badge/Database-SQLite-4169E1)
 ![Tests](https://img.shields.io/badge/Tests-259/259-success)
