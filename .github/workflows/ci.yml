@@ -59,13 +59,9 @@ jobs:
       run: |
         mypy --ignore-missing-imports --disallow-untyped-defs=False src
 
-    - name: Test with pytest
+    - name: Test with pytest and coverage
       run: |
-        python run_specific_tests.py
-
-    - name: Generate coverage report
-      run: |
-        python run_coverage.py --format xml
+        python scripts/test_coverage_ci.py --threshold 70
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
