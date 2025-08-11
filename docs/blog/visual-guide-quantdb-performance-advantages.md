@@ -29,15 +29,8 @@ This comprehensive infographic is our **star chart**—it tells the complete Qua
 - **Code Example**: Simple usage demonstration
 - **Professional Branding**: Consistent visual identity
 
-### When to Use This Chart
-- **Social Media Posts** (LinkedIn, Twitter, Facebook)
-- **Marketing Brochures** and promotional materials
-- **Conference Presentations** and trade shows
-- **Email Marketing** campaigns
-- **Website About/Features** pages
-
-### Why It's Effective
-This chart works because it's **self-contained**—viewers get the complete value proposition without needing additional context. It's designed for sharing and viral marketing, with professional aesthetics that build credibility.
+### Why This Chart is Effective
+This comprehensive infographic works because it's **self-contained**—viewers get the complete value proposition without needing additional context. It combines performance metrics, feature highlights, and code examples in a single, professional visualization that builds credibility and demonstrates value at a glance.
 
 ## 📈 Chart 2: Head-to-Head Performance Comparison
 
@@ -63,11 +56,8 @@ This dual-panel comparison chart provides the clearest visual demonstration of Q
 | Multiple Stocks (3×30 days) | 3.8s | 0.025s | **99.3%** |
 | Large Dataset (5×90 days) | 12.5s | 0.035s | **99.7%** |
 
-### When to Use This Chart
-- **Website Hero Sections** for immediate impact
-- **Sales Presentations** to demonstrate value
-- **Product Demos** for clear before/after comparison
-- **General Marketing Materials** for broad appeal
+### Why This Comparison Works
+This dual-panel design provides immediate visual impact through stark contrast—the dramatic difference between red and green bars makes QuantDB's advantages instantly apparent. The progressive improvement across scenarios (98.8% to 99.7%) demonstrates consistent performance gains regardless of data complexity.
 
 ## 🚀 Chart 3: Speedup Factor Visualization
 
@@ -88,11 +78,8 @@ This visualization particularly resonates with developers and data scientists be
 - **Exponential improvements** demonstrate technical excellence
 - **Clean horizontal bars** provide clear visual hierarchy
 
-### When to Use This Chart
-- **Technical Blog Posts** and documentation
-- **Developer Presentations** and meetups
-- **API Documentation** for performance specifications
-- **GitHub README** for project credibility
+### Technical Appeal
+This visualization particularly resonates with developers and data scientists because it presents concrete, measurable improvements in a format that's easy to understand and remember. The horizontal bar format clearly shows the exponential nature of the performance gains.
 
 ## 💼 Chart 4: ROI and Time Savings Analysis
 
@@ -112,11 +99,8 @@ This chart translates technical performance into **business value**:
 - **ROI calculations** for various usage levels
 - **Scalability benefits** as usage increases
 
-### When to Use This Chart
-- **Business Stakeholder Presentations** for ROI discussions
-- **Enterprise Sales Meetings** to demonstrate value
-- **Executive Briefings** for strategic decisions
-- **Budget Justification** for tool adoption
+### Business Value Focus
+This chart effectively translates technical performance into business language, showing concrete time savings and productivity improvements that decision-makers can easily understand and quantify in terms of organizational impact.
 
 ## 🔬 Advanced Technical Charts
 
@@ -145,56 +129,26 @@ This chart is our **technical flagship**—designed for audiences that need deta
 - **Cache performance vs data volume**
 - **Message**: Performance remains excellent regardless of scale
 
-### When to Use Advanced Charts
-- **Technical Documentation** requiring maximum credibility
-- **Developer Conferences** and technical presentations
-- **Peer Review** and technical validation
-- **Research Papers** and academic contexts
+### Advanced Technical Credibility
+These detailed charts provide the comprehensive data and methodology transparency that technical audiences expect. The 4-panel format allows for multiple perspectives on the same performance data, building confidence through thorough analysis.
 
-## 🎨 Chart Selection Guide
+## 🎨 Understanding Chart Design Principles
 
-### By Audience
+### Visual Communication Strategy
 
-#### **General Public/Marketing**
-**Primary**: GTM Infographic
-- Complete story in one image
-- Social media friendly
-- Professional appearance
+Each chart serves a specific communication purpose, designed to resonate with different audiences and contexts:
 
-#### **Technical Developers**
-**Primary**: Speedup Factors + Enhanced Analysis
-- Specific performance metrics
-- Technical credibility
-- Detailed methodology
+#### **Comprehensive Overview (GTM Infographic)**
+The infographic approach combines multiple data points into a single, cohesive narrative. This design principle works because it reduces cognitive load—viewers don't need to piece together information from multiple sources.
 
-#### **Business Decision Makers**
-**Primary**: ROI Analysis + Performance Comparison
-- Business value focus
-- Time savings quantification
-- Clear ROI demonstration
+#### **Direct Comparison (Performance Charts)**
+Side-by-side comparisons leverage our brain's natural pattern recognition abilities. The stark visual contrast between "before" and "after" makes the improvement immediately apparent, even to non-technical viewers.
 
-#### **Sales and Presentations**
-**Primary**: Performance Comparison + GTM Infographic
-- Clear value proposition
-- Visual impact
-- Easy to understand
+#### **Technical Precision (Speedup Factors)**
+Horizontal bar charts excel at showing relative magnitudes. When displaying speedup factors like 357×, this format makes the exponential nature of the improvements visually obvious.
 
-### By Use Case
-
-#### **Website Integration**
-- **Hero Section**: Performance Comparison
-- **Features Page**: GTM Infographic
-- **Technical Docs**: Enhanced Analysis
-
-#### **Social Media**
-- **LinkedIn**: GTM Infographic (professional)
-- **Twitter**: Performance Comparison (clear message)
-- **Reddit**: Enhanced Analysis (technical credibility)
-
-#### **Presentations**
-- **Sales Pitch**: Performance Comparison + ROI Analysis
-- **Technical Talk**: Enhanced Analysis + Speedup Factors
-- **Executive Brief**: ROI Analysis + GTM Infographic
+#### **Business Context (ROI Analysis)**
+Time-based visualizations help translate technical improvements into business impact. By showing daily time consumption, these charts make abstract performance gains tangible and relatable.
 
 ## 📊 Reading the Data: Key Messages
 
@@ -220,37 +174,26 @@ This chart is our **technical flagship**—designed for audiences that need deta
 - Near-instant data access
 - Improved development velocity
 
-## 🚀 Implementation Tips
+## 🔍 Data Visualization Best Practices
 
-### Chart Integration Best Practices
+### What Makes These Charts Effective
 
-#### **High-Quality Display**
-- Use 300 DPI versions for print materials
-- Optimize file sizes for web without quality loss
-- Ensure charts scale properly on mobile devices
+#### **Visual Hierarchy and Clarity**
+Each chart employs clear visual hierarchy—the most important information (performance improvements) uses the strongest visual elements (color contrast, size). Secondary information (methodology, context) uses subtler visual treatment.
 
-#### **Context and Attribution**
-- Always provide context for performance claims
-- Reference benchmark methodology when appropriate
-- Include links to detailed technical documentation
+#### **Color Psychology in Performance Data**
+The consistent use of green for QuantDB and red for traditional approaches isn't arbitrary—these colors carry universal associations with "good" and "problematic" performance, making the charts intuitive even for first-time viewers.
 
-#### **Accessibility**
-- Include descriptive alt text for all charts
-- Ensure color schemes work for colorblind users
-- Provide data tables as alternatives when needed
+#### **Cognitive Load Management**
+Complex performance data is broken into digestible chunks. Rather than overwhelming viewers with all metrics at once, each chart focuses on specific aspects: response times, improvements, speedup factors, or business impact.
 
-### Message Consistency
+### Interpreting Performance Visualizations
 
-#### **Unified Metrics**
-Use consistent performance numbers across all materials:
-- **99.7% improvement** (maximum verified)
-- **357× speedup** (maximum measured)
-- **Sub-50ms response** (typical cache performance)
+#### **Understanding Scale and Context**
+When viewing performance charts, it's important to understand both absolute and relative improvements. A 99.7% improvement sounds impressive, but the absolute time savings (from 12.5s to 0.035s) provides the practical context that matters for real-world usage.
 
-#### **Audience Adaptation**
-- **Technical**: Focus on methodology and reproducibility
-- **Business**: Emphasize ROI and productivity gains
-- **General**: Highlight ease of use and dramatic improvements
+#### **Recognizing Measurement Methodology**
+Credible performance charts always include methodology context. Our charts specify testing conditions, measurement approaches, and reproducibility information—key indicators of reliable data.
 
 ## 🎯 Conclusion
 
