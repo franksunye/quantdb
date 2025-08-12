@@ -240,3 +240,18 @@ class StockListCacheManager:
             "is_fresh": fresh_records > 0,
             "market_breakdown": market_counts,
         }
+
+    def update_cache_stats(self, total_count: int):
+        """
+        Update cache statistics.
+
+        Args:
+            total_count: Total number of stocks cached
+        """
+        try:
+            # This method can be used to update cache statistics
+            # For now, we just log the update
+            logger.info(f"Cache stats updated: {total_count} stocks cached")
+        except Exception as e:
+            logger.error(f"Error updating cache stats: {e}")
+            raise
