@@ -261,3 +261,27 @@ class QueryService:
                 query = query.filter(column == value)
 
         return query
+
+    def _apply_price_filters(self, query, asset_id=None, start_date=None, end_date=None):
+        """
+        Apply filters to a price query
+
+        Args:
+            query: SQLAlchemy query object
+            asset_id: Asset ID to filter by
+            start_date: Start date for price data
+            end_date: End date for price data
+
+        Returns:
+            Updated query with filters applied
+        """
+        if asset_id:
+            query = query.filter(DailyStockData.asset_id == asset_id)
+
+        if start_date:
+            query = query.filter(DailyStockData.trade_date >= start_date)
+
+        if end_date:
+            query = query.filter(DailyStockData.trade_date <= end_date)
+
+        return query

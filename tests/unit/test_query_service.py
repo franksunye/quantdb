@@ -51,19 +51,31 @@ class TestQueryService(unittest.TestCase):
         """Test asset query with filters."""
         # Setup filters
         filters = {'asset_type': 'stock', 'exchange': 'SHSE'}
-        
-        # Setup mock query results
+
+        # Setup mock query chain properly
         mock_assets = [MagicMock()]
-        mock_query = self.db_mock.query.return_value
-        mock_query.count.return_value = 1
-        mock_query.offset.return_value.limit.return_value.all.return_value = mock_assets
-        
-        # Call method
-        assets, total_count = self.service.query_assets(filters=filters)
-        
-        # Verify result
-        self.assertEqual(len(assets), 1)
-        self.assertEqual(total_count, 1)
+
+        # Mock the Asset table columns for filter validation
+        with patch('core.services.query_service.Asset') as mock_asset_class:
+            mock_table = MagicMock()
+            mock_table.columns = {'asset_type': MagicMock(), 'exchange': MagicMock()}
+            mock_asset_class.__table__ = mock_table
+            mock_asset_class.asset_type = MagicMock()
+            mock_asset_class.exchange = MagicMock()
+
+            # Setup the query chain
+            mock_query = self.db_mock.query.return_value
+            # Make sure filter returns the same query object for chaining
+            mock_query.filter.return_value = mock_query
+            mock_query.count.return_value = 1
+            mock_query.offset.return_value.limit.return_value.all.return_value = mock_assets
+
+            # Call method
+            assets, total_count = self.service.query_assets(filters=filters)
+
+            # Verify result
+            self.assertEqual(len(assets), 1)
+            self.assertEqual(total_count, 1)
 
     def test_query_assets_with_sorting_asc(self):
         """Test asset query with ascending sorting."""
@@ -147,27 +159,29 @@ class TestQueryService(unittest.TestCase):
         # Setup mock query results
         mock_prices = [MagicMock()]
         mock_query = self.db_mock.query.return_value
+        # Setup the filter chain properly
+        mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = mock_prices
-        
+
         # Call method
         prices, total_count = self.service.query_prices(asset_id=1)
-        
+
         # Verify result
         self.assertEqual(len(prices), 1)
+        self.assertEqual(total_count, 1)
 
     def test_query_prices_with_symbol(self):
         """Test price query with symbol filter."""
-        # Setup mock asset and prices
-        mock_asset = MagicMock()
-        mock_asset.asset_id = 1
-        self.db_mock.query.return_value.filter.return_value.first.return_value = mock_asset
-        
+        # Setup mock query results
         mock_prices = [MagicMock()]
         mock_query = self.db_mock.query.return_value
+        # Setup the join and filter chain properly
+        mock_query.join.return_value = mock_query
+        mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = mock_prices
-        
+
         # Call method
         prices, total_count = self.service.query_prices(symbol='000001')
         
@@ -179,25 +193,32 @@ class TestQueryService(unittest.TestCase):
         # Setup mock query results
         mock_prices = [MagicMock()]
         mock_query = self.db_mock.query.return_value
+        # Setup the filter chain properly for date filters
+        mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = mock_prices
-        
+
         # Call method
         start_date = date(2023, 1, 1)
         end_date = date(2023, 12, 31)
         prices, total_count = self.service.query_prices(start_date=start_date, end_date=end_date)
-        
+
         # Verify result
         self.assertEqual(len(prices), 1)
+        self.assertEqual(total_count, 1)
 
     def test_query_prices_symbol_not_found(self):
         """Test price query when symbol is not found."""
-        # Setup mock asset query to return None
-        self.db_mock.query.return_value.filter.return_value.first.return_value = None
-        
+        # Setup mock query results for empty result
+        mock_query = self.db_mock.query.return_value
+        mock_query.join.return_value = mock_query
+        mock_query.filter.return_value = mock_query
+        mock_query.count.return_value = 0
+        mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = []
+
         # Call method
         prices, total_count = self.service.query_prices(symbol='INVALID')
-        
+
         # Verify empty result
         self.assertEqual(len(prices), 0)
         self.assertEqual(total_count, 0)
@@ -222,33 +243,35 @@ class TestQueryService(unittest.TestCase):
         # Setup mock query results
         mock_data = [MagicMock()]
         mock_query = self.db_mock.query.return_value
+        # Setup the filter chain properly
+        mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = mock_data
-        
+
         # Call method
         data, total_count = self.service.query_daily_stock_data(asset_id=1)
-        
+
         # Verify result
         self.assertEqual(len(data), 1)
+        self.assertEqual(total_count, 1)
 
     def test_query_daily_stock_data_with_symbol(self):
         """Test daily stock data query with symbol."""
-        # Setup mock asset
-        mock_asset = MagicMock()
-        mock_asset.asset_id = 1
-        self.db_mock.query.return_value.filter.return_value.first.return_value = mock_asset
-        
-        # Setup mock data
+        # Setup mock query results
         mock_data = [MagicMock()]
         mock_query = self.db_mock.query.return_value
+        # Setup the join and filter chain properly
+        mock_query.join.return_value = mock_query
+        mock_query.filter.return_value = mock_query
         mock_query.count.return_value = 1
         mock_query.order_by.return_value.offset.return_value.limit.return_value.all.return_value = mock_data
-        
+
         # Call method
         data, total_count = self.service.query_daily_stock_data(symbol='000001')
-        
+
         # Verify result
         self.assertEqual(len(data), 1)
+        self.assertEqual(total_count, 1)
 
     def test_apply_asset_filters_symbol(self):
         """Test applying symbol filter to asset query."""
@@ -312,19 +335,34 @@ class TestQueryService(unittest.TestCase):
 
     def test_apply_asset_filters_multiple(self):
         """Test applying multiple filters to asset query."""
-        # Setup mock query
+        # Setup mock query that returns itself for chaining
         mock_query = MagicMock()
-        filters = {
-            'asset_type': 'stock',
-            'exchange': 'SHSE',
-            'currency': 'CNY'
-        }
-        
-        # Call internal method
-        result = self.service._apply_asset_filters(mock_query, filters)
-        
-        # Verify multiple filters were applied
-        self.assertEqual(mock_query.filter.call_count, 3)
+        mock_query.filter.return_value = mock_query
+
+        # Mock Asset table columns for filter validation
+        with patch('core.services.query_service.Asset') as mock_asset_class:
+            mock_table = MagicMock()
+            mock_table.columns = {
+                'asset_type': MagicMock(),
+                'exchange': MagicMock(),
+                'currency': MagicMock()
+            }
+            mock_asset_class.__table__ = mock_table
+            mock_asset_class.asset_type = MagicMock()
+            mock_asset_class.exchange = MagicMock()
+            mock_asset_class.currency = MagicMock()
+
+            filters = {
+                'asset_type': 'stock',
+                'exchange': 'SHSE',
+                'currency': 'CNY'
+            }
+
+            # Call internal method
+            result = self.service._apply_asset_filters(mock_query, filters)
+
+            # Verify multiple filters were applied (each filter calls filter() once)
+            self.assertEqual(mock_query.filter.call_count, 3)
 
     def test_apply_price_filters_asset_id(self):
         """Test applying asset ID filter to price query."""
