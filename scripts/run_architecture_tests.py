@@ -12,7 +12,7 @@ import os
 from pathlib import Path
 
 # Add project root to path
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 def run_architecture_compliance_check():
@@ -41,7 +41,7 @@ def run_structure_tests():
     
     try:
         result = subprocess.run([
-            sys.executable, "test_architecture_structure.py"
+            sys.executable, "scripts/test_architecture_structure.py"
         ], cwd=project_root, capture_output=True, text=True)
         
         print(result.stdout)
@@ -136,10 +136,11 @@ def run_basic_functionality_tests():
     test_script = '''
 import sys
 import tempfile
+import os
 from pathlib import Path
 
 # Add project root to path
-project_root = Path(__file__).parent
+project_root = Path(os.getcwd())
 sys.path.insert(0, str(project_root))
 
 try:

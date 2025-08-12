@@ -16,6 +16,9 @@ python -m pytest tests/ -v
 
 # 带覆盖率报告
 python -m pytest tests/ --cov=core --cov=api --cov-report=html
+
+# 架构合规性测试
+python scripts/run_architecture_tests.py
 ```
 
 ## 测试架构 (重构后)
@@ -31,6 +34,54 @@ tests/
 ├── api/           # API端点测试
 ├── e2e/           # 端到端测试
 └── performance/   # 性能测试
+```
+
+### 0. 架构合规性测试 🏗️
+
+**新增功能**: 自动化架构合规性检查，确保代码遵循设计原则。
+
+```bash
+# 运行完整架构测试套件
+python scripts/run_architecture_tests.py
+
+# 仅运行架构合规性检查
+python dev-tools/architecture_compliance_checker.py
+
+# 运行结构测试
+python scripts/test_architecture_structure.py
+```
+
+#### 架构测试覆盖项目
+
+| 测试类别 | 检查内容 | 目标 |
+|---------|---------|------|
+| **轻量级设计** | qdb包是否包含复杂业务逻辑 | qdb只是前端调用 |
+| **业务逻辑分离** | 业务逻辑是否在core层 | 核心功能在core |
+| **服务初始化** | 是否使用统一ServiceManager | 代码复用90%+ |
+| **代码复用** | 多产品是否共享core服务 | 避免重复代码 |
+| **依赖方向** | 依赖是否正确流向 | qdb→core，不反向 |
+
+#### 架构测试结果示例
+
+```
+🧪 QuantDB Architecture Refactor - Complete Test Suite
+================================================================================
+🔍 Running Architecture Compliance Check...
+✅ Lightweight Design: PASS
+✅ Business Logic Separation: PASS
+✅ Service Initialization: PASS
+✅ Code Reuse: PASS
+✅ Dependency Direction: PASS
+
+Overall Score: 5/5 (100%) - Full compliance achieved!
+```
+
+#### 持续集成中的架构测试
+
+```bash
+# 在CI/CD中集成架构检查
+- name: Architecture Compliance Check
+  run: python scripts/run_architecture_tests.py
 ```
 
 ### 1. Core模块单元测试
