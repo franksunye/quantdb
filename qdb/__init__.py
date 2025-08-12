@@ -24,6 +24,7 @@ in Python ecosystem, similar to scikit-learn → sklearn, beautifulsoup4 → bs4
 # Import from client that properly delegates to core services
 from .client import get_lightweight_client
 
+
 # Create module-level functions that delegate to the lightweight client
 def init(cache_dir: str = None):
     """Initialize QDB with core services."""
@@ -32,63 +33,90 @@ def init(cache_dir: str = None):
     print(f"🚀 QDB initialized with lightweight architecture")
     print(f"✅ All business logic handled by core services")
 
-def get_stock_data(symbol: str, start_date: str = None, end_date: str = None,
-                   days: int = None, adjust: str = ""):
+
+def get_stock_data(
+    symbol: str,
+    start_date: str = None,
+    end_date: str = None,
+    days: int = None,
+    adjust: str = "",
+):
     """Get stock data - delegates to core service."""
     return _get_client().get_stock_data(symbol, start_date, end_date, days, adjust)
+
 
 def get_multiple_stocks(symbols: list, days: int = 30, **kwargs):
     """Get multiple stocks data - delegates to core service."""
     return _get_client().get_multiple_stocks(symbols, days, **kwargs)
 
+
 def get_asset_info(symbol: str):
     """Get asset info - delegates to core service."""
     return _get_client().get_asset_info(symbol)
+
 
 def get_realtime_data(symbol: str):
     """Get realtime data - delegates to core service."""
     return _get_client().get_realtime_data(symbol)
 
+
 def get_realtime_data_batch(symbols: list):
     """Get batch realtime data - delegates to core service."""
     return _get_client().get_realtime_data_batch(symbols)
+
 
 def get_stock_list(market: str = "all"):
     """Get stock list - delegates to core service."""
     return _get_client().get_stock_list(market)
 
-def get_index_data(symbol: str, start_date: str = None, end_date: str = None, days: int = None):
+
+def get_index_data(
+    symbol: str, start_date: str = None, end_date: str = None, days: int = None
+):
     """Get index data - delegates to core service."""
     return _get_client().get_index_data(symbol, start_date, end_date, days)
+
 
 def get_index_realtime(symbol: str):
     """Get realtime index data - delegates to core service."""
     return _get_client().get_index_realtime(symbol)
 
+
 def get_index_list():
     """Get index list - delegates to core service."""
     return _get_client().get_index_list()
+
 
 def get_financial_summary(symbol: str):
     """Get financial summary - delegates to core service."""
     return _get_client().get_financial_summary(symbol)
 
+
 def get_financial_indicators(symbol: str):
     """Get financial indicators - delegates to core service."""
     return _get_client().get_financial_indicators(symbol)
+
 
 def cache_stats():
     """Get cache statistics - delegates to core service."""
     return _get_client().cache_stats()
 
+
 def clear_cache(symbol: str = None):
     """Clear cache - delegates to core service."""
     return _get_client().clear_cache(symbol)
 
-def stock_zh_a_hist(symbol: str, period: str = "daily", start_date: str = "19700101",
-                    end_date: str = "20500101", adjust: str = ""):
+
+def stock_zh_a_hist(
+    symbol: str,
+    period: str = "daily",
+    start_date: str = "19700101",
+    end_date: str = "20500101",
+    adjust: str = "",
+):
     """AKShare compatible interface - delegates to core service."""
     return _get_client().stock_zh_a_hist(symbol, period, start_date, end_date, adjust)
+
 
 def set_cache_dir(cache_dir: str):
     """Set cache directory - reinitialize client."""
@@ -96,14 +124,18 @@ def set_cache_dir(cache_dir: str):
     _client = get_lightweight_client(cache_dir)
     print(f"✅ Cache directory set to: {cache_dir}")
 
+
 def set_log_level(level: str):
     """Set log level."""
     import os
+
     os.environ["LOG_LEVEL"] = level.upper()
     print(f"✅ Log level set to: {level.upper()}")
 
+
 # Global client instance
 _client = None
+
 
 def _get_client():
     """Get or create the global client instance."""
@@ -111,6 +143,8 @@ def _get_client():
     if _client is None:
         _client = get_lightweight_client()
     return _client
+
+
 from .exceptions import CacheError, DataError, NetworkError, QDBError
 
 # Version information

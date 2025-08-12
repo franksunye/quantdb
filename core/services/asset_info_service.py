@@ -376,7 +376,7 @@ class AssetInfoService:
                 "symbol": symbol,
                 "error": "Asset not found",
                 "cache_hit": False,
-                "akshare_called": metadata.get("akshare_called", False)
+                "akshare_called": metadata.get("akshare_called", False),
             }
 
         return {
@@ -391,10 +391,12 @@ class AssetInfoService:
             "pe_ratio": asset.pe_ratio,
             "pb_ratio": asset.pb_ratio,
             "roe": asset.roe,
-            "last_updated": asset.last_updated.isoformat() if asset.last_updated else None,
+            "last_updated": (
+                asset.last_updated.isoformat() if asset.last_updated else None
+            ),
             "data_source": asset.data_source,
             "cache_hit": metadata.get("cache_hit", False),
-            "akshare_called": metadata.get("akshare_called", False)
+            "akshare_called": metadata.get("akshare_called", False),
         }
 
     def _create_new_asset(self, symbol: str) -> Asset:

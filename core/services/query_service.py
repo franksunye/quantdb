@@ -262,7 +262,9 @@ class QueryService:
 
         return query
 
-    def _apply_price_filters(self, query, asset_id=None, start_date=None, end_date=None):
+    def _apply_price_filters(
+        self, query, asset_id=None, start_date=None, end_date=None
+    ):
         """
         Apply filters to a price query
 

@@ -71,7 +71,11 @@ async def health_check_v1():
     """V1 Health check endpoint."""
     from datetime import datetime
 
-    return {"status": "healthy", "version": "2.1.0", "timestamp": datetime.now().isoformat()}
+    return {
+        "status": "healthy",
+        "version": "2.1.0",
+        "timestamp": datetime.now().isoformat(),
+    }
 
 
 # V2 Health check endpoint
@@ -92,10 +96,7 @@ async def health_check_v2():
 @app.get("/api/v1/version")
 async def version_check_v1():
     """V1 Version endpoint."""
-    return {
-        "version": "2.2.8",
-        "architecture": "2.1.0-stable"
-    }
+    return {"version": "2.2.8", "architecture": "2.1.0-stable"}
 
 
 # OpenAPI and Swagger UI endpoints for v2

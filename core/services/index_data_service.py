@@ -532,5 +532,3 @@ class IndexDataService:
 
         logger.info(f"Returned {len(df)} trading days for index {symbol}")
         return df
-
-

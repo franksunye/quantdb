@@ -476,7 +476,9 @@ class StockListService:
         Returns:
             List of dictionaries
         """
-        return [item.to_dict() if hasattr(item, 'to_dict') else item for item in cache_data]
+        return [
+            item.to_dict() if hasattr(item, "to_dict") else item for item in cache_data
+        ]
 
     def _update_cache_stats(self, total_count: int):
         """

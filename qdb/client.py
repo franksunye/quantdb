@@ -6,7 +6,7 @@ following the architecture principle: "核心功能都在core里面，qdb只是�
 
 Key principles:
 - NO complex business logic in qdb
-- NO service initialization logic in qdb  
+- NO service initialization logic in qdb
 - NO parameter processing logic in qdb
 - ONLY simple delegation to core services
 """
@@ -21,24 +21,28 @@ sys.path.insert(0, str(project_root))
 
 from .exceptions import QDBError
 
+
 # Lazy import of core services to avoid heavy dependencies
 def _get_service_manager():
     """Lazy import of service manager to avoid loading heavy dependencies at import time."""
     try:
         from core.services import get_service_manager
+
         return get_service_manager()
     except ImportError as e:
-        raise QDBError(f"Failed to import core services: {e}. Please install required dependencies.")
+        raise QDBError(
+            f"Failed to import core services: {e}. Please install required dependencies."
+        )
 
 
 class LightweightQDBClient:
     """
     Lightweight QDB client that delegates ALL functionality to core services.
-    
+
     This client contains ZERO business logic - it's purely a thin wrapper
     that calls the core ServiceManager. All complex logic is in core/.
     """
-    
+
     def __init__(self, cache_dir: Optional[str] = None):
         """
         Initialize lightweight client.
@@ -57,6 +61,7 @@ class LightweightQDBClient:
             if self._cache_dir:
                 # Reset and create with specific cache_dir
                 from core.services import reset_service_manager, get_service_manager
+
                 reset_service_manager()
                 self._service_manager = get_service_manager(cache_dir=self._cache_dir)
             else:
@@ -144,14 +149,14 @@ class LightweightQDBClient:
             if days is not None:
                 return stock_service.get_stock_data_by_days(symbol, days, adjust)
             else:
-                return stock_service.get_stock_data(symbol, start_date, end_date, adjust)
+                return stock_service.get_stock_data(
+                    symbol, start_date, end_date, adjust
+                )
 
         except Exception as e:
             raise QDBError(f"Failed to get stock data: {str(e)}")
-    
-    def get_multiple_stocks(
-        self, symbols: List[str], days: int = 30, **kwargs
-    ):
+
+    def get_multiple_stocks(self, symbols: List[str], days: int = 30, **kwargs):
         """Get historical data for multiple stocks efficiently.
 
         Retrieves historical stock data for multiple symbols with optimized
@@ -314,7 +319,7 @@ class LightweightQDBClient:
             return realtime_service.get_realtime_data(symbol)
         except Exception as e:
             raise QDBError(f"Failed to get realtime data: {str(e)}")
-    
+
     def get_realtime_data_batch(self, symbols: List[str]) -> Dict[str, Dict[str, Any]]:
         """Get real-time market data for multiple stocks efficiently.
 
@@ -854,7 +859,7 @@ class LightweightQDBClient:
             self._get_service_manager().clear_cache(symbol)
         except Exception as e:
             raise QDBError(f"Failed to clear cache: {str(e)}")
-    
+
     # AKShare compatibility method
     def stock_zh_a_hist(
         self,
@@ -927,7 +932,9 @@ class LightweightQDBClient:
         """
         try:
             stock_service = self._get_service_manager().get_stock_data_service()
-            return stock_service.stock_zh_a_hist(symbol, period, start_date, end_date, adjust)
+            return stock_service.stock_zh_a_hist(
+                symbol, period, start_date, end_date, adjust
+            )
         except Exception as e:
             raise QDBError(f"Failed to get stock data (AKShare compatible): {str(e)}")
 
@@ -939,10 +946,10 @@ _global_lightweight_client: Optional[LightweightQDBClient] = None
 def get_lightweight_client(cache_dir: Optional[str] = None) -> LightweightQDBClient:
     """Get the global lightweight client instance."""
     global _global_lightweight_client
-    
+
     if _global_lightweight_client is None:
         _global_lightweight_client = LightweightQDBClient(cache_dir)
-    
+
     return _global_lightweight_client
 
 

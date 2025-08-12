@@ -83,7 +83,14 @@ async def get_daily_stock_data(
     Get daily stock data for a specific symbol
     """
     return await get_historical_stock_data(
-        symbol, request, start_date, end_date, adjust, db, stock_data_service, asset_info_service
+        symbol,
+        request,
+        start_date,
+        end_date,
+        adjust,
+        db,
+        stock_data_service,
+        asset_info_service,
     )
 
 
