@@ -10,6 +10,7 @@ from .database_cache import DatabaseCache
 from .monitoring_middleware import RequestMonitor, monitor_stock_request
 from .monitoring_service import MonitoringService
 from .query_service import QueryService
+from .service_manager import ServiceManager, get_service_manager, reset_service_manager
 from .stock_data_service import StockDataService
 from .trading_calendar import (
     TradingCalendar,
@@ -30,4 +31,7 @@ __all__ = [
     "MonitoringService",
     "RequestMonitor",
     "monitor_stock_request",
+    "ServiceManager",
+    "get_service_manager",
+    "reset_service_manager",
 ]

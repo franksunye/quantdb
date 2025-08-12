@@ -1,33 +1,31 @@
 """
 API Dependencies
 
-Dependency injection for API services.
+Dependency injection for API services using ServiceManager.
 """
 
 from fastapi import Depends
-from sqlalchemy.orm import Session
 
-from core.cache import AKShareAdapter
-from core.database import get_db
-from core.services import AssetInfoService, DatabaseCache, StockDataService
+from core.services import ServiceManager, get_service_manager
 
 
-def get_akshare_adapter() -> AKShareAdapter:
-    """Get AKShare adapter instance."""
-    return AKShareAdapter()
+def get_service_manager_instance() -> ServiceManager:
+    """Get ServiceManager instance for API."""
+    return get_service_manager()
 
 
 def get_stock_data_service(
-    db: Session = Depends(get_db),
-    adapter: AKShareAdapter = Depends(get_akshare_adapter),
-) -> StockDataService:
-    """Get stock data service instance."""
-    return StockDataService(db, adapter)
+    service_manager: ServiceManager = Depends(get_service_manager_instance),
+):
+    """Get stock data service instance via ServiceManager."""
+    return service_manager.get_stock_data_service()
 
 
-def get_asset_info_service(db: Session = Depends(get_db)) -> AssetInfoService:
-    """Get asset info service instance."""
-    return AssetInfoService(db)
+def get_asset_info_service(
+    service_manager: ServiceManager = Depends(get_service_manager_instance),
+):
+    """Get asset info service instance via ServiceManager."""
+    return service_manager.get_asset_info_service()
 
 
 def get_database_cache(db: Session = Depends(get_db)) -> DatabaseCache:

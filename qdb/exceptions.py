@@ -110,7 +110,7 @@ def get_error_message(error_code: str) -> str:
 # User-friendly error prompts
 def format_user_error(error: Exception) -> str:
     """
-    Format user-friendly error messages
+    Simple error message formatter - delegates complex logic to core layer.
 
     Args:
         error: Exception object
@@ -118,15 +118,8 @@ def format_user_error(error: Exception) -> str:
     Returns:
         Formatted error message
     """
+    # Simple formatting without complex business logic
     if isinstance(error, QDBError):
         return f"❌ QDB Error: {error.message}"
-    elif isinstance(error, ImportError):
-        return f"❌ Dependency Error: Please install required dependencies\n   Solution: pip install quantdb[full]"
-    elif isinstance(error, FileNotFoundError):
-        return f"❌ File Error: {str(error)}\n   Solution: Check file path or reinitialize cache"
-    elif isinstance(error, PermissionError):
-        return f"❌ Permission Error: {str(error)}\n   Solution: Check directory permissions or change cache directory"
-    elif isinstance(error, ConnectionError):
-        return f"❌ Network Error: {str(error)}\n   Solution: Check network connection or retry later"
     else:
-        return f"❌ Unknown Error: {str(error)}\n   Suggestion: Please check input parameters or contact technical support"
+        return f"❌ Error: {str(error)}"

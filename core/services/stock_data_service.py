@@ -405,3 +405,122 @@ class StockDataService:
         # A more complete implementation would check against a list of market holidays
 
         return False
+
+    def get_stock_data_by_days(
+        self, symbol: str, days: int, adjust: str = ""
+    ) -> pd.DataFrame:
+        """
+        Get stock data for the last N trading days.
+
+        This method handles the business logic for converting 'days' parameter
+        to appropriate date range, ensuring all date calculations are in core.
+
+        Args:
+            symbol: Stock symbol
+            days: Number of recent trading days to fetch
+            adjust: Price adjustment method
+
+        Returns:
+            DataFrame with stock data for the last N trading days
+        """
+        from datetime import datetime, timedelta
+
+        # Calculate date range with buffer to ensure enough trading days
+        end_date = datetime.now().strftime("%Y%m%d")
+        # Use 2x multiplier to account for weekends and holidays
+        start_date = (datetime.now() - timedelta(days=days * 2)).strftime("%Y%m%d")
+
+        logger.info(f"Getting last {days} trading days for {symbol}")
+
+        # Get data for the calculated range
+        df = self.get_stock_data(symbol, start_date, end_date, adjust)
+
+        # Return only the last N trading days
+        if len(df) > days:
+            df = df.tail(days)
+
+        logger.info(f"Returned {len(df)} trading days for {symbol}")
+        return df
+
+    def get_multiple_stocks(
+        self, symbols: List[str], days: int = 30, **kwargs
+    ) -> Dict[str, pd.DataFrame]:
+        """
+        Get multiple stocks data in batch.
+
+        This method implements the business logic for batch processing,
+        keeping all complex logic in core layer.
+
+        Args:
+            symbols: List of stock symbols
+            days: Number of recent trading days to fetch
+            **kwargs: Additional parameters passed to get_stock_data_by_days
+
+        Returns:
+            Dictionary with stock symbol as key and DataFrame as value
+        """
+        result = {}
+
+        logger.info(f"Getting data for {len(symbols)} stocks, {days} days each")
+
+        for symbol in symbols:
+            try:
+                result[symbol] = self.get_stock_data_by_days(symbol, days, **kwargs)
+                logger.debug(f"Successfully retrieved data for {symbol}")
+            except Exception as e:
+                logger.warning(f"Failed to get data for {symbol}: {e}")
+                # Continue with other symbols, don't fail the entire batch
+                result[symbol] = pd.DataFrame()
+
+        logger.info(f"Batch processing completed: {len(result)} symbols processed")
+        return result
+
+    def get_stock_list(self, market: str = "all") -> pd.DataFrame:
+        """
+        Get stock list for specified market.
+
+        Args:
+            market: Market filter ("all", "sh", "sz", etc.)
+
+        Returns:
+            DataFrame with stock list
+        """
+        logger.info(f"Getting stock list for market: {market}")
+
+        try:
+            # Delegate to AKShare adapter for stock list
+            stock_list = self.akshare_adapter.get_stock_list(market)
+            logger.info(f"Retrieved {len(stock_list)} stocks for market {market}")
+            return stock_list
+        except Exception as e:
+            logger.error(f"Failed to get stock list for market {market}: {e}")
+            return pd.DataFrame()
+
+    def stock_zh_a_hist(
+        self,
+        symbol: str,
+        period: str = "daily",
+        start_date: str = "19700101",
+        end_date: str = "20500101",
+        adjust: str = "",
+    ) -> pd.DataFrame:
+        """
+        AKShare compatible interface for stock historical data.
+
+        This method provides backward compatibility with AKShare API
+        while using our intelligent caching system.
+
+        Args:
+            symbol: Stock symbol
+            period: Data period (currently only "daily" supported)
+            start_date: Start date in YYYYMMDD format
+            end_date: End date in YYYYMMDD format
+            adjust: Price adjustment method
+
+        Returns:
+            DataFrame with stock data in AKShare format
+        """
+        logger.info(f"AKShare compatible call for {symbol}, period={period}")
+
+        # Use our intelligent caching system
+        return self.get_stock_data(symbol, start_date, end_date, adjust)
