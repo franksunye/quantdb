@@ -270,21 +270,19 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        # Mock the QDBClient class directly to ensure it's used
-        with patch("qdb.client.QDBClient") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client_class.return_value = mock_client
+        # Create mock client with expected return value
+        mock_client = MagicMock()
+        mock_stats = {
+            "cache_dir": "/test/cache",
+            "cache_size_mb": 10.5,
+            "total_records": 1000,
+            "initialized": True,
+            "status": "Running",
+        }
+        mock_client.cache_stats.return_value = mock_stats
 
-            # Ensure the mock returns the expected structure with total_records
-            mock_stats = {
-                "cache_dir": "/test/cache",
-                "cache_size_mb": 10.5,
-                "total_records": 1000,
-                "initialized": True,
-                "status": "Running",
-            }
-            mock_client.cache_stats.return_value = mock_stats
-
+        # Directly patch the _get_client function to return our mock
+        with patch("qdb.client._get_client", return_value=mock_client):
             result = qdb.cache_stats()
 
             self.assertIsInstance(result, dict)
@@ -297,11 +295,11 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        # Mock the QDBClient class directly to ensure it's used
-        with patch("qdb.client.QDBClient") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client_class.return_value = mock_client
+        # Create mock client
+        mock_client = MagicMock()
 
+        # Directly patch the _get_client function to return our mock
+        with patch("qdb.client._get_client", return_value=mock_client):
             qdb.clear_cache()
 
             # Verify the clear_cache method was called with None (default parameter)
@@ -372,13 +370,12 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        # Mock the QDBClient class directly to ensure it's used
-        with patch("qdb.client.QDBClient") as mock_client_class:
-            mock_client = MagicMock()
-            mock_client_class.return_value = mock_client
-            # Set up the mock to raise an exception
-            mock_client.get_stock_data.side_effect = Exception("API error")
+        # Create mock client that raises an exception
+        mock_client = MagicMock()
+        mock_client.get_stock_data.side_effect = Exception("API error")
 
+        # Directly patch the _get_client function to return our mock
+        with patch("qdb.client._get_client", return_value=mock_client):
             # API调用失败时，应该抛出异常
             with self.assertRaises(Exception) as context:
                 qdb.get_stock_data("000001")
