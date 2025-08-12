@@ -186,29 +186,24 @@ def init_services():
         )
 
         if not CLOUD_MODE and not is_streamlit_cloud:
-            # Full mode: try to use core modules (only in non-cloud environment)
+            # Full mode: use ServiceManager for consistent service initialization
             try:
-                from core.cache import AKShareAdapter
-                from core.database import get_db
-                from core.services import (
-                    AssetInfoService,
-                    DatabaseCache,
-                    StockDataService,
-                )
+                from core.services import get_service_manager
 
-                # Create database session
-                db_session = next(get_db())
-                akshare_adapter = AKShareAdapter()
+                # Use ServiceManager for consistent service initialization
+                service_manager = get_service_manager()
 
                 result = {
-                    "stock_service": StockDataService(db_session, akshare_adapter),
-                    "asset_service": AssetInfoService(db_session),
-                    "cache_service": DatabaseCache(db_session),
-                    "akshare_adapter": akshare_adapter,
-                    "db_session": db_session,
+                    "stock_service": service_manager.get_stock_data_service(),
+                    "asset_service": service_manager.get_asset_info_service(),
+                    "cache_service": service_manager.get_database_cache(),
+                    "realtime_service": service_manager.get_realtime_data_service(),
+                    "index_service": service_manager.get_index_data_service(),
+                    "financial_service": service_manager.get_financial_data_service(),
+                    "service_manager": service_manager,
                     "mode": "full",
                     "status": "success",
-                    "message": "Full service initialization successful",
+                    "message": "Full service initialization successful via ServiceManager",
                 }
                 return result
 
