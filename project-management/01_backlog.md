@@ -61,15 +61,15 @@
 
 **修复计划** (按优先级排序):
 
-**阶段1: 高优先级修复** (预计4小时)
-- [ ] **StockListService测试修复** (tests/unit/test_stock_list_service.py)
+**阶段1: 高优先级修复** ✅ **已完成** (提交: 0b92319)
+- ✅ **StockListService测试修复** (tests/unit/test_stock_list_service.py)
   - 问题: Mock设置不正确，cache_manager调用方式需要更新
-  - 影响: 15个测试失败
-  - 修复策略: 更新mock配置，修复to_dict()方法调用
-- [ ] **QDBClient测试修复** (tests/unit/test_qdb_client.py)
+  - 影响: 10个测试失败 → 25个测试全部通过
+  - 修复策略: 更新mock配置，修复to_dict()方法调用，完善数据库查询链mock
+- ✅ **QDBClient测试修复** (tests/unit/test_qdb_client.py)
   - 问题: 客户端接口调用不匹配当前服务实现
-  - 影响: 20个测试失败
-  - 修复策略: 更新客户端方法调用，同步服务接口变更
+  - 影响: 0个测试失败 → 27个测试全部通过 (已经正常)
+  - 修复策略: 无需修复，测试已通过
 
 **阶段2: 中优先级修复** ✅ **已完成** (提交: f0e2815)
 - ✅ **IndexDataService测试修复** (tests/unit/test_index_data_service.py)
@@ -92,7 +92,7 @@
   - 修复策略: 更新或标记为deprecated
 
 **验收标准**:
-- ✅ 阶段1完成: 测试通过率达到85%+
+- ✅ 阶段1完成: 测试通过率达到100% (52/52测试通过，StockListService: 25/25, QDBClient: 27/27)
 - ✅ 阶段2完成: 测试通过率达到100% (48/48测试通过)
 - ✅ 阶段3完成: 测试通过率达到95%+ (当前: 100%通过率，67个测试中27个通过，40个deprecated跳过)
 
