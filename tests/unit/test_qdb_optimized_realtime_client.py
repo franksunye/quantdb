@@ -1,13 +1,16 @@
 """
-测试 qdb/optimized_realtime_client.py 模块的优化实时数据客户端功能
+DEPRECATED: 测试 qdb/optimized_realtime_client.py 模块的优化实时数据客户端功能
 
-测试覆盖：
-- OptimizedRealtimeClient类的初始化
-- 多级缓存机制（内存+数据库）
-- 智能TTL策略
-- 批量获取优化
-- 交易时间感知缓存
-- 线程安全
+⚠️  DEPRECATED MODULE TEST ⚠️
+This test file is for a deprecated module that no longer exists.
+The optimized_realtime_client.py module has been replaced by the new lightweight architecture.
+
+Current architecture:
+- qdb/__init__.py: Module-level functions
+- qdb/client.py: LightweightQDBClient class
+- core/services/realtime_data_service.py: Realtime data business logic
+
+This test file is kept for historical reference but all tests are skipped.
 """
 
 import os
@@ -23,7 +26,10 @@ from unittest.mock import MagicMock, call, patch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from qdb.exceptions import CacheError, DataError, QDBError
-from qdb.optimized_realtime_client import OptimizedRealtimeClient
+
+# Skip all tests in this file since the module no longer exists
+import pytest
+pytestmark = pytest.mark.skip(reason="DEPRECATED: optimized_realtime_client module no longer exists")
 
 
 class TestOptimizedRealtimeClient(unittest.TestCase):
