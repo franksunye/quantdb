@@ -270,8 +270,11 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        with patch("qdb.client._get_client") as mock_get_client:
+        # Mock the QDBClient class directly to ensure it's used
+        with patch("qdb.client.QDBClient") as mock_client_class:
             mock_client = MagicMock()
+            mock_client_class.return_value = mock_client
+
             # Ensure the mock returns the expected structure with total_records
             mock_stats = {
                 "cache_dir": "/test/cache",
@@ -281,7 +284,6 @@ class TestQDBClient(unittest.TestCase):
                 "status": "Running",
             }
             mock_client.cache_stats.return_value = mock_stats
-            mock_get_client.return_value = mock_client
 
             result = qdb.cache_stats()
 
@@ -295,9 +297,10 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        with patch("qdb.client._get_client") as mock_get_client:
+        # Mock the QDBClient class directly to ensure it's used
+        with patch("qdb.client.QDBClient") as mock_client_class:
             mock_client = MagicMock()
-            mock_get_client.return_value = mock_client
+            mock_client_class.return_value = mock_client
 
             qdb.clear_cache()
 
@@ -369,11 +372,12 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb.client._global_client = None
 
-        with patch("qdb.client._get_client") as mock_get_client:
+        # Mock the QDBClient class directly to ensure it's used
+        with patch("qdb.client.QDBClient") as mock_client_class:
             mock_client = MagicMock()
+            mock_client_class.return_value = mock_client
             # Set up the mock to raise an exception
             mock_client.get_stock_data.side_effect = Exception("API error")
-            mock_get_client.return_value = mock_client
 
             # API调用失败时，应该抛出异常
             with self.assertRaises(Exception) as context:
