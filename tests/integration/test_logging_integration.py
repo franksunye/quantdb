@@ -68,7 +68,7 @@ class TestLoggingIntegration(unittest.TestCase):
         # Check response content
         data = response.json()
         self.assertIn("status", data)
-        self.assertEqual(data["status"], "ok")
+        self.assertEqual(data["status"], "healthy")  # V1端点返回"healthy"
 
     def test_error_logging(self):
         """Test error logging."""

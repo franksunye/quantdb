@@ -39,45 +39,67 @@ class TestStockListService(unittest.TestCase):
     def test_get_stock_list_cache_hit(self, logger_mock):
         """Test getting stock list with cache hit."""
         # Setup cache manager to return fresh cache
-        self.service.cache_manager.is_cache_fresh.return_value = True
-        
-        # Setup cached data
-        mock_cache_data = [
-            MagicMock(symbol='000001', name='平安银行', market='SZSE'),
-            MagicMock(symbol='600000', name='浦发银行', market='SHSE')
-        ]
-        self.db_mock.query.return_value.filter.return_value.all.return_value = mock_cache_data
-        
-        # Call method
-        result = self.service.get_stock_list()
-        
-        # Verify result
-        self.assertEqual(len(result), 2)
-        logger_mock.info.assert_any_call("Using cached stock list data")
+        with patch.object(self.service.cache_manager, 'is_cache_fresh', return_value=True):
+            # Setup cached data
+            mock_cache_data = [
+                MagicMock(symbol='000001', name='平安银行', market='SZSE'),
+                MagicMock(symbol='600000', name='浦发银行', market='SHSE')
+            ]
+            # Mock the to_dict method for each cache object
+            for mock_obj in mock_cache_data:
+                mock_obj.to_dict.return_value = {
+                    'symbol': mock_obj.symbol,
+                    'name': mock_obj.name,
+                    'market': mock_obj.market
+                }
+
+            self.db_mock.query.return_value.filter.return_value.order_by.return_value.all.return_value = mock_cache_data
+
+            # Call method
+            result = self.service.get_stock_list()
+
+            # Verify result
+            self.assertEqual(len(result), 2)
+            logger_mock.info.assert_any_call("Using cached stock list data")
 
     @patch('core.services.stock_list_service.logger')
     def test_get_stock_list_cache_miss(self, logger_mock):
         """Test getting stock list with cache miss."""
         # Setup cache manager to return stale cache
-        self.service.cache_manager.is_cache_fresh.return_value = False
-        
-        # Setup AKShare data
-        test_df = pd.DataFrame({
-            'symbol': ['000001', '600000', '600519'],
-            'name': ['平安银行', '浦发银行', '贵州茅台'],
-            'market': ['SZSE', 'SHSE', 'SHSE']
-        })
-        self.akshare_adapter_mock.get_stock_list.return_value = test_df
-        
-        # Call method
-        result = self.service.get_stock_list()
-        
-        # Verify result
-        self.assertEqual(len(result), 3)
-        logger_mock.info.assert_any_call("Cache is stale or force refresh requested, fetching from AKShare")
-        
-        # Verify AKShare was called
-        self.akshare_adapter_mock.get_stock_list.assert_called_once()
+        with patch.object(self.service.cache_manager, 'is_cache_fresh', return_value=False), \
+             patch.object(self.service.cache_manager, 'clear_old_cache'):
+
+            # Setup AKShare data
+            test_df = pd.DataFrame({
+                'symbol': ['000001', '600000', '600519'],
+                'name': ['平安银行', '浦发银行', '贵州茅台'],
+                'market': ['SZSE', 'SHSE', 'SHSE']
+            })
+            self.akshare_adapter_mock.get_stock_list.return_value = test_df
+
+            # Setup cached data return
+            mock_cache_data = [
+                MagicMock(symbol='000001', name='平安银行', market='SZSE'),
+                MagicMock(symbol='600000', name='浦发银行', market='SHSE'),
+                MagicMock(symbol='600519', name='贵州茅台', market='SHSE')
+            ]
+            for mock_obj in mock_cache_data:
+                mock_obj.to_dict.return_value = {
+                    'symbol': mock_obj.symbol,
+                    'name': mock_obj.name,
+                    'market': mock_obj.market
+                }
+            self.db_mock.query.return_value.filter.return_value.order_by.return_value.all.return_value = mock_cache_data
+
+            # Call method
+            result = self.service.get_stock_list()
+
+            # Verify result
+            self.assertEqual(len(result), 3)
+            logger_mock.info.assert_any_call("Cache is stale or force refresh requested, fetching from AKShare")
+
+            # Verify AKShare was called
+            self.akshare_adapter_mock.get_stock_list.assert_called_once()
 
     @patch('core.services.stock_list_service.logger')
     def test_get_stock_list_force_refresh(self, logger_mock):

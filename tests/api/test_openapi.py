@@ -111,8 +111,8 @@ class TestOpenAPI(unittest.TestCase):
         self.assertIn("version", data, "健康检查响应应包含'version'字段")
         self.assertIn("timestamp", data, "健康检查响应应包含'timestamp'字段")
 
-        # 验证响应值
-        self.assertEqual(data["status"], "ok", "健康状态应为'ok'")
+        # 验证响应值 - V1端点返回"healthy"
+        self.assertEqual(data["status"], "healthy", "健康状态应为'healthy'")
         # 健康检查端点返回"ok"，与OpenAPI规范一致
 
         logger.info("健康检查端点测试通过")

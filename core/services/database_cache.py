@@ -388,3 +388,68 @@ class DatabaseCache:
             self.db.rollback()
             logger.error(f"Error creating simple asset: {e}")
             return None
+
+    def get_cache_stats(self) -> Dict[str, Any]:
+        """
+        Get cache statistics (alias for get_stats for compatibility).
+
+        Returns:
+            Dictionary with cache statistics
+        """
+        return self.get_stats()
+
+    def clear_symbol_cache(self, symbol: str) -> int:
+        """
+        Clear cache data for a specific symbol.
+
+        Args:
+            symbol: Stock symbol to clear
+
+        Returns:
+            Number of records deleted
+        """
+        logger.info(f"Clearing cache for symbol: {symbol}")
+
+        try:
+            # Get asset
+            asset = self.db.query(Asset).filter(Asset.symbol == symbol).first()
+            if not asset:
+                logger.warning(f"Asset {symbol} not found for cache clearing")
+                return 0
+
+            # Delete data for this asset
+            deleted_count = (
+                self.db.query(DailyStockData)
+                .filter(DailyStockData.asset_id == asset.asset_id)
+                .delete()
+            )
+
+            self.db.commit()
+            logger.info(f"Cleared {deleted_count} records for symbol {symbol}")
+            return deleted_count
+
+        except Exception as e:
+            logger.error(f"Error clearing cache for symbol {symbol}: {e}")
+            self.db.rollback()
+            raise
+
+    def clear_all_cache(self) -> int:
+        """
+        Clear all cache data (keep assets, only clear stock data).
+
+        Returns:
+            Number of records deleted
+        """
+        logger.info("Clearing all cache data")
+
+        try:
+            # Delete all stock data but keep assets
+            deleted_count = self.db.query(DailyStockData).delete()
+            self.db.commit()
+            logger.info(f"Cleared {deleted_count} total records from cache")
+            return deleted_count
+
+        except Exception as e:
+            logger.error(f"Error clearing all cache: {e}")
+            self.db.rollback()
+            raise

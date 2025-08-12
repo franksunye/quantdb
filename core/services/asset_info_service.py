@@ -359,6 +359,44 @@ class AssetInfoService:
 
         return self._update_asset_info(asset)
 
+    def get_asset_info(self, symbol: str) -> Dict[str, Any]:
+        """
+        Get asset information as dictionary (for API compatibility).
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Dictionary with asset information
+        """
+        asset, metadata = self.get_or_create_asset(symbol)
+
+        if not asset:
+            return {
+                "symbol": symbol,
+                "error": "Asset not found",
+                "cache_hit": False,
+                "akshare_called": metadata.get("akshare_called", False)
+            }
+
+        return {
+            "symbol": asset.symbol,
+            "name": asset.name,
+            "asset_type": asset.asset_type,
+            "exchange": asset.exchange,
+            "currency": asset.currency,
+            "industry": asset.industry,
+            "concept": asset.concept,
+            "market_cap": asset.market_cap,
+            "pe_ratio": asset.pe_ratio,
+            "pb_ratio": asset.pb_ratio,
+            "roe": asset.roe,
+            "last_updated": asset.last_updated.isoformat() if asset.last_updated else None,
+            "data_source": asset.data_source,
+            "cache_hit": metadata.get("cache_hit", False),
+            "akshare_called": metadata.get("akshare_called", False)
+        }
+
     def _create_new_asset(self, symbol: str) -> Asset:
         """
         Create new asset with information from AKShare.

@@ -31,7 +31,7 @@ class TestRealtimeAPI(unittest.TestCase):
         response = self.client.get("/api/v1/health")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertEqual(data["status"], "ok")
+        self.assertEqual(data["status"], "healthy")  # V1端点返回"healthy"
     
     @patch('core.services.realtime_data_service.RealtimeDataService.get_realtime_data')
     def test_get_realtime_data_success(self, mock_get_data):

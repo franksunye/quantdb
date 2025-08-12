@@ -165,7 +165,19 @@ class TestQDBAPIIntegration(unittest.TestCase):
         # 清除测试数据的缓存，确保会调用AKShare
         qdb.clear_cache("000001")
 
-        mock_data = pd.DataFrame({'close': [10.0, 11.0]})
+        mock_data = pd.DataFrame({
+            '日期': ['2024-01-02', '2024-01-03'],
+            '开盘': [10.0, 10.5],
+            '收盘': [10.5, 11.0],
+            '最高': [10.8, 11.2],
+            '最低': [9.8, 10.3],
+            '成交量': [1000000, 1200000],
+            '成交额': [10500000, 13200000],
+            '振幅': [8.0, 8.5],
+            '涨跌幅': [5.0, 4.8],
+            '涨跌额': [0.5, 0.5],
+            '换手率': [1.2, 1.4]
+        })
 
         with patch('core.cache.akshare_adapter.ak') as mock_ak:
             mock_ak.stock_zh_a_hist.return_value = mock_data
@@ -174,7 +186,8 @@ class TestQDBAPIIntegration(unittest.TestCase):
             result = qdb.stock_zh_a_hist("000001", start_date="20240101", end_date="20240201")
 
             self.assertIsInstance(result, pd.DataFrame)
-            mock_ak.stock_zh_a_hist.assert_called()
+            # 验证AKShare被调用（可能通过重试机制多次调用）
+            self.assertTrue(mock_ak.stock_zh_a_hist.called)
 
     def test_configuration_integration(self):
         """测试配置集成"""

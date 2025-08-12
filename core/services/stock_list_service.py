@@ -265,3 +265,227 @@ class StockListService:
             logger.error(f"Error clearing stock list cache: {e}")
             self.db.rollback()
             raise
+
+    def clear_all_cache(self) -> int:
+        """
+        Clear all stock list cache (alias for clear_cache).
+
+        Returns:
+            Number of records deleted
+        """
+        return self.clear_cache()
+
+    def get_stock_info(self, symbol: str) -> Optional[Dict[str, Any]]:
+        """
+        Get information for a specific stock.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            Dictionary with stock information or None if not found
+        """
+        try:
+            today = date.today()
+            stock = (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.symbol == symbol,
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .first()
+            )
+
+            if stock:
+                return stock.to_dict()
+            return None
+
+        except Exception as e:
+            logger.error(f"Error getting stock info for {symbol}: {e}")
+            return None
+
+    def is_stock_exists(self, symbol: str) -> bool:
+        """
+        Check if a stock exists in the cache.
+
+        Args:
+            symbol: Stock symbol
+
+        Returns:
+            True if stock exists, False otherwise
+        """
+        return self.get_stock_info(symbol) is not None
+
+    def get_total_stock_count(self) -> int:
+        """
+        Get total number of stocks in cache.
+
+        Returns:
+            Total stock count
+        """
+        try:
+            today = date.today()
+            return (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .count()
+            )
+        except Exception as e:
+            logger.error(f"Error getting total stock count: {e}")
+            return 0
+
+    def get_stock_count_by_market(self, market: str) -> int:
+        """
+        Get stock count for a specific market.
+
+        Args:
+            market: Market code (SHSE, SZSE, HKEX)
+
+        Returns:
+            Stock count for the market
+        """
+        try:
+            today = date.today()
+            return (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.market == market.upper(),
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .count()
+            )
+        except Exception as e:
+            logger.error(f"Error getting stock count for market {market}: {e}")
+            return 0
+
+    def search_stocks_by_name(self, name_pattern: str) -> List[Dict[str, Any]]:
+        """
+        Search stocks by name pattern.
+
+        Args:
+            name_pattern: Name pattern to search for
+
+        Returns:
+            List of matching stocks
+        """
+        try:
+            today = date.today()
+            stocks = (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.name.like(f"%{name_pattern}%"),
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .all()
+            )
+
+            return [stock.to_dict() for stock in stocks]
+
+        except Exception as e:
+            logger.error(f"Error searching stocks by name {name_pattern}: {e}")
+            return []
+
+    def search_stocks_by_symbol(self, symbol_pattern: str) -> List[Dict[str, Any]]:
+        """
+        Search stocks by symbol pattern.
+
+        Args:
+            symbol_pattern: Symbol pattern to search for
+
+        Returns:
+            List of matching stocks
+        """
+        try:
+            today = date.today()
+            stocks = (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.symbol.like(f"%{symbol_pattern}%"),
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .all()
+            )
+
+            return [stock.to_dict() for stock in stocks]
+
+        except Exception as e:
+            logger.error(f"Error searching stocks by symbol {symbol_pattern}: {e}")
+            return []
+
+    def get_stocks_by_market(
+        self, market: str, skip: int = 0, limit: int = 100
+    ) -> List[Dict[str, Any]]:
+        """
+        Get stocks by market with pagination.
+
+        Args:
+            market: Market code (SHSE, SZSE, HKEX)
+            skip: Number of records to skip
+            limit: Maximum number of records to return
+
+        Returns:
+            List of stocks for the market
+        """
+        try:
+            today = date.today()
+            stocks = (
+                self.db.query(StockListCache)
+                .filter(
+                    StockListCache.market == market.upper(),
+                    StockListCache.cache_date == today,
+                    StockListCache.is_active == True,
+                )
+                .offset(skip)
+                .limit(limit)
+                .all()
+            )
+
+            return [stock.to_dict() for stock in stocks]
+
+        except Exception as e:
+            logger.error(f"Error getting stocks by market {market}: {e}")
+            return []
+
+    def get_cache_info(self) -> Dict[str, Any]:
+        """
+        Get cache information.
+
+        Returns:
+            Dictionary with cache information
+        """
+        return self.get_cache_stats()
+
+    def _clear_old_stock_list_cache(self):
+        """Clear old stock list cache entries."""
+        return self.cache_manager.clear_old_cache()
+
+    def _convert_cache_to_dict_list(self, cache_data: List) -> List[Dict[str, Any]]:
+        """
+        Convert cache objects to dictionary list.
+
+        Args:
+            cache_data: List of cache objects
+
+        Returns:
+            List of dictionaries
+        """
+        return [item.to_dict() if hasattr(item, 'to_dict') else item for item in cache_data]
+
+    def _update_cache_stats(self, total_count: int):
+        """
+        Update cache statistics.
+
+        Args:
+            total_count: Total number of stocks
+        """
+        try:
+            self.cache_manager.update_cache_stats(total_count)
+        except Exception as e:
+            logger.error(f"Error updating cache stats: {e}")

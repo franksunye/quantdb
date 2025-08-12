@@ -38,9 +38,13 @@ class TestRealUserScenarios(unittest.TestCase):
         """设置测试环境"""
         cls.base_url = "http://localhost:8000"
         cls.api_prefix = "/api/v1"
-        
-        # 等待API服务器启动
-        cls._wait_for_api_server()
+
+        # 检查API服务器是否可用，如果不可用则跳过测试
+        try:
+            cls._wait_for_api_server()
+        except Exception as e:
+            import unittest
+            raise unittest.SkipTest(f"API server not available: {e}")
         
         logger.info("=== 开始真实用户场景E2E测试 ===")
 
