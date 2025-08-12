@@ -33,8 +33,13 @@ class TestQDBClient(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.cache_dir = os.path.join(self.temp_dir, "test_cache")
 
-        # 重置全局客户端
+        # 重置全局客户端 - 确保每个测试都有干净的状态
         qdb.client._global_client = None
+
+        # 清理任何可能存在的缓存
+        import sys
+        if 'qdb.client' in sys.modules:
+            sys.modules['qdb.client']._global_client = None
 
     def tearDown(self):
         """清理测试环境"""
@@ -43,6 +48,11 @@ class TestQDBClient(unittest.TestCase):
 
         # 重置全局客户端
         qdb.client._global_client = None
+
+        # 清理模块级别的缓存
+        import sys
+        if 'qdb.client' in sys.modules:
+            sys.modules['qdb.client']._global_client = None
 
     def test_init_function(self):
         """测试init函数"""
@@ -257,6 +267,9 @@ class TestQDBClient(unittest.TestCase):
 
     def test_cache_stats(self):
         """测试cache_stats函数"""
+        # Reset global client to ensure clean state
+        qdb.client._global_client = None
+
         with patch("qdb.client._get_client") as mock_get_client:
             mock_client = MagicMock()
             # Ensure the mock returns the expected structure with total_records
@@ -279,6 +292,9 @@ class TestQDBClient(unittest.TestCase):
 
     def test_clear_cache(self):
         """测试clear_cache函数"""
+        # Reset global client to ensure clean state
+        qdb.client._global_client = None
+
         with patch("qdb.client._get_client") as mock_get_client:
             mock_client = MagicMock()
             mock_get_client.return_value = mock_client
@@ -350,6 +366,9 @@ class TestQDBClient(unittest.TestCase):
 
     def test_error_handling_api_calls(self):
         """测试API调用错误处理"""
+        # Reset global client to ensure clean state
+        qdb.client._global_client = None
+
         with patch("qdb.client._get_client") as mock_get_client:
             mock_client = MagicMock()
             # Set up the mock to raise an exception
