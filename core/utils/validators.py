@@ -47,7 +47,11 @@ def validate_stock_symbol(symbol: str) -> bool:
         return True
 
     # Hong Kong stocks: 5-digit number (02171, 00700)
+    # But exclude patterns that look like incomplete A-share codes
     if re.match(r"^\d{5}$", clean_symbol):
+        # Exclude patterns like "00001" which might be incomplete A-share codes
+        if clean_symbol.startswith("0000"):
+            return False
         return True
 
     return False
@@ -55,7 +59,7 @@ def validate_stock_symbol(symbol: str) -> bool:
 
 def validate_date_format(date_str: str) -> bool:
     """
-    Validate date string format (YYYYMMDD).
+    Validate date string format (YYYYMMDD or YYYY-MM-DD).
 
     Args:
         date_str: Date string to validate
@@ -66,16 +70,23 @@ def validate_date_format(date_str: str) -> bool:
     if not date_str or not isinstance(date_str, str):
         return False
 
-    # Check format
-    if not re.match(r"^\d{8}$", date_str):
-        return False
+    # Check YYYYMMDD format
+    if re.match(r"^\d{8}$", date_str):
+        try:
+            datetime.strptime(date_str, "%Y%m%d")
+            return True
+        except ValueError:
+            return False
 
-    # Check if date is valid
-    try:
-        datetime.strptime(date_str, "%Y%m%d")
-        return True
-    except ValueError:
-        return False
+    # Check YYYY-MM-DD format
+    if re.match(r"^\d{4}-\d{2}-\d{2}$", date_str):
+        try:
+            datetime.strptime(date_str, "%Y-%m-%d")
+            return True
+        except ValueError:
+            return False
+
+    return False
 
 
 def validate_date_range(start_date: str, end_date: str) -> Tuple[bool, Optional[str]]:

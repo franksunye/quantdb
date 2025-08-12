@@ -50,7 +50,7 @@ class E2EServerManager:
             sys.executable,
             "-m",
             "uvicorn",
-            "src.api.main:app",
+            "api.main:app",
             "--host",
             self.config.SERVER_HOST,
             "--port",

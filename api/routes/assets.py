@@ -92,6 +92,34 @@ async def get_asset(asset_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
+@router.get("/{symbol}", response_model=AssetSchema)
+async def get_asset_by_symbol_simple(
+    symbol: str, asset_info_service: AssetInfoService = Depends(get_asset_info_service)
+):
+    """
+    Get a specific asset by symbol (simplified endpoint for compatibility)
+    """
+    try:
+        # Validate symbol format - should be 6 digits for A-shares or 5 digits for Hong Kong stocks
+        if not symbol.isdigit() or (len(symbol) != 6 and len(symbol) != 5):
+            raise HTTPException(
+                status_code=400,
+                detail="Symbol must be 6 digits for A-shares or 5 digits for Hong Kong stocks",
+            )
+
+        # Use asset info service to get or create asset with enhanced info
+        asset, metadata = asset_info_service.get_or_create_asset(symbol)
+        return asset
+    except HTTPException:
+        raise
+    except SQLAlchemyError as e:
+        logger.error(f"Database error when getting asset with symbol {symbol}: {e}")
+        raise HTTPException(status_code=500, detail="Database error")
+    except Exception as e:
+        logger.error(f"Unexpected error when getting asset with symbol {symbol}: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+
 @router.get("/symbol/{symbol}", response_model=AssetSchema)
 async def get_asset_by_symbol(
     symbol: str, asset_info_service: AssetInfoService = Depends(get_asset_info_service)

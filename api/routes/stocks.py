@@ -62,6 +62,31 @@ router = APIRouter(
 )
 
 
+@router.get("/{symbol}/daily", response_model=HistoricalDataResponse)
+@monitor_stock_request(get_db)
+async def get_daily_stock_data(
+    symbol: str,
+    request: Request,
+    start_date: Optional[str] = Query(
+        None, description="Start date in format YYYYMMDD"
+    ),
+    end_date: Optional[str] = Query(None, description="End date in format YYYYMMDD"),
+    adjust: Optional[str] = Query(
+        "",
+        description="Price adjustment: '' for no adjustment, 'qfq' for forward adjustment, 'hfq' for backward adjustment",
+    ),
+    db: Session = Depends(get_db),
+    stock_data_service: StockDataService = Depends(get_stock_data_service),
+    asset_info_service: AssetInfoService = Depends(get_asset_info_service),
+):
+    """
+    Get daily stock data for a specific symbol
+    """
+    return await get_historical_stock_data(
+        symbol, request, start_date, end_date, adjust, db, stock_data_service, asset_info_service
+    )
+
+
 @router.get("/stock/{symbol}", response_model=HistoricalDataResponse)
 @monitor_stock_request(get_db)
 async def get_historical_stock_data(

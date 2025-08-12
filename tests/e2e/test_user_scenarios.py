@@ -24,7 +24,7 @@ class TestUserScenarios(BaseE2ETest):
         
         health_data = response.json()
         self.assertIn("status", health_data)
-        self.assertEqual(health_data["status"], "ok")
+        self.assertEqual(health_data["status"], "healthy")
         logger.info("✓ API健康检查通过")
         
         # 步骤2: 用户查看可用资产

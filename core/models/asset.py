@@ -32,7 +32,7 @@ class Asset(Base):
     asset_id = Column(Integer, primary_key=True, index=True)
     symbol = Column(String, nullable=False)
     name = Column(String, nullable=False)
-    isin = Column(String, nullable=False, unique=True)
+    isin = Column(String, nullable=True, unique=True)
     asset_type = Column(String, nullable=False)
     exchange = Column(String, nullable=False)
     currency = Column(String, nullable=False)
