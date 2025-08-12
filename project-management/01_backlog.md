@@ -71,15 +71,15 @@
   - 影响: 20个测试失败
   - 修复策略: 更新客户端方法调用，同步服务接口变更
 
-**阶段2: 中优先级修复** (预计3小时)
-- [ ] **IndexDataService测试修复** (tests/unit/test_index_data_service.py)
-  - 问题: 服务方法调用不匹配
+**阶段2: 中优先级修复** ✅ **已完成** (提交: f0e2815)
+- ✅ **IndexDataService测试修复** (tests/unit/test_index_data_service.py)
+  - 问题: 服务方法调用不匹配，返回值格式问题
+  - 影响: 11个测试失败
+  - 修复策略: 更新mock设置，修复返回值格式，删除重复方法
+- ✅ **QueryService测试修复** (tests/unit/test_query_service.py)
+  - 问题: 查询逻辑接口变更，缺失方法
   - 影响: 12个测试失败
-  - 修复策略: 更新服务方法调用，修复数据格式
-- [ ] **QueryService测试修复** (tests/unit/test_query_service.py)
-  - 问题: 查询逻辑接口变更
-  - 影响: 8个测试失败
-  - 修复策略: 更新查询接口，修复参数传递
+  - 修复策略: 添加_apply_price_filters方法，修复mock链设置
 
 **阶段3: 低优先级修复** ✅ **已完成** (提交: 9be4c2d)
 - ✅ **QDBExceptions测试修复** (tests/unit/test_qdb_exceptions.py)
@@ -93,7 +93,7 @@
 
 **验收标准**:
 - ✅ 阶段1完成: 测试通过率达到85%+
-- ✅ 阶段2完成: 测试通过率达到90%+
+- ✅ 阶段2完成: 测试通过率达到100% (48/48测试通过)
 - ✅ 阶段3完成: 测试通过率达到95%+ (当前: 100%通过率，67个测试中27个通过，40个deprecated跳过)
 
 **测试基础设施** (预计2小时)
