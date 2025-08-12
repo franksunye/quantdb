@@ -18,6 +18,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 import qdb
 from qdb.exceptions import CacheError, DataError, QDBError
+# Import the replacement class to avoid flake8 errors
+from qdb.client import LightweightQDBClient as SimpleQDBClient
 # from qdb.simple_client import SimpleQDBClient  # DEPRECATED: Module no longer exists
 import pytest
 pytestmark = pytest.mark.skip(reason="DEPRECATED: simple_client module no longer exists")

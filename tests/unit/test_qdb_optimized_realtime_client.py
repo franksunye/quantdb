@@ -31,6 +31,9 @@ from qdb.exceptions import CacheError, DataError, QDBError
 import pytest
 pytestmark = pytest.mark.skip(reason="DEPRECATED: optimized_realtime_client module no longer exists")
 
+# Import the replacement class to avoid flake8 errors
+from qdb.client import LightweightQDBClient as OptimizedRealtimeClient
+
 
 class TestOptimizedRealtimeClient(unittest.TestCase):
     """测试OptimizedRealtimeClient类"""

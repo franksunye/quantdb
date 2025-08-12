@@ -5,7 +5,10 @@ Dependency injection for API services using ServiceManager.
 """
 
 from fastapi import Depends
+from sqlalchemy.orm import Session
 
+from core.database import get_db
+from core.cache.database_cache import DatabaseCache
 from core.services import ServiceManager, get_service_manager
 
 

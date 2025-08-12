@@ -30,6 +30,9 @@ from qdb.exceptions import CacheError, DataError, QDBError
 import pytest
 pytestmark = pytest.mark.skip(reason="DEPRECATED: simple_client module no longer exists")
 
+# Import the replacement class to avoid flake8 errors
+from qdb.client import LightweightQDBClient as SimpleQDBClient
+
 
 class TestSimpleQDBClient(unittest.TestCase):
     """测试SimpleQDBClient类"""
