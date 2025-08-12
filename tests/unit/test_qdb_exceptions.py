@@ -129,33 +129,37 @@ class TestQDBExceptions(unittest.TestCase):
         """测试format_user_error函数 - 导入错误"""
         error = ImportError("No module named 'test'")
         formatted = format_user_error(error)
-        
-        self.assertIn("❌ Dependency Error:", formatted)
-        self.assertIn("pip install quantdb[full]", formatted)
+
+        # Updated to match simplified error format
+        self.assertIn("❌ Error:", formatted)
+        self.assertIn("No module named 'test'", formatted)
 
     def test_format_user_error_file_not_found(self):
         """测试format_user_error函数 - 文件未找到错误"""
         error = FileNotFoundError("File not found")
         formatted = format_user_error(error)
-        
-        self.assertIn("❌ File Error:", formatted)
-        self.assertIn("reinitialize cache", formatted)
+
+        # Updated to match simplified error format
+        self.assertIn("❌ Error:", formatted)
+        self.assertIn("File not found", formatted)
 
     def test_format_user_error_permission_error(self):
         """测试format_user_error函数 - 权限错误"""
         error = PermissionError("Permission denied")
         formatted = format_user_error(error)
-        
-        self.assertIn("❌ Permission Error:", formatted)
-        self.assertIn("directory permissions", formatted)
+
+        # Updated to match simplified error format
+        self.assertIn("❌ Error:", formatted)
+        self.assertIn("Permission denied", formatted)
 
     def test_format_user_error_connection_error(self):
         """测试format_user_error函数 - 连接错误"""
         error = ConnectionError("Connection failed")
         formatted = format_user_error(error)
-        
-        self.assertIn("❌ Network Error:", formatted)
-        self.assertIn("network connection", formatted)
+
+        # Updated to match simplified error format
+        self.assertIn("❌ Error:", formatted)
+        self.assertIn("Connection failed", formatted)
 
     def test_handle_qdb_errors_decorator_success(self):
         """测试handle_qdb_errors装饰器 - 成功情况"""
