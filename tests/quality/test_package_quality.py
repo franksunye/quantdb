@@ -126,11 +126,13 @@ class TestPerformanceBenchmarks(unittest.TestCase):
                 self.assertLess(duration, max_time, 
                     f"{endpoint} took {duration:.3f}s, expected < {max_time}s")
     
-    @patch('core.services.stock_data_service.StockDataService.get_daily_data')
+    @patch('core.services.stock_data_service.StockDataService.get_stock_data')
     def test_data_retrieval_performance(self, mock_get_data):
         """Test data retrieval performance."""
-        # Mock fast data response
-        mock_get_data.return_value = [
+        import pandas as pd
+
+        # Mock fast data response with DataFrame
+        mock_data = pd.DataFrame([
             {
                 "date": "2024-01-15",
                 "open": 12.50,
@@ -139,18 +141,21 @@ class TestPerformanceBenchmarks(unittest.TestCase):
                 "close": 12.75,
                 "volume": 1000000
             }
-        ]
-        
+        ])
+        mock_get_data.return_value = mock_data
+
         start_time = time.time()
         response = self.client.get("/api/v1/stocks/000001/daily")
         duration = time.time() - start_time
-        
+
         # Data retrieval must be fast (< 2 seconds)
         self.assertLess(duration, 2.0)
         
         if response.status_code == 200:
             data = response.json()
-            self.assertIsInstance(data, list)
+            self.assertIsInstance(data, dict)
+            self.assertIn("data", data)
+            self.assertIsInstance(data["data"], list)
     
     def test_concurrent_request_handling(self):
         """Test concurrent request handling capability."""
@@ -198,6 +203,7 @@ class TestDataIntegrity(unittest.TestCase):
     
     def test_data_model_constraints(self):
         """Test data model constraints and validation."""
+        from datetime import date
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
 
@@ -208,7 +214,7 @@ class TestDataIntegrity(unittest.TestCase):
         Base.metadata.create_all(engine)
         SessionLocal = sessionmaker(bind=engine)
         session = SessionLocal()
-        
+
         try:
             # Test Asset model constraints
             asset = Asset(
@@ -220,11 +226,11 @@ class TestDataIntegrity(unittest.TestCase):
             )
             session.add(asset)
             session.commit()
-            
+
             # Test DailyStockData model constraints
             daily_data = DailyStockData(
                 asset_id=asset.asset_id,
-                trade_date="2024-01-15",
+                trade_date=date(2024, 1, 15),
                 open=12.50,
                 high=12.80,
                 low=12.30,
@@ -414,20 +420,27 @@ class TestPackageReadiness(unittest.TestCase):
     
     def test_production_readiness_checklist(self):
         """Test production readiness checklist."""
+        from api.main import app
+        from fastapi.testclient import TestClient
+
+        # Create a new test client with the full app
+        full_client = TestClient(app)
+
         checklist_items = [
-            ("API health endpoint", lambda: self.client.get("/api/v1/health").status_code == 200),
-            ("Version endpoint", lambda: self.client.get("/api/v1/version").status_code == 200),
-            ("OpenAPI documentation", lambda: self.client.get("/openapi.json").status_code == 200),
+            ("API health endpoint", lambda: full_client.get("/api/v1/health").status_code == 200),
+            ("Version endpoint", lambda: full_client.get("/api/v1/version").status_code == 200),
+            ("OpenAPI documentation", lambda: full_client.get("/openapi.json").status_code == 200),
         ]
-        
+
         failed_items = []
         for item_name, check_func in checklist_items:
             try:
                 if not check_func():
                     failed_items.append(item_name)
-            except Exception:
+            except Exception as e:
+                print(f"Error checking {item_name}: {e}")
                 failed_items.append(item_name)
-        
+
         if failed_items:
             self.fail(f"Production readiness check failed for: {', '.join(failed_items)}")
 

@@ -165,6 +165,27 @@ class StockDataService:
             logger.warning(f"No data found for {symbol} in requested date range")
             return pd.DataFrame()
 
+    def get_daily_data(
+        self,
+        symbol: str,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        adjust: str = "",
+    ) -> pd.DataFrame:
+        """
+        Get daily stock data - alias for get_stock_data for backward compatibility.
+
+        Args:
+            symbol: Stock symbol
+            start_date: Start date in format YYYYMMDD
+            end_date: End date in format YYYYMMDD
+            adjust: Price adjustment method
+
+        Returns:
+            DataFrame with stock data
+        """
+        return self.get_stock_data(symbol, start_date, end_date, adjust)
+
     def _standardize_stock_symbol(self, symbol: str) -> str:
         """
         Standardize stock symbol format.
