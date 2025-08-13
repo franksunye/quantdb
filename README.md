@@ -4,7 +4,7 @@
 
 > **Intelligent caching wrapper for AKShare with 90%+ performance boost** - Complete stock data ecosystem with smart SQLite caching for Chinese financial markets. Perfect for quantitative trading, financial analysis, and algorithmic trading in Python.
 
-![Version](https://img.shields.io/badge/version-2.2.8-blue)
+![Version](https://img.shields.io/badge/version-2.2.9-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 [![codecov](https://codecov.io/gh/franksunye/quantdb/branch/main/graph/badge.svg)](https://codecov.io/gh/franksunye/quantdb)
@@ -31,9 +31,10 @@ pip install quantdb  # One command, instant 90%+ speed boost!
 import qdb  # Note: import name is 'qdb' for simplicity
 df = qdb.get_stock_data("000001", days=30)
 
-# New features available in v2.2.7:
-realtime = qdb.get_realtime_data("000001")  # Real-time quotes
-stocks = qdb.get_stock_list()  # Complete stock list
+# New in v2.2.9: Multi-market support!
+df_china = qdb.get_stock_data("000001", days=30)  # China A-shares
+df_hk = qdb.get_stock_data("00700", days=30)      # Hong Kong stocks
+realtime = qdb.get_realtime_data("000001")        # Real-time quotes
 financials = qdb.get_financial_summary("000001")  # Financial data
 ```
 

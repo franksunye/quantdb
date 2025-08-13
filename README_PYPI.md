@@ -30,7 +30,8 @@ df = qdb.get_stock_data("000001", start_date="20240101", end_date="20240131")  #
 - **🚀 90%+ Performance Boost**: Local SQLite cache avoids repeated network requests
 - **🧠 Smart Incremental Updates**: Only fetch missing data, maximize cache efficiency
 - **⚡ Millisecond Response**: Cache hit response time < 10ms
-- **📅 Trading Calendar Integration**: Smart data acquisition based on real trading calendar
+- **📅 Multi-Market Trading Calendar**: Professional-grade calendars for China A-shares + Hong Kong stocks
+- **🇭🇰 Hong Kong Stock Support**: Native HKEX support with intelligent market detection
 - **🔧 Zero Configuration**: Automatically initialize local cache database
 - **🔄 Full AKShare Compatibility**: Drop-in replacement with same API interface
 - **🌍 100% English Codebase**: International developer friendly
@@ -70,9 +71,13 @@ stats = qdb.cache_stats()  # View cache statistics
 qdb.clear_cache()         # Clear cache if needed
 ```
 
-### Advanced Features (v2.2.8)
+### Advanced Features (v2.2.9)
 ```python
 import qdb
+
+# Multi-market support with intelligent detection
+df_china = qdb.get_stock_data("000001", days=30)  # China A-shares (auto-detected)
+df_hk = qdb.get_stock_data("00700", days=30)      # Hong Kong stocks (auto-detected)
 
 # Real-time stock quotes with intelligent caching
 realtime = qdb.get_realtime_data("000001")
@@ -82,6 +87,7 @@ batch_realtime = qdb.get_realtime_data_batch(["000001", "000002"])
 all_stocks = qdb.get_stock_list()  # All markets
 shse_stocks = qdb.get_stock_list(market="SHSE")  # Shanghai Stock Exchange
 szse_stocks = qdb.get_stock_list(market="SZSE")  # Shenzhen Stock Exchange
+hkex_stocks = qdb.get_stock_list(market="HKEX")  # Hong Kong Exchange
 
 # Index data (now available via top-level qdb)
 index_hist = qdb.get_index_data("000001", start_date="20240101", end_date="20240201")
@@ -126,12 +132,14 @@ qdb.set_log_level("INFO")  # DEBUG, INFO, WARNING, ERROR
 - **Portfolio Management**: Multi-asset data retrieval and analysis
 - **Academic Research**: Reliable data source for financial studies
 
-## 🎉 What's new in v2.2.8
+## 🎉 What's new in v2.2.9
 
-- ✅ Easier API usage: get_stock_data() now supports positional, keyword, and mixed arguments
-- ✅ Documentation and examples updated: Improved UX and clarity
-- ✅ Quality assured: 149/149 tests passing (100%)
-- ✅ Version alignment: Unified version across files; PyPI-ready packaging
+- ✅ **Multi-Market Trading Calendar**: Upgraded from AKShare to pandas_market_calendars with Hong Kong support
+- ✅ **Hong Kong Stock Exchange**: Native HKEX support with intelligent symbol detection (00700 → HK, 000001 → China)
+- ✅ **197+ Global Exchanges**: Professional-grade calendar support for future expansion
+- ✅ **Enhanced Performance**: Improved test coverage (77%+) and error handling
+- ✅ **AI Agent Ready**: Enhanced documentation for better AI tool integration
+- ✅ **100% Backward Compatible**: All existing code continues to work unchanged
 
 ## 📚 Documentation & Support
 

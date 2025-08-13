@@ -2,7 +2,7 @@
 
 *[English](README.md) | 中文版本*
 
-![Version](https://img.shields.io/badge/version-2.2.7-blue)
+![Version](https://img.shields.io/badge/version-2.2.9-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Python Package](https://img.shields.io/badge/PyPI-quantdb-blue)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
@@ -28,9 +28,10 @@ pip install quantdb  # 一行命令，瞬间90%+速度提升！
 import qdb  # 注意：导入名是'qdb'，简洁易用
 df = qdb.get_stock_data("000001", days=30)
 
-# v2.2.7新功能：
-realtime = qdb.get_realtime_data("000001")  # 实时行情
-stocks = qdb.get_stock_list()  # 完整股票列表
+# v2.2.9新功能：多市场支持！
+df_china = qdb.get_stock_data("000001", days=30)  # A股数据
+df_hk = qdb.get_stock_data("00700", days=30)      # 港股数据
+realtime = qdb.get_realtime_data("000001")        # 实时行情
 financials = qdb.get_financial_summary("000001")  # 财务数据
 ```
 

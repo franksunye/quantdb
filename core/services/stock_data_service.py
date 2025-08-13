@@ -78,7 +78,7 @@ class StockDataService:
         end_date = self._validate_and_format_date(end_date)
 
         # Get trading days in the requested date range (now excludes weekends and holidays)
-        trading_days = self._get_trading_days(start_date, end_date)
+        trading_days = self._get_trading_days(symbol, start_date, end_date)
         logger.info(
             f"Identified {len(trading_days)} trading days for {symbol} from {start_date} to {end_date}"
         )
@@ -231,24 +231,26 @@ class StockDataService:
 
         return date_str
 
-    def _get_trading_days(self, start_date: str, end_date: str) -> List[str]:
+    def _get_trading_days(self, symbol: str, start_date: str, end_date: str) -> List[str]:
         """
-        Get list of trading days in the given date range.
+        Get list of trading days in the given date range for the specific market.
 
-        This method uses AKShare's official trading calendar to accurately
-        identify trading days, avoiding unnecessary API calls for non-trading days.
+        This method uses pandas_market_calendars to accurately identify trading days
+        for the appropriate market (China A-shares or Hong Kong), avoiding unnecessary
+        API calls for non-trading days.
 
         Args:
+            symbol: Stock symbol to determine the market
             start_date: Start date in format YYYYMMDD
             end_date: End date in format YYYYMMDD
 
         Returns:
-            List of actual trading days based on official calendar
+            List of actual trading days based on official calendar for the symbol's market
         """
         try:
-            # Use the official trading calendar service
+            # Use the official trading calendar service with symbol for market detection
             trading_calendar = get_trading_calendar()
-            trading_days = trading_calendar.get_trading_days(start_date, end_date)
+            trading_days = trading_calendar.get_trading_days(start_date, end_date, symbol=symbol)
 
             logger.info(
                 f"Using official trading calendar: found {len(trading_days)} trading days"

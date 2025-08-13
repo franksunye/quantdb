@@ -6,9 +6,13 @@
 
 import time
 from functools import wraps
-from typing import Any, Callable
+from typing import Any, Callable, Optional
 
-from fastapi import Request
+try:
+    from fastapi import Request
+except ImportError:
+    Request = None
+
 from sqlalchemy.orm import Session
 
 from core.services.monitoring_service import MonitoringService
@@ -36,7 +40,7 @@ class RequestMonitor:
         cache_hit: bool,
         akshare_called: bool,
         cache_hit_ratio: float = 0.0,
-        request: Request = None,
+        request: Optional[Any] = None,
     ):
         """记录股票数据请求"""
 

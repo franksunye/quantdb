@@ -29,9 +29,11 @@ install_requires = [
     "pandas>=1.3.0",
     "numpy>=1.20.0",
     "akshare>=1.0.0",
+    "pandas-market-calendars>=4.0.0",
     "sqlalchemy>=1.4.0",
-    "tenacity>=8.2.3,<9.0.0,!=8.4.0",
+    "tenacity>=8.2.3,!=8.4.0",  # Removed upper bound for better compatibility
     "python-dateutil>=2.8.0",
+    "beautifulsoup4>=4.12.3",  # Explicit version to avoid conflicts
 ]
 
 # Optional dependencies
@@ -59,7 +61,7 @@ extras_require = {
 setup(
     # Basic information
     name="quantdb",
-    version="2.2.8",
+    version="2.2.11",
     author="Ye Sun",
     author_email="franksunye@hotmail.com",
     description="Intelligent caching wrapper for AKShare with 90%+ performance boost - 100% English codebase (import as 'qdb')",

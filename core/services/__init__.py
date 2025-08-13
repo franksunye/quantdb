@@ -7,7 +7,7 @@ the core functionality of QuantDB.
 
 from .asset_info_service import AssetInfoService
 from .database_cache import DatabaseCache
-from .monitoring_middleware import RequestMonitor, monitor_stock_request
+# monitoring_middleware is optional (requires fastapi)
 from .monitoring_service import MonitoringService
 from .query_service import QueryService
 from .service_manager import ServiceManager, get_service_manager, reset_service_manager
@@ -35,8 +35,6 @@ __all__ = [
     "is_trading_day",
     "get_trading_days",
     "MonitoringService",
-    "RequestMonitor",
-    "monitor_stock_request",
     "ServiceManager",
     "get_service_manager",
     "reset_service_manager",
