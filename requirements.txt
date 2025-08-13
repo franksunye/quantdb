@@ -2,6 +2,7 @@
 pandas>=1.3.0
 numpy>=1.20.0
 akshare>=1.0.0
+pandas-market-calendars>=4.0.0
 
 # Web framework and API
 fastapi>=0.68.0

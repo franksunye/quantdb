@@ -1,0 +1,32 @@
+Defaulting to user installation because normal site-packages is not writeable
+Collecting pandas-market-calendars
+  Downloading pandas_market_calendars-5.1.1-py3-none-any.whl (127 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 127.4/127.4 KB 3.7 MB/s eta 0:00:00
+Collecting exchange-calendars>=3.3
+  Downloading exchange_calendars-4.11-py3-none-any.whl (203 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 203.6/203.6 KB 10.5 MB/s eta 0:00:00
+Collecting pandas>=1.1
+  Downloading pandas-2.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (12.3 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.3/12.3 MB 32.0 MB/s eta 0:00:00
+Collecting python-dateutil
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 KB 34.8 MB/s eta 0:00:00
+Collecting tzdata
+  Downloading tzdata-2025.2-py2.py3-none-any.whl (347 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 347.8/347.8 KB 41.0 MB/s eta 0:00:00
+Collecting pyluach
+  Downloading pyluach-2.2.0-py3-none-any.whl (25 kB)
+Collecting korean_lunar_calendar
+  Downloading korean_lunar_calendar-0.3.1-py3-none-any.whl (9.0 kB)
+Collecting numpy
+  Downloading numpy-2.2.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (16.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.8/16.8 MB 62.3 MB/s eta 0:00:00
+Collecting toolz
+  Downloading toolz-1.0.0-py3-none-any.whl (56 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.4/56.4 KB 9.3 MB/s eta 0:00:00
+Collecting pytz>=2020.1
+  Downloading pytz-2025.2-py2.py3-none-any.whl (509 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 509.2/509.2 KB 60.2 MB/s eta 0:00:00
+Requirement already satisfied: six>=1.5 in /usr/lib/python3/dist-packages (from python-dateutil->pandas-market-calendars) (1.16.0)
+Installing collected packages: pytz, korean_lunar_calendar, tzdata, toolz, python-dateutil, pyluach, numpy, pandas, exchange-calendars, pandas-market-calendars
+Successfully installed exchange-calendars-4.11 korean_lunar_calendar-0.3.1 numpy-2.2.6 pandas-2.3.1 pandas-market-calendars-5.1.1 pyluach-2.2.0 python-dateutil-2.9.0.post0 pytz-2025.2 toolz-1.0.0 tzdata-2025.2
