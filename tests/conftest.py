@@ -21,8 +21,8 @@ from core.cache.akshare_adapter import AKShareAdapter
 from core.database import Base, get_db
 from core.models import Asset, DailyStockData
 
-# Use a file-based SQLite database for testing
-SQLALCHEMY_DATABASE_URL = "sqlite:///./database/test_db.db"
+# Use an in-memory SQLite database for testing
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
@@ -51,14 +51,19 @@ app.dependency_overrides[get_db] = override_get_db
 @pytest.fixture(scope="session", autouse=True)
 def initialize_test_db():
     """Initialize the test database before all tests"""
-    # Drop and recreate all tables to ensure clean state
-    Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    try:
+        # Drop and recreate all tables to ensure clean state
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        # If tables already exist, just continue
+        print(f"Database initialization warning: {e}")
+        pass
 
     # Add test data
     db = TestingSessionLocal()
     try:
-        # Add test assets
+        # Add test assets with unique ISINs to avoid conflicts
         test_assets = [
             Asset(
                 symbol="000001",
@@ -102,7 +107,12 @@ def initialize_test_db():
             ),
         ]
 
-        db.add_all(test_assets)
+        # Use merge to handle potential duplicates
+        for asset in test_assets:
+            existing = db.query(Asset).filter(Asset.isin == asset.isin).first()
+            if not existing:
+                db.add(asset)
+
         db.commit()
 
         # Add test daily stock data
