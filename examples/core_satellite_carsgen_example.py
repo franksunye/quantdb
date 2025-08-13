@@ -149,50 +149,67 @@ class CoreSatelliteStrategy:
     def prepare_data(self, data: pd.DataFrame) -> pd.DataFrame:
         """Prepare data with technical indicators."""
         df = data.copy()
-        
+
         # Calculate technical indicators
         df['ma21'] = self.indicators.calculate_ma(df['close'], 21)
         df['ma50'] = self.indicators.calculate_ma(df['close'], 50)
         df['rsi'] = self.indicators.calculate_rsi(df['close'])
         df['atr'] = self.indicators.calculate_atr(df['high'], df['low'], df['close'])
-        
+
         # Calculate returns
         df['returns'] = df['close'].pct_change()
-        
-        return df.dropna()
+
+        # Only drop rows where essential indicators are missing
+        # Keep rows where only some indicators are NaN (we'll handle this in signal generation)
+        df = df.dropna(subset=['close', 'high', 'low', 'volume'])
+
+        print(f"🔍 Data preparation: {len(data)} -> {len(df)} rows after cleaning")
+        print(f"🔍 MA21 valid from row: {df['ma21'].first_valid_index()}")
+        print(f"🔍 MA50 valid from row: {df['ma50'].first_valid_index()}")
+        print(f"🔍 RSI valid from row: {df['rsi'].first_valid_index()}")
+        print(f"🔍 ATR valid from row: {df['atr'].first_valid_index()}")
+
+        return df
     
     def generate_signals(self, df: pd.DataFrame, idx: int) -> Dict[str, bool]:
         """Generate trading signals based on technical analysis."""
         if idx < 50:  # Need enough data for indicators
             return {'buy': False, 'sell': False, 'core_buy': False}
-            
+
         current = df.iloc[idx]
         prev = df.iloc[idx-1]
-        
+
+        # Check if we have valid indicator values
+        if (pd.isna(current['ma21']) or pd.isna(current['ma50']) or
+            pd.isna(current['rsi']) or pd.isna(current['atr'])):
+            return {'buy': False, 'sell': False, 'core_buy': False}
+
         # Trend confirmation
         uptrend = current['ma21'] > current['ma50']
-        ma_cross_up = prev['ma21'] <= prev['ma50'] and current['ma21'] > current['ma50']
-        
+        ma_cross_up = (not pd.isna(prev['ma21']) and not pd.isna(prev['ma50']) and
+                       prev['ma21'] <= prev['ma50'] and current['ma21'] > current['ma50'])
+
         # Momentum signals
         rsi_oversold = current['rsi'] < 30
         rsi_overbought = current['rsi'] > 70
-        
+
         # Volume confirmation (simplified)
-        volume_surge = current['volume'] > df['volume'].rolling(20).mean().iloc[idx] * 1.5
-        
+        volume_ma = df['volume'].rolling(20).mean().iloc[idx]
+        volume_surge = not pd.isna(volume_ma) and current['volume'] > volume_ma * 1.5
+
         # Buy signals for satellite position
         buy_signal = (
-            uptrend and 
-            (ma_cross_up or rsi_oversold) and 
+            uptrend and
+            (ma_cross_up or rsi_oversold) and
             volume_surge
         )
-        
+
         # Sell signals
         sell_signal = rsi_overbought or not uptrend
-        
+
         # Core position signals (more conservative)
-        core_buy_signal = ma_cross_up and current['rsi'] > 40 and current['rsi'] < 60
-        
+        core_buy_signal = (ma_cross_up and current['rsi'] > 40 and current['rsi'] < 60)
+
         return {
             'buy': buy_signal,
             'sell': sell_signal,
@@ -245,12 +262,19 @@ class CoreSatelliteStrategy:
     
     def backtest(self, data: pd.DataFrame) -> Dict:
         """Run backtest simulation."""
+        print(f"🔍 Starting backtest with {len(data)} rows of data")
+
         df = self.prepare_data(data)
-        
+        print(f"🔍 After data preparation: {len(df)} rows (removed {len(data) - len(df)} rows due to indicators)")
+
+        if len(df) == 0:
+            print("❌ No data available after preparation")
+            return self.calculate_performance()
+
         for i in range(len(df)):
             current = df.iloc[i]
             signals = self.generate_signals(df, i)
-            
+
             # Core position management
             if signals['core_buy'] and self.position_manager.core_position == 0:
                 shares = self.position_manager.calculate_position_size(
@@ -258,7 +282,7 @@ class CoreSatelliteStrategy:
                 )
                 if shares > 0:
                     self.execute_trade('buy', shares, current['close'], 'core')
-            
+
             # Satellite position management
             if signals['buy'] and self.position_manager.satellite_position < self.position_manager.initial_capital * SATELLITE_RATIO / current['close']:
                 shares = self.position_manager.calculate_position_size(
@@ -266,63 +290,88 @@ class CoreSatelliteStrategy:
                 ) // 3  # 3-ladder entry
                 if shares > 0:
                     self.execute_trade('buy', shares, current['close'], 'satellite')
-            
+
             # Profit taking logic
             if self.position_manager.satellite_position > 0 and self.position_manager.entry_prices:
                 avg_entry = np.mean(self.position_manager.entry_prices)
                 profit_ratio = current['close'] / avg_entry
-                
+
                 for j, level in enumerate(PROFIT_LEVELS):
                     if profit_ratio >= level and not self.position_manager.profit_taken[j]:
                         sell_shares = int(self.position_manager.satellite_position * PROFIT_RATIOS[j])
                         if sell_shares > 0:
                             self.execute_trade('sell', sell_shares, current['close'], 'satellite')
                             self.position_manager.profit_taken[j] = True
-            
+
             # Record daily portfolio value
             portfolio = self.position_manager.get_portfolio_value(current['close'])
             portfolio['date'] = current['date'] if 'date' in current else i
             self.daily_values.append(portfolio)
-        
+
+        print(f"🔍 Backtest completed: {len(self.daily_values)} daily values, {len(self.trades)} trades")
         return self.calculate_performance()
     
     def calculate_performance(self) -> Dict:
         """Calculate strategy performance metrics."""
+        # Return default values if no daily values recorded
         if not self.daily_values:
-            return {}
-            
+            return {
+                'total_return_pct': 0.0,
+                'max_drawdown_pct': 0.0,
+                'sharpe_ratio': 0.0,
+                'win_rate_pct': 0.0,
+                'total_trades': 0,
+                'final_value': self.position_manager.initial_capital,
+                'core_allocation_pct': CORE_RATIO * 100,
+                'satellite_allocation_pct': SATELLITE_RATIO * 100
+            }
+
         values_df = pd.DataFrame(self.daily_values)
-        
+
+        # Ensure we have valid data
+        if len(values_df) == 0:
+            return {
+                'total_return_pct': 0.0,
+                'max_drawdown_pct': 0.0,
+                'sharpe_ratio': 0.0,
+                'win_rate_pct': 0.0,
+                'total_trades': 0,
+                'final_value': self.position_manager.initial_capital,
+                'core_allocation_pct': CORE_RATIO * 100,
+                'satellite_allocation_pct': SATELLITE_RATIO * 100
+            }
+
         # Calculate returns
         values_df['daily_return'] = values_df['total_value'].pct_change()
-        
+
         # Performance metrics
-        total_return = (values_df['total_value'].iloc[-1] / self.position_manager.initial_capital - 1) * 100
-        
+        final_value = values_df['total_value'].iloc[-1]
+        total_return = (final_value / self.position_manager.initial_capital - 1) * 100
+
         # Calculate max drawdown
         peak = values_df['total_value'].expanding().max()
         drawdown = (values_df['total_value'] - peak) / peak * 100
-        max_drawdown = drawdown.min()
-        
+        max_drawdown = drawdown.min() if len(drawdown) > 0 else 0.0
+
         # Calculate Sharpe ratio (simplified)
         daily_returns = values_df['daily_return'].dropna()
-        if len(daily_returns) > 0 and daily_returns.std() > 0:
+        if len(daily_returns) > 1 and daily_returns.std() > 0:
             sharpe_ratio = daily_returns.mean() / daily_returns.std() * np.sqrt(252)
         else:
-            sharpe_ratio = 0
-        
+            sharpe_ratio = 0.0
+
         # Win rate
         winning_trades = len([t for t in self.trades if t['action'] == 'sell'])
         total_trades = len([t for t in self.trades if t['action'] == 'buy'])
-        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
-        
+        win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0.0
+
         return {
             'total_return_pct': total_return,
             'max_drawdown_pct': max_drawdown,
             'sharpe_ratio': sharpe_ratio,
             'win_rate_pct': win_rate,
             'total_trades': total_trades,
-            'final_value': values_df['total_value'].iloc[-1],
+            'final_value': final_value,
             'core_allocation_pct': CORE_RATIO * 100,
             'satellite_allocation_pct': SATELLITE_RATIO * 100
         }
@@ -363,17 +412,29 @@ def main():
     strategy = CoreSatelliteStrategy(STOCK_SYMBOL, INITIAL_CAPITAL)
     
     print(f"\n🔄 Running backtest simulation...")
-    performance = strategy.backtest(stock_data)
-    
-    # Display results
-    print(f"\n📈 Strategy Performance Results:")
-    print("=" * 50)
-    print(f"📊 Total Return:     {performance['total_return_pct']:>8.2f}%")
-    print(f"📉 Max Drawdown:     {performance['max_drawdown_pct']:>8.2f}%")
-    print(f"⚡ Sharpe Ratio:     {performance['sharpe_ratio']:>8.2f}")
-    print(f"🎯 Win Rate:         {performance['win_rate_pct']:>8.1f}%")
-    print(f"🔄 Total Trades:     {performance['total_trades']:>8.0f}")
-    print(f"💰 Final Value:      HKD {performance['final_value']:>8,.0f}")
+    try:
+        performance = strategy.backtest(stock_data)
+
+        # Validate performance results
+        if not performance or 'total_return_pct' not in performance:
+            print("❌ Backtest failed to generate valid performance metrics")
+            print("💡 This might be due to insufficient data or strategy configuration issues")
+            return
+
+        # Display results
+        print(f"\n📈 Strategy Performance Results:")
+        print("=" * 50)
+        print(f"📊 Total Return:     {performance['total_return_pct']:>8.2f}%")
+        print(f"📉 Max Drawdown:     {performance['max_drawdown_pct']:>8.2f}%")
+        print(f"⚡ Sharpe Ratio:     {performance['sharpe_ratio']:>8.2f}")
+        print(f"🎯 Win Rate:         {performance['win_rate_pct']:>8.1f}%")
+        print(f"🔄 Total Trades:     {performance['total_trades']:>8.0f}")
+        print(f"💰 Final Value:      HKD {performance['final_value']:>8,.0f}")
+
+    except Exception as e:
+        print(f"❌ Error during backtesting: {e}")
+        print("💡 Please check the data quality and strategy parameters")
+        return
     
     print(f"\n📋 Strategy Configuration:")
     print(f"   🏛️ Core Allocation:      {performance['core_allocation_pct']:>6.1f}%")
