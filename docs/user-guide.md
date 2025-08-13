@@ -200,6 +200,8 @@ python examples/realtime.py
 python examples/stock_list.py
 python examples/finance.py
 python examples/cache_management.py
+python examples/hong_kong_indexes.py    # 🇭🇰 Hong Kong index demo
+python examples/multi_market_trading_calendar_demo.py  # Multi-market trading calendar
 ```
 
 Outputs depend on data source and time. For reproducibility, pin dates or rely on cache.
