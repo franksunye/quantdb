@@ -4,21 +4,34 @@
 
 ## 快速测试
 
+### 🤖 CI自动化测试 (Mock Only)
 ```bash
-# 运行核心业务逻辑测试
+# 运行核心业务逻辑测试 (Mock)
 python -m pytest tests/unit/ -v
 
-# 运行API服务测试
+# 运行API服务测试 (Mock)
 python -m pytest tests/api/ -v
 
-# 运行所有测试
-python -m pytest tests/ -v
+# 运行集成测试 (Mock)
+python -m pytest tests/integration/ -v
 
-# 带覆盖率报告
-python -m pytest tests/ --cov=core --cov=api --cov-report=html
+# 运行所有CI测试 (Mock Only)
+python scripts/test_coverage_ci.py --categories all --threshold 20
 
 # 架构合规性测试
 python scripts/run_architecture_tests.py
+```
+
+### 🧪 手动验证测试 (Real API)
+```bash
+# 性能测试 (真实AKShare API)
+python tests/performance/cache_performance_test.py
+
+# 端到端测试 (真实API调用)
+python tests/e2e/test_real_api_workflow.py
+
+# 实时API性能基准测试
+python tests/performance/realtime_api_benchmark.py
 ```
 
 ## 测试架构 (重构后)
@@ -27,13 +40,130 @@ python scripts/run_architecture_tests.py
 
 ```
 tests/
-├── unit/           # 核心业务逻辑单元测试
+├── unit/           # 核心业务逻辑单元测试 (Mock Only)
 │   ├── core/       # Core模块测试
 │   └── api/        # API层单元测试
-├── integration/    # 集成测试
-├── api/           # API端点测试
-├── e2e/           # 端到端测试
-└── performance/   # 性能测试
+├── integration/    # 集成测试 (Mock Only)
+├── api/           # API端点测试 (Mock Only)
+├── e2e/           # 端到端测试 (Real API - Manual Only)
+└── performance/   # 性能测试 (Real API - Manual Only)
+```
+
+### 🎯 测试策略分类
+
+| 测试类型 | Mock/Real | CI自动运行 | 手动运行 | 目的 |
+|---------|-----------|-----------|----------|------|
+| **单元测试** | Mock Only | ✅ | ✅ | 逻辑正确性 |
+| **集成测试** | Mock Only | ✅ | ✅ | 组件协作 |
+| **API测试** | Mock Only | ✅ | ✅ | 接口功能 |
+| **E2E测试** | Real API | ❌ | ✅ | 用户场景 |
+| **性能测试** | Real API | ❌ | ✅ | 性能基准 |
+
+## 🎯 测试策略详解
+
+### Mock测试策略 (CI自动化)
+
+**适用场景**:
+- ✅ GitHub Actions CI/CD
+- ✅ 开发者本地快速验证
+- ✅ 代码质量门禁检查
+- ✅ 单元测试和集成测试
+
+**优势**:
+- 🚀 **速度快**: 无网络延迟，测试秒级完成
+- 🔒 **稳定性**: 不依赖外部服务可用性
+- 💰 **成本低**: 避免大量API调用费用
+- 🔄 **可重复**: 结果一致，便于调试
+- 🧪 **隔离性**: 测试逻辑而非外部依赖
+
+**实现原则**:
+```python
+# ✅ 正确的Mock策略
+@patch("core.services.get_service_manager")
+@patch("qdb._get_client")
+def test_cache_stats(self, mock_client, mock_service_manager):
+    # Mock返回预期的数据结构
+    mock_stats = {"total_assets": 50, "total_data_points": 1000}
+    mock_client.return_value.cache_stats.return_value = mock_stats
+
+    result = qdb.cache_stats()
+    assert result["total_assets"] == 50
+```
+
+### Real API测试策略 (手动验证)
+
+**适用场景**:
+- 🧪 性能基准测试
+- 🔍 端到端用户场景验证
+- 📊 真实数据质量检查
+- 🚀 发布前最终验证
+
+**优势**:
+- 📈 **真实性能**: 获得实际性能指标
+- 🌐 **真实数据**: 验证数据质量和完整性
+- 👥 **用户体验**: 模拟真实用户场景
+- 🔍 **问题发现**: 发现Mock无法覆盖的问题
+
+**使用时机**:
+```bash
+# 🎯 发布前验证
+python tests/e2e/test_real_api_workflow.py
+
+# 📊 性能基准更新
+python tests/performance/cache_performance_test.py
+
+# 🔍 数据质量检查
+python tests/integration/test_real_data_quality.py
+```
+
+### CI/CD配置建议
+
+**GitHub Actions配置**:
+```yaml
+# .github/workflows/test.yml
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      # ✅ 只运行Mock测试
+      - name: Run Mock Tests (CI Safe)
+        run: |
+          python scripts/test_coverage_ci.py --categories all --threshold 20
+
+      - name: Architecture Compliance
+        run: |
+          python scripts/run_architecture_tests.py
+
+      # ❌ 不在CI中运行Real API测试
+      # - name: Real API Tests (Manual Only)
+      #   run: python tests/performance/cache_performance_test.py
+```
+
+**本地开发工作流**:
+```bash
+# 1. 开发阶段 - 快速Mock测试
+python -m pytest tests/unit/ -v
+
+# 2. 提交前 - 完整Mock测试
+python scripts/test_coverage_ci.py --categories all --threshold 20
+
+# 3. 发布前 - 手动Real API验证
+python tests/performance/cache_performance_test.py
+python tests/e2e/test_real_api_workflow.py
 ```
 
 ### 0. 架构合规性测试 🏗️
