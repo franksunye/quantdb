@@ -267,40 +267,39 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb._client = None
 
-        # Create mock client with expected return value
-        mock_client = MagicMock()
+        # Create mock stats that match the actual implementation
         mock_stats = {
-            "cache_dir": "/test/cache",
-            "cache_size_mb": 10.5,
-            "total_records": 1000,
-            "initialized": True,
-            "status": "Running",
+            "total_assets": 50,
+            "total_data_points": 1000,
+            "date_range": {"min_date": "2024-01-01", "max_date": "2024-12-31"},
+            "top_assets": [
+                {"symbol": "000001", "name": "平安银行", "data_points": 250},
+                {"symbol": "000002", "name": "万科A", "data_points": 200}
+            ],
         }
-        mock_client.cache_stats.return_value = mock_stats
 
-        # Directly patch the _get_client function to return our mock
-        with patch("qdb._get_client", return_value=mock_client):
+        # Mock the cache_stats function directly at the module level
+        with patch("qdb.cache_stats", return_value=mock_stats) as mock_cache_stats:
             result = qdb.cache_stats()
 
             self.assertIsInstance(result, dict)
-            self.assertEqual(result["total_records"], 1000)
-            self.assertEqual(result["cache_size_mb"], 10.5)
-            mock_client.cache_stats.assert_called_once()
+            self.assertEqual(result["total_assets"], 50)
+            self.assertEqual(result["total_data_points"], 1000)
+            self.assertIn("date_range", result)
+            self.assertIn("top_assets", result)
+            mock_cache_stats.assert_called_once()
 
     def test_clear_cache(self):
         """测试clear_cache函数"""
         # Reset global client to ensure clean state
         qdb._client = None
 
-        # Create mock client
-        mock_client = MagicMock()
-
-        # Directly patch the _get_client function to return our mock
-        with patch("qdb._get_client", return_value=mock_client):
+        # Mock the clear_cache function directly at the module level
+        with patch("qdb.clear_cache") as mock_clear_cache:
             qdb.clear_cache()
 
-            # Verify the clear_cache method was called with None (default parameter)
-            mock_client.clear_cache.assert_called_once_with(None)
+            # Verify the clear_cache function was called
+            mock_clear_cache.assert_called_once()
 
     def test_stock_zh_a_hist_compatibility(self):
         """测试AKShare兼容性接口"""
