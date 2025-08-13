@@ -30,14 +30,15 @@ class Market(Enum):
         # Clean up symbol
         symbol = symbol.upper().strip()
 
-        if symbol.startswith(('0', '3')):  # Shenzhen
-            return cls.CHINA_A
-        elif symbol.startswith(('6')):  # Shanghai
-            return cls.CHINA_A
+        # Check Hong Kong stocks first (5-digit codes)
+        if len(symbol) == 5 and symbol.isdigit():  # 5-digit Hong Kong code
+            return cls.HONG_KONG
         elif symbol.startswith(('HK.', 'HK')):  # Hong Kong with HK prefix
             return cls.HONG_KONG
-        elif len(symbol) == 5 and symbol.isdigit():  # 5-digit Hong Kong code
-            return cls.HONG_KONG
+        elif symbol.startswith(('0', '3')):  # Shenzhen A-shares
+            return cls.CHINA_A
+        elif symbol.startswith(('6')):  # Shanghai A-shares
+            return cls.CHINA_A
         else:
             # Default to China A-shares for backward compatibility
             return cls.CHINA_A
