@@ -39,6 +39,13 @@ class TestQDBClient(unittest.TestCase):
         from qdb.client import reset_lightweight_client
         reset_lightweight_client()
 
+        # 重置core服务管理器状态
+        try:
+            from core.services.service_manager import reset_service_manager
+            reset_service_manager()
+        except ImportError:
+            pass  # 如果core模块不可用，忽略
+
     def tearDown(self):
         """清理测试环境"""
         if os.path.exists(self.temp_dir):
@@ -48,6 +55,13 @@ class TestQDBClient(unittest.TestCase):
         qdb._client = None
         from qdb.client import reset_lightweight_client
         reset_lightweight_client()
+
+        # 重置core服务管理器状态
+        try:
+            from core.services.service_manager import reset_service_manager
+            reset_service_manager()
+        except ImportError:
+            pass  # 如果core模块不可用，忽略
 
     def test_init_function(self):
         """测试init函数"""
@@ -278,12 +292,22 @@ class TestQDBClient(unittest.TestCase):
             ],
         }
 
+        # Create mock service manager
+        mock_service_manager = MagicMock()
+        mock_service_manager.get_cache_stats.return_value = mock_stats
+
         # Create mock client with cache_stats method
         mock_client = MagicMock()
         mock_client.cache_stats.return_value = mock_stats
+        mock_client._get_service_manager.return_value = mock_service_manager
 
-        # Mock the _get_client function to return our mock client
-        with patch("qdb._get_client", return_value=mock_client):
+        # Use comprehensive patches to ensure complete isolation
+        with patch("qdb._get_client", return_value=mock_client), \
+             patch("qdb.client.get_lightweight_client", return_value=mock_client), \
+             patch("qdb.client._get_service_manager", return_value=mock_service_manager), \
+             patch("core.services.get_service_manager", return_value=mock_service_manager), \
+             patch.object(qdb, "_client", mock_client):
+
             result = qdb.cache_stats()
 
             self.assertIsInstance(result, dict)
@@ -298,11 +322,20 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb._client = None
 
+        # Create mock service manager
+        mock_service_manager = MagicMock()
+
         # Create mock client
         mock_client = MagicMock()
+        mock_client._get_service_manager.return_value = mock_service_manager
 
-        # Mock the _get_client function to return our mock client
-        with patch("qdb._get_client", return_value=mock_client):
+        # Use comprehensive patches to ensure complete isolation
+        with patch("qdb._get_client", return_value=mock_client), \
+             patch("qdb.client.get_lightweight_client", return_value=mock_client), \
+             patch("qdb.client._get_service_manager", return_value=mock_service_manager), \
+             patch("core.services.get_service_manager", return_value=mock_service_manager), \
+             patch.object(qdb, "_client", mock_client):
+
             qdb.clear_cache()
 
             # Verify the clear_cache method was called with None (default parameter)
@@ -374,12 +407,22 @@ class TestQDBClient(unittest.TestCase):
         # Reset global client to ensure clean state
         qdb._client = None
 
+        # Create mock service manager that raises an exception
+        mock_service_manager = MagicMock()
+        mock_service_manager.get_stock_data_service.side_effect = Exception("API error")
+
         # Create mock client that raises an exception
         mock_client = MagicMock()
         mock_client.get_stock_data.side_effect = Exception("API error")
+        mock_client._get_service_manager.return_value = mock_service_manager
 
-        # Directly patch the _get_client function to return our mock
-        with patch("qdb._get_client", return_value=mock_client):
+        # Use comprehensive patches to ensure complete isolation
+        with patch("qdb._get_client", return_value=mock_client), \
+             patch("qdb.client.get_lightweight_client", return_value=mock_client), \
+             patch("qdb.client._get_service_manager", return_value=mock_service_manager), \
+             patch("core.services.get_service_manager", return_value=mock_service_manager), \
+             patch.object(qdb, "_client", mock_client):
+
             # API调用失败时，应该抛出异常
             with self.assertRaises(Exception) as context:
                 qdb.get_stock_data("000001")
