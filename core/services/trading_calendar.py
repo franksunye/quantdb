@@ -84,12 +84,25 @@ class TradingCalendar:
             if not os.path.exists(self.cache_file):
                 return False
 
-            # Check if cache file is expired (older than 7 days)
+            # Check if cache file is expired
             cache_age = datetime.now() - datetime.fromtimestamp(
                 os.path.getmtime(self.cache_file)
             )
-            if cache_age > timedelta(days=7):
-                logger.info("Multi-market trading calendar cache has expired, need to refresh")
+
+            # More intelligent cache expiration:
+            # - 30 days for normal usage (trading calendars don't change often)
+            # - But refresh if we're in a new year (new holidays might be added)
+            cache_expiry_days = 30
+            current_year = datetime.now().year
+
+            # Check if cache was created in a different year
+            cache_year = datetime.fromtimestamp(os.path.getmtime(self.cache_file)).year
+            if cache_year < current_year:
+                logger.info(f"Trading calendar cache is from {cache_year}, refreshing for {current_year}")
+                return False
+
+            if cache_age > timedelta(days=cache_expiry_days):
+                logger.info(f"Multi-market trading calendar cache has expired ({cache_age.days} days old), need to refresh")
                 return False
 
             with open(self.cache_file, "rb") as f:
@@ -156,9 +169,10 @@ class TradingCalendar:
             calendar_code = self._calendar_codes[market]
             cal = mcal.get_calendar(calendar_code)
 
-            # Get trading days for the past 5 years and next 2 years
+            # Get trading days for the past 5 years and next 3 years
+            # This ensures we have enough future data for long-term backtesting
             start_date = datetime.now() - timedelta(days=5*365)
-            end_date = datetime.now() + timedelta(days=2*365)
+            end_date = datetime.now() + timedelta(days=3*365)
 
             schedule = cal.schedule(
                 start_date=start_date.strftime('%Y-%m-%d'),
@@ -321,6 +335,16 @@ class TradingCalendar:
 
     def get_calendar_info(self, market: Optional[Market] = None) -> dict:
         """Get trading calendar information for specific market or all markets"""
+        # Get cache file info
+        cache_exists = os.path.exists(self.cache_file)
+        cache_age_days = None
+        cache_year = None
+
+        if cache_exists:
+            cache_mtime = datetime.fromtimestamp(os.path.getmtime(self.cache_file))
+            cache_age_days = (datetime.now() - cache_mtime).days
+            cache_year = cache_mtime.year
+
         if market:
             trading_dates = self._trading_dates.get(market, set())
             last_update = self._last_update.get(market)
@@ -329,6 +353,9 @@ class TradingCalendar:
                 "total_trading_days": len(trading_dates),
                 "last_update": last_update,
                 "cache_file": self.cache_file,
+                "cache_exists": cache_exists,
+                "cache_age_days": cache_age_days,
+                "cache_year": cache_year,
                 "is_fallback_mode": len(trading_dates) == 0,
             }
         else:
@@ -339,6 +366,10 @@ class TradingCalendar:
                 "total_trading_days": total_days,
                 "last_update": dict(self._last_update),
                 "cache_file": self.cache_file,
+                "cache_exists": cache_exists,
+                "cache_age_days": cache_age_days,
+                "cache_year": cache_year,
+                "current_year": datetime.now().year,
                 "market_details": {
                     market.value: {
                         "trading_days": len(dates),

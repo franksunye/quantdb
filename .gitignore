@@ -35,6 +35,9 @@ logs/
 data/raw/
 data/processed/
 
+# Trading calendar cache (generated dynamically)
+data/trading_calendar_cache.pkl
+
 # Temporary files
 *.tmp
 *.bak

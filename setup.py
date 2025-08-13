@@ -61,7 +61,7 @@ extras_require = {
 setup(
     # Basic information
     name="quantdb",
-    version="2.2.12",
+    version="2.2.13",
     author="Ye Sun",
     author_email="franksunye@hotmail.com",
     description="Intelligent caching wrapper for AKShare with 90%+ performance boost - 100% English codebase (import as 'qdb')",
