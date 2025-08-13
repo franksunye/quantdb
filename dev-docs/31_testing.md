@@ -15,8 +15,8 @@ python -m pytest tests/api/ -v
 # 运行集成测试 (Mock)
 python -m pytest tests/integration/ -v
 
-# 运行所有CI测试 (Mock Only)
-python scripts/test_coverage_ci.py --categories all --threshold 20
+# 运行所有CI安全测试 (Mock Only)
+python scripts/test_coverage_ci.py --categories ci_safe --threshold 20
 
 # 架构合规性测试
 python scripts/run_architecture_tests.py
@@ -24,14 +24,14 @@ python scripts/run_architecture_tests.py
 
 ### 🧪 手动验证测试 (Real API)
 ```bash
-# 性能测试 (真实AKShare API)
-python tests/performance/cache_performance_test.py
+# 性能测试 (真实AKShare API) - 手动运行
+python scripts/test_manual_real_api.py --performance
 
-# 端到端测试 (真实API调用)
-python tests/e2e/test_real_api_workflow.py
+# 端到端测试 (真实API调用) - 手动运行
+python scripts/test_manual_real_api.py --e2e
 
-# 实时API性能基准测试
-python tests/performance/realtime_api_benchmark.py
+# 所有真实API测试 - 手动运行
+python scripts/test_manual_real_api.py --all
 ```
 
 ## 测试架构 (重构后)

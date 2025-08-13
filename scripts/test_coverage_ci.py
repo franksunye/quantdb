@@ -34,6 +34,7 @@ def ensure_directories():
 def get_test_categories():
     """Define test categories with different stability levels."""
     return {
+        # ✅ CI-Safe Tests (Mock Only) - Run in GitHub Actions
         "core": [
             "tests/unit/test_qdb_init.py",
             "tests/unit/test_qdb_exceptions.py",
@@ -65,8 +66,19 @@ def get_test_categories():
             "tests/api/test_version_api.py",
         ],
         "integration": [
+            # Only Mock-based integration tests
             "tests/integration/test_qdb_api_integration.py",
             "tests/integration/test_stock_data_flow.py",
+        ],
+
+        # ❌ Manual-Only Tests (Real API) - DO NOT run in CI
+        "performance_real": [
+            "tests/performance/test_real_cache_performance.py",
+            "tests/performance/test_cache_value_scenarios.py",
+        ],
+        "e2e_real": [
+            "tests/e2e/test_real_user_scenarios.py",
+            "tests/e2e/test_user_scenarios.py",
         ]
     }
 
@@ -201,9 +213,10 @@ def main():
     parser.add_argument(
         "--categories",
         nargs="+",
-        choices=["core", "services", "infrastructure", "models", "api", "integration", "all"],
+        choices=["core", "services", "infrastructure", "models", "api", "integration",
+                "performance_real", "e2e_real", "all", "ci_safe"],
         default=["core"],
-        help="Test categories to run (default: core)"
+        help="Test categories to run (default: core). Use 'ci_safe' for CI-safe tests only."
     )
 
     parser.add_argument(
@@ -239,7 +252,20 @@ def main():
         # Determine test categories
         test_categories = args.categories
         if "all" in test_categories:
+            # Include ALL tests (including Real API) - Use with caution!
+            test_categories = ["core", "services", "infrastructure", "models", "api", "integration", "performance_real", "e2e_real"]
+            print("⚠️  WARNING: 'all' includes Real API tests! Use 'ci_safe' for CI environments.")
+        elif "ci_safe" in test_categories:
+            # Only CI-safe Mock tests
             test_categories = ["core", "services", "infrastructure", "models", "api", "integration"]
+            print("✅ Using CI-safe tests only (Mock-based)")
+
+        # Warn about Real API tests
+        real_api_categories = ["performance_real", "e2e_real"]
+        if any(cat in test_categories for cat in real_api_categories):
+            print("🚨 WARNING: Real API tests detected! These should NOT run in CI.")
+            print("   Real API tests: performance_real, e2e_real")
+            print("   Use --categories ci_safe for CI environments.")
 
         print(f"🎯 Running test categories: {', '.join(test_categories)}")
 
