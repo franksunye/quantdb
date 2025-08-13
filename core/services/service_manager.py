@@ -10,18 +10,19 @@ initialization logic, achieving 90%+ code reuse as specified in the architecture
 
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
 
 from ..cache.akshare_adapter import AKShareAdapter
 from ..database.connection import Base, engine, get_db
 from ..utils.logger import logger
-from .stock_data_service import StockDataService
 from .asset_info_service import AssetInfoService
-from .realtime_data_service import RealtimeDataService
-from .index_data_service import IndexDataService
-from .financial_data_service import FinancialDataService
 from .database_cache import DatabaseCache
+from .financial_data_service import FinancialDataService
+from .index_data_service import IndexDataService
+from .realtime_data_service import RealtimeDataService
+from .stock_data_service import StockDataService
 
 
 class ServiceManager:

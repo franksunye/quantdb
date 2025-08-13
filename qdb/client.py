@@ -60,7 +60,7 @@ class LightweightQDBClient:
             service_manager_factory = _get_service_manager()
             if self._cache_dir:
                 # Reset and create with specific cache_dir
-                from core.services import reset_service_manager, get_service_manager
+                from core.services import get_service_manager, reset_service_manager
 
                 reset_service_manager()
                 self._service_manager = get_service_manager(cache_dir=self._cache_dir)

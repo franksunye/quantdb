@@ -6,9 +6,9 @@ Run tests that validate the architecture refactor without requiring
 external dependencies like pandas, akshare, etc.
 """
 
-import sys
-import subprocess
 import os
+import subprocess
+import sys
 from pathlib import Path
 
 # Add project root to path

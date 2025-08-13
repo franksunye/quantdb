@@ -24,10 +24,11 @@ from unittest.mock import MagicMock, call, patch
 # 添加项目根目录到路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
-from qdb.exceptions import CacheError, DataError, QDBError
-
 # Skip all tests in this file since the module no longer exists
 import pytest
+
+from qdb.exceptions import CacheError, DataError, QDBError
+
 pytestmark = pytest.mark.skip(reason="DEPRECATED: simple_client module no longer exists")
 
 # Import the replacement class to avoid flake8 errors

@@ -204,6 +204,7 @@ class TestDataIntegrity(unittest.TestCase):
     def test_data_model_constraints(self):
         """Test data model constraints and validation."""
         from datetime import date
+
         from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
 
@@ -420,8 +421,9 @@ class TestPackageReadiness(unittest.TestCase):
     
     def test_production_readiness_checklist(self):
         """Test production readiness checklist."""
-        from api.main import app
         from fastapi.testclient import TestClient
+
+        from api.main import app
 
         # Create a new test client with the full app
         full_client = TestClient(app)
