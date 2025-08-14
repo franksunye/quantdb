@@ -1,0 +1,434 @@
+{
+  "package_info": {
+    "name": "quantdb",
+    "import_name": "qdb",
+    "version": "2.2.8",
+    "description": "Intelligent caching wrapper for AKShare, providing high-performance stock data access",
+    "installation": "pip install quantdb"
+  },
+  "functions": [
+    {
+      "name": "get_stock_data",
+      "description": "Get historical stock data with intelligent caching for Chinese A-shares",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "6-digit stock symbol. Shanghai: 600000-699999, Shenzhen: 000000-399999",
+            "examples": ["000001", "600000", "300001"]
+          },
+          "start_date": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$",
+            "description": "Start date in YYYYMMDD format, must be valid trading date",
+            "examples": ["20240101", "20231201"]
+          },
+          "end_date": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$", 
+            "description": "End date in YYYYMMDD format, must be >= start_date",
+            "examples": ["20240201", "20231231"]
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "description": "Number of recent trading days to fetch, mutually exclusive with date range"
+          },
+          "adjust": {
+            "type": "string",
+            "enum": ["", "qfq", "hfq"],
+            "default": "",
+            "description": "Price adjustment: '' (none), 'qfq' (forward), 'hfq' (backward)"
+          }
+        },
+        "required": ["symbol"],
+        "mutually_exclusive": [["days"], ["start_date", "end_date"]]
+      },
+      "returns": {
+        "type": "pandas.DataFrame",
+        "description": "Historical stock data",
+        "columns": {
+          "date": {"type": "datetime", "description": "Trading date"},
+          "open": {"type": "float", "description": "Opening price"},
+          "high": {"type": "float", "description": "Highest price"},
+          "low": {"type": "float", "description": "Lowest price"},
+          "close": {"type": "float", "description": "Closing price"},
+          "volume": {"type": "int", "description": "Trading volume"},
+          "amount": {"type": "float", "description": "Trading amount"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol format or date parameters"},
+        {"type": "NetworkError", "condition": "Unable to fetch data from AKShare"},
+        {"type": "CacheError", "condition": "Local cache operations fail"},
+        {"type": "DataError", "condition": "Returned data is empty or malformed"}
+      ],
+      "examples": [
+        {
+          "description": "Get last 30 days",
+          "code": "df = qdb.get_stock_data('000001', days=30)"
+        },
+        {
+          "description": "Get date range",
+          "code": "df = qdb.get_stock_data('600000', start_date='20240101', end_date='20240201')"
+        }
+      ]
+    },
+    {
+      "name": "get_realtime_data",
+      "description": "Get real-time stock quote data",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "6-digit stock symbol",
+            "examples": ["000001", "600000"]
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": ["symbol"]
+      },
+      "returns": {
+        "type": "dict",
+        "description": "Real-time stock data",
+        "properties": {
+          "symbol": {"type": "string", "description": "Stock symbol"},
+          "name": {"type": "string", "description": "Stock name in Chinese"},
+          "current_price": {"type": "float", "description": "Current trading price"},
+          "change": {"type": "float", "description": "Price change from previous close"},
+          "change_percent": {"type": "float", "description": "Percentage change"},
+          "volume": {"type": "int", "description": "Current day trading volume"},
+          "amount": {"type": "float", "description": "Current day trading amount"},
+          "high": {"type": "float", "description": "Day's highest price"},
+          "low": {"type": "float", "description": "Day's lowest price"},
+          "open": {"type": "float", "description": "Opening price"},
+          "previous_close": {"type": "float", "description": "Previous close price"},
+          "timestamp": {"type": "string", "description": "Data timestamp in ISO format"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol format"},
+        {"type": "NetworkError", "condition": "Unable to fetch real-time data"},
+        {"type": "DataError", "condition": "Returned data is incomplete"}
+      ]
+    },
+    {
+      "name": "get_stock_list",
+      "description": "Get complete stock list with market filtering",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "market": {
+            "type": "string",
+            "enum": ["SHSE", "SZSE", "HKEX", null],
+            "default": null,
+            "description": "Market filter: 'SHSE' (Shanghai), 'SZSE' (Shenzhen), 'HKEX' (Hong Kong), null (all)"
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass daily cache and fetch fresh data"
+          }
+        },
+        "required": []
+      },
+      "returns": {
+        "type": "list",
+        "description": "List of stock information dictionaries",
+        "item_schema": {
+          "type": "dict",
+          "properties": {
+            "symbol": {"type": "string", "description": "Stock symbol"},
+            "name": {"type": "string", "description": "Stock name"},
+            "market": {"type": "string", "description": "Market code"},
+            "industry": {"type": "string", "description": "Industry classification"},
+            "list_date": {"type": "string", "description": "Listing date"}
+          }
+        }
+      }
+    },
+    {
+      "name": "cache_stats",
+      "description": "Get cache statistics and performance metrics",
+      "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "returns": {
+        "type": "dict",
+        "description": "Cache statistics",
+        "properties": {
+          "total_records": {"type": "int", "description": "Total cached records"},
+          "cache_size_mb": {"type": "float", "description": "Cache size in MB"},
+          "hit_rate": {"type": "float", "description": "Cache hit rate percentage"},
+          "last_updated": {"type": "string", "description": "Last cache update timestamp"},
+          "symbols_cached": {"type": "int", "description": "Number of unique symbols cached"}
+        }
+      }
+    },
+    {
+      "name": "get_financial_summary",
+      "description": "Get comprehensive financial summary data for a stock with intelligent caching",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "6-digit stock symbol",
+            "examples": ["000001", "600000", "300001"]
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": ["symbol"]
+      },
+      "returns": {
+        "type": "dict",
+        "description": "Financial summary data",
+        "properties": {
+          "symbol": {"type": "string", "description": "Stock symbol"},
+          "data_type": {"type": "string", "description": "Always 'financial_summary'"},
+          "quarters": {
+            "type": "array",
+            "description": "List of quarterly financial data",
+            "items": {
+              "type": "dict",
+              "properties": {
+                "period": {"type": "string", "description": "Quarter period (YYYYMMDD)"},
+                "net_profit": {"type": "float", "description": "Net profit in 亿元"},
+                "total_revenue": {"type": "float", "description": "Total revenue in 亿元"},
+                "operating_cost": {"type": "float", "description": "Operating costs in 亿元"},
+                "roe": {"type": "float", "description": "Return on Equity percentage"},
+                "roa": {"type": "float", "description": "Return on Assets percentage"}
+              }
+            }
+          },
+          "count": {"type": "int", "description": "Number of quarters included"},
+          "timestamp": {"type": "string", "description": "Data retrieval timestamp"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol format"},
+        {"type": "NetworkError", "condition": "Unable to fetch financial data"},
+        {"type": "DataError", "condition": "Financial data is empty or malformed"}
+      ]
+    },
+    {
+      "name": "get_financial_indicators",
+      "description": "Get comprehensive financial indicators and ratios for detailed analysis",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[0-9]{6}$",
+            "description": "6-digit stock symbol",
+            "examples": ["000001", "600000", "300001"]
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": ["symbol"]
+      },
+      "returns": {
+        "type": "dict",
+        "description": "Financial indicators data",
+        "properties": {
+          "symbol": {"type": "string", "description": "Stock symbol"},
+          "data_type": {"type": "string", "description": "Always 'financial_indicators'"},
+          "data_shape": {"type": "string", "description": "Shape of raw data (e.g., '98x86')"},
+          "columns": {"type": "array", "description": "Sample of available indicator columns"},
+          "sample_data": {"type": "array", "description": "Sample rows of indicator data"},
+          "timestamp": {"type": "string", "description": "Data retrieval timestamp"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol format"},
+        {"type": "NetworkError", "condition": "Unable to fetch financial indicators"},
+        {"type": "DataError", "condition": "Indicators data is empty or malformed"}
+      ]
+    },
+    {
+      "name": "get_index_data",
+      "description": "Get historical index data with intelligent caching and multiple frequencies",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Index symbol in standard format",
+            "examples": ["000001", "399001", "399006", "000300", "000905"]
+          },
+          "start_date": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$",
+            "description": "Start date in YYYYMMDD format",
+            "examples": ["20240101"]
+          },
+          "end_date": {
+            "type": "string",
+            "pattern": "^[0-9]{8}$",
+            "description": "End date in YYYYMMDD format",
+            "examples": ["20240201"]
+          },
+          "period": {
+            "type": "string",
+            "enum": ["daily", "weekly", "monthly"],
+            "default": "daily",
+            "description": "Data frequency: 'daily', 'weekly', 'monthly'"
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": ["symbol"]
+      },
+      "returns": {
+        "type": "pandas.DataFrame",
+        "description": "Historical index data",
+        "columns": {
+          "date": {"type": "datetime", "description": "Trading date"},
+          "open": {"type": "float", "description": "Opening index value"},
+          "high": {"type": "float", "description": "Highest index value"},
+          "low": {"type": "float", "description": "Lowest index value"},
+          "close": {"type": "float", "description": "Closing index value"},
+          "volume": {"type": "int", "description": "Trading volume (if applicable)"},
+          "amount": {"type": "float", "description": "Trading amount (if applicable)"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol or period"},
+        {"type": "NetworkError", "condition": "Unable to fetch index data"},
+        {"type": "DataError", "condition": "Index data is empty or malformed"}
+      ]
+    },
+    {
+      "name": "get_index_realtime",
+      "description": "Get real-time index data with current market status and performance metrics",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "Index symbol in standard format",
+            "examples": ["000001", "399001", "399006", "000300"]
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": ["symbol"]
+      },
+      "returns": {
+        "type": "dict",
+        "description": "Real-time index data",
+        "properties": {
+          "symbol": {"type": "string", "description": "Index symbol"},
+          "name": {"type": "string", "description": "Index name in Chinese"},
+          "current_value": {"type": "float", "description": "Current index value"},
+          "change": {"type": "float", "description": "Point change from previous close"},
+          "change_percent": {"type": "float", "description": "Percentage change"},
+          "previous_close": {"type": "float", "description": "Previous close value"},
+          "open": {"type": "float", "description": "Opening value"},
+          "high": {"type": "float", "description": "Highest value"},
+          "low": {"type": "float", "description": "Lowest value"},
+          "timestamp": {"type": "string", "description": "Data timestamp"},
+          "market_status": {"type": "string", "description": "Market status"}
+        }
+      },
+      "exceptions": [
+        {"type": "ValueError", "condition": "Invalid symbol format"},
+        {"type": "NetworkError", "condition": "Unable to fetch real-time index data"},
+        {"type": "DataError", "condition": "Index data is incomplete"}
+      ]
+    },
+    {
+      "name": "get_index_list",
+      "description": "Get comprehensive list of market indices with category filtering",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": ["沪深重要指数", "上证系列指数", "深证系列指数", "中证系列指数", "行业指数", "主题指数", "风格指数", null],
+            "default": null,
+            "description": "Index category filter, null for all indices"
+          },
+          "force_refresh": {
+            "type": "boolean",
+            "default": false,
+            "description": "If true, bypass cache and fetch fresh data"
+          }
+        },
+        "required": []
+      },
+      "returns": {
+        "type": "list",
+        "description": "List of index information",
+        "item_schema": {
+          "type": "dict",
+          "properties": {
+            "symbol": {"type": "string", "description": "Index symbol"},
+            "name": {"type": "string", "description": "Index name in Chinese"},
+            "category": {"type": "string", "description": "Index category"},
+            "exchange": {"type": "string", "description": "Exchange code"},
+            "launch_date": {"type": "string", "description": "Index launch date"},
+            "constituent_count": {"type": "int", "description": "Number of constituents"}
+          }
+        }
+      },
+      "exceptions": [
+        {"type": "NetworkError", "condition": "Unable to fetch index list"},
+        {"type": "DataError", "condition": "Index list data is malformed"},
+        {"type": "ValueError", "condition": "Invalid category parameter"}
+      ]
+    }
+  ],
+  "usage_patterns": [
+    {
+      "name": "Basic stock data retrieval",
+      "code": "import qdb\ndf = qdb.get_stock_data('000001', days=30)\nprint(f'Retrieved {len(df)} records')"
+    },
+    {
+      "name": "Batch processing multiple stocks",
+      "code": "symbols = ['000001', '000002', '600000']\ndata = qdb.get_multiple_stocks(symbols, days=30)\nfor symbol, df in data.items():\n    print(f'{symbol}: {len(df)} records')"
+    },
+    {
+      "name": "Real-time monitoring",
+      "code": "realtime = qdb.get_realtime_data('000001')\nprint(f\"{realtime['name']}: {realtime['current_price']}\")"
+    }
+  ],
+  "error_handling": {
+    "common_patterns": [
+      {
+        "scenario": "Invalid symbol format",
+        "code": "try:\n    df = qdb.get_stock_data('INVALID')\nexcept ValueError as e:\n    print(f'Invalid symbol: {e}')"
+      },
+      {
+        "scenario": "Network issues",
+        "code": "try:\n    df = qdb.get_stock_data('000001')\nexcept NetworkError as e:\n    print(f'Network error: {e}')\n    # Fallback to cached data if available"
+      }
+    ]
+  }
+}
