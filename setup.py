@@ -26,12 +26,12 @@ def read_requirements(filename):
 
 # Basic dependencies
 install_requires = [
-    "pandas>=1.3.0",
-    "numpy>=1.20.0",
+    "pandas>=1.3.0,<2.3.0",
+    "numpy>=1.20.0,<2.0.0",
     "akshare>=1.0.0",
     "pandas-market-calendars>=4.0.0",
     "sqlalchemy>=1.4.0",
-    "tenacity>=8.2.3,!=8.4.0",  # Removed upper bound for better compatibility
+    "tenacity>=8.2.3,<9.0.0,!=8.4.0",  # Restored upper bound for NumPy compatibility
     "python-dateutil>=2.8.0",
     "beautifulsoup4>=4.12.3",  # Explicit version to avoid conflicts
 ]
